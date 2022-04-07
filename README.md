@@ -1,3 +1,3 @@
-# fbognini.Core
+# fbognini
 
 Work in progess
