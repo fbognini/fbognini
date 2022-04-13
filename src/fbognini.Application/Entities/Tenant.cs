@@ -11,10 +11,9 @@ namespace fbognini.Application.Entities
         {
         }
 
-        public Tenant(string id, string name, string? connectionString, string adminEmail, string? issuer = null)
+        public Tenant(string identifier, string name, string connectionString, string adminEmail, string issuer = null)
         {
-            Id = id;
-            Identifier = id;
+            Identifier = identifier;
             Name = name;
             ConnectionString = connectionString ?? string.Empty;
             AdminEmail = adminEmail;
@@ -28,10 +27,10 @@ namespace fbognini.Application.Entities
         /// <summary>
         /// The actual TenantId, which is also used in the TenantId shadow property on the multitenant entities.
         /// </summary>
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
         /// <summary>
-        /// The identifier that is used in headers/routes/querystrings. This is set to the same as Id to avoid confusion.
+        /// The identifier that is used in headers/routes/querystrings.
         /// </summary>
         public string Identifier { get; set; } = default!;
 
@@ -45,7 +44,7 @@ namespace fbognini.Application.Entities
         /// <summary>
         /// Used by AzureAd Authorization to store the AzureAd Tenant Issuer to map against.
         /// </summary>
-        public string? Issuer { get; set; }
+        public string Issuer { get; set; }
 
         public void AddValidity(int months) =>
             ValidUpto = ValidUpto.AddMonths(months);
@@ -75,7 +74,7 @@ namespace fbognini.Application.Entities
             IsActive = false;
         }
 
-        string ITenantInfo.Id { get => Id; set => Id = value ?? throw new InvalidOperationException("Id can't be null."); }
+        string ITenantInfo.Id { get => Id.ToString(); set => Id = value ?? throw new InvalidOperationException("Id can't be null."); }
         string ITenantInfo.Identifier { get => Identifier; set => Identifier = value ?? throw new InvalidOperationException("Identifier can't be null."); }
         string ITenantInfo.Name { get => Name; set => Name = value ?? throw new InvalidOperationException("Name can't be null."); }
         string ITenantInfo.ConnectionString { get => ConnectionString; set => ConnectionString = value ?? throw new InvalidOperationException("ConnectionString can't be null."); }

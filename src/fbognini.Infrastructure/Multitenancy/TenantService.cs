@@ -67,7 +67,7 @@ public class TenantService : ITenantService
     {
         if (request.ConnectionString?.Trim() == _dbSettings.ConnectionString?.Trim()) request.ConnectionString = string.Empty;
 
-        var tenant = new Tenant(request.Id, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer);
+        var tenant = new Tenant(request.Identifier, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer);
         await _tenantStore.TryAddAsync(tenant);
 
         // TODO: run this in a hangfire job? will then have to send mail when it's ready or not
@@ -77,11 +77,11 @@ public class TenantService : ITenantService
         }
         catch
         {
-            await _tenantStore.TryRemoveAsync(request.Id);
+            await _tenantStore.TryRemoveAsync(request.Identifier);
             throw;
         }
 
-        return tenant.Id;
+        return tenant.Id.ToString();
     }
 
     public async Task<string> ActivateAsync(string id)
