@@ -10,27 +10,40 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-namespace fbognini.Core.DependencyInjection
+namespace fbognini.Application.DependencyInjection
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddApplication(this IServiceCollection services)
+        public static IServiceCollection AddApplication(this IServiceCollection services, Assembly assembly = null)
         {
+            if (assembly == null)
+            {
+                assembly = Assembly.GetExecutingAssembly();
+            }
+
             services.AddAutoMapper(config =>
             {
-                config.AddCustomMappingProfile(Assembly.GetExecutingAssembly());
+                config.AddCustomMappingProfile(assembly);
             });
 
-            //services.AddMediatR(Assembly.GetExecutingAssembly());
-            //services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+            services.AddMediatR(assembly);
+            services.AddMediatRBehaviors();
+            services.AddValidatorsFromAssembly(assembly);
 
             return services;
         }
 
-        public static IServiceCollection AddMediatRBehaviors(this IServiceCollection services)
+        public static IServiceCollection AddMediatRBehaviors(this IServiceCollection services, bool logging = true, bool validation = false)
         {
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
-            services.AddTransient(typeof(IRequestPreProcessor<>), typeof(RequestLogger<>));
+            if (logging)
+            {
+                services.AddTransient(typeof(IRequestPreProcessor<>), typeof(RequestLogger<>));
+            }
+
+            if (validation)
+            {
+                services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
+            }
 
             return services;
         }

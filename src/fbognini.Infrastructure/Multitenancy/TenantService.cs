@@ -1,114 +1,139 @@
 using AutoMapper;
+using fbognini.Application.Entities;
 using fbognini.Application.Multitenancy;
-using fbognini.Application.Utilities;
-using fbognini.Core.Interfaces;
-using fbognini.Infrastructure.Persistence;
-using Microsoft.Extensions.Caching.Distributed;
+using fbognini.Application.Persistence;
+using fbognini.Core.Exceptions;
+using Finbuckle.MultiTenant;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using MediatR;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using fbognini.Infrastructure.Persistence.Initialization;
 
 namespace fbognini.Infrastructure.Multitenancy;
 
 public class TenantService : ITenantService
 {
-    private readonly ISerializerService _serializer;
-
-    private readonly IDistributedCache cache;
-
-    private readonly DatabaseSettings _options;
-
-    private readonly TenantManagementDbContext _context;
-
-    private TenantDto _currentTenant;
-
     private readonly IMapper mapper;
+    private readonly IMultiTenantStore<Tenant> _tenantStore;
+    private readonly IConnectionStringSecurer _csSecurer;
+    private readonly IMultiTenantDatabaseInitializer _dbInitializer;
+    //private readonly IStringLocalizer _t;
+    private readonly DatabaseSettings _dbSettings;
 
     public TenantService(
-        IOptions<DatabaseSettings> options,
-        TenantManagementDbContext context,
-        ISerializerService serializer,
-        IMapper mapper, 
-        IDistributedCache cache)
+        IMultiTenantStore<Tenant> tenantStore,
+        IConnectionStringSecurer csSecurer,
+        IMultiTenantDatabaseInitializer dbInitializer,
+        //IStringLocalizer<TenantService> localizer,
+        IOptions<DatabaseSettings> dbSettings, IMapper mapper)
     {
-        _options = options.Value;
-        _context = context;
-        _serializer = serializer;
+        _tenantStore = tenantStore;
+        _csSecurer = csSecurer;
+        _dbInitializer = dbInitializer;
+        //_t = localizer;
+        _dbSettings = dbSettings.Value;
         this.mapper = mapper;
-        this.cache = cache;
     }
 
-    public string GetConnectionString()
+    public async Task<List<TenantDto>> GetAllAsync()
     {
-        return _currentTenant?.ConnectionString;
+        var tenants = mapper.Map<List<TenantDto>>(await _tenantStore.GetAllAsync());
+        tenants.ForEach(t => t.ConnectionString = _csSecurer.MakeSecure(t.ConnectionString));
+        return tenants;
     }
 
-    public string GetDatabaseProvider()
+    public async Task<bool> ExistsWithIdAsync(string id) =>
+        await _tenantStore.TryGetAsync(id) is not null;
+
+    public async Task<bool> ExistsWithNameAsync(string name) =>
+        (await _tenantStore.GetAllAsync()).Any(t => t.Name == name);
+
+    public async Task<TenantDto> GetByIdAsync(string id) =>
+        mapper.Map<TenantDto>(await GetTenantInfoAsync(id));
+
+    public async Task<string> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
     {
-        return _options.DBProvider;
+        if (request.ConnectionString?.Trim() == _dbSettings.ConnectionString?.Trim()) request.ConnectionString = string.Empty;
+
+        var tenant = new Tenant(request.Id, request.Name, request.ConnectionString, request.AdminEmail, request.Issuer);
+        await _tenantStore.TryAddAsync(tenant);
+
+        // TODO: run this in a hangfire job? will then have to send mail when it's ready or not
+        try
+        {
+            await _dbInitializer.InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
+        }
+        catch
+        {
+            await _tenantStore.TryRemoveAsync(request.Id);
+            throw;
+        }
+
+        return tenant.Id;
     }
 
-    public TenantDto GetCurrentTenant()
+    public async Task<string> ActivateAsync(string id)
     {
-        return _currentTenant;
+        var tenant = await GetTenantInfoAsync(id);
+
+        if (tenant.IsActive)
+        {
+            //throw new ConflictException(_t["Tenant is already Activated."]);
+            throw new ConflictException("Tenant is already Activated.");
+        }
+
+        tenant.Activate();
+
+        await _tenantStore.TryUpdateAsync(tenant);
+
+        //return _t["Tenant {0} is now Activated.", id];
+        return String.Format("Tenant {0} is now Activated.", id);
     }
 
-    private void SetDefaultConnectionStringToCurrentTenant()
+    public async Task<string> DeactivateAsync(string id)
     {
-        _currentTenant.ConnectionString = _options.ConnectionString;
+        var tenant = await GetTenantInfoAsync(id);
+
+        if (!tenant.IsActive)
+        {
+            //throw new ConflictException(_t["Tenant is already Deactivated."]);
+            throw new ConflictException("Tenant is already Deactivated.");
+        }
+
+        tenant.Deactivate();
+
+        await _tenantStore.TryUpdateAsync(tenant);
+
+        //return _t[$"Tenant {0} is now Deactivated.", id];
+        return String.Format("Tenant {0} is now Deactivated.", id);
     }
 
-    public void SetCurrentTenant(string tenant)
+    public async Task<string> UpdateSubscription(string id, DateTime extendedExpiryDate)
     {
-        if (_currentTenant != null)
-        {
-            throw new Exception("Method reserved for in-scope initialization");
-        }
+        var tenant = await GetTenantInfoAsync(id);
 
-        TenantDto tenantDto;
-        string cacheKey = CacheKeys.GetCacheKey("tenant", tenant);
-        byte[] cachedData = !string.IsNullOrWhiteSpace(cacheKey) ? cache.Get(cacheKey) : null;
-        if (cachedData != null)
-        {
-            cache.Refresh(cacheKey);
-            tenantDto = _serializer.Deserialize<TenantDto>(Encoding.Default.GetString(cachedData));
-        }
-        else
-        {
-            var tenantInfo = _context.Tenants.Where(a => a.Key == tenant).FirstOrDefault();
-            tenantDto = mapper.Map<TenantDto>(tenantInfo);
-            if (tenantDto != null)
-            {
-                var options = new DistributedCacheEntryOptions();
-                byte[] serializedData = Encoding.Default.GetBytes(_serializer.Serialize(tenantDto));
-                cache.Set(cacheKey, serializedData, options);
-            }
-        }
+        tenant.SetValidity(extendedExpiryDate);
 
-        if (tenantDto == null)
-        {
-            throw new InvalidTenantException("Invalid tenant");
-        }
+        await _tenantStore.TryUpdateAsync(tenant);
 
-        if (tenantDto.Key != MultitenancyConstants.Root.Key)
-        {
-            if (!tenantDto.IsActive)
-            {
-                throw new InvalidTenantException("Tenant is inactive");
-            }
-
-            if (DateTime.UtcNow > tenantDto.ValidUpto)
-            {
-                throw new InvalidTenantException("Tenant validity is expired");
-            }
-        }
-
-        _currentTenant = tenantDto;
-        if (string.IsNullOrEmpty(_currentTenant.ConnectionString))
-        {
-            SetDefaultConnectionStringToCurrentTenant();
-        }
+        //return _t[$"Tenant {0}'s Subscription Upgraded. Now Valid till {1}.", id, tenant.ValidUpto];
+        return String.Format("Tenant {0}'s Subscription Upgraded. Now Valid till {1}.", id, tenant.ValidUpto);
     }
+
+    private async Task<Tenant> GetTenantInfoAsync(string id) =>
+        await _tenantStore.TryGetAsync(id)
+            //?? throw new NotFoundException(_t["{0} {1} Not Found.", typeof(Tenant).Name, id]);
+            ?? throw new NotFoundException(String.Format("{0} {1} Not Found.", typeof(Tenant).Name, id));
 }

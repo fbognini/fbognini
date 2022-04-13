@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using fbognini.Application.DbContexts;
-using fbognini.Application.Repositorys;
+using fbognini.Application.Persistence;
 using fbognini.Application.Utilities;
 using fbognini.Core.Data;
 using fbognini.Core.Data.Pagination;

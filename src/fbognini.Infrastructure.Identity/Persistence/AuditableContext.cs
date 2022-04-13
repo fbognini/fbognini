@@ -20,36 +20,44 @@ using fbognini.Core.Entities;
 using fbognini.Infrastructure.Models;
 using Microsoft.Extensions.DependencyInjection;
 using fbognini.Infrastructure.Persistence;
+using Finbuckle.MultiTenant;
 
 namespace fbognini.Infrastructure.Identity.Persistence
 {
-    public class AuditableContext<TContext, TUser, TRole, TKey> : IdentityDbContext<TUser, TRole, TKey>, IBaseDbContext
+    public class AuditableContext<TContext, TUser, TRole, TKey> : MultiTenantIdentityDbContext<TUser, TRole, TKey>, IBaseDbContext
         where TContext : DbContext
         where TUser : AuditableUser<TKey>
         where TRole : IdentityRole<TKey>
         where TKey : IEquatable<TKey>
     {
-
-        private readonly IServiceScopeFactory scopeFactory;
         private readonly ICurrentUserService currentUserService;
         private readonly string authSchema;
 
         public AuditableContext(
+            ITenantInfo currentTenant,
             DbContextOptions<TContext> options,
             ICurrentUserService currentUserService,
             string authSchema = "auth")
-            : base(options)
+            : base(currentTenant, options)
         {
             this.currentUserService = currentUserService;
             this.authSchema = authSchema;
-
-            //var scope = scopeFactory.CreateScope().ServiceProvider.GetService<IHaveTenant>();
-            //if (scope)
         }
 
         public DbSet<Audit> AuditTrails { get; set; }
-        public string Tenant { get; set; }
+        public string Tenant => TenantInfo.Name;
 
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.EnableSensitiveDataLogging();
+
+            if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
+            {
+                //optionsBuilder.UseDatabase(_dbSettings.DBProvider!, TenantInfo.ConnectionString);
+                optionsBuilder.UseSqlServer(TenantInfo.ConnectionString);
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

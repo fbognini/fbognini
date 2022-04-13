@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace fbognini.Application.Repositorys
+namespace fbognini.Application.Persistence
 {
     public interface IRepositoryAsync : IDisposable
     {

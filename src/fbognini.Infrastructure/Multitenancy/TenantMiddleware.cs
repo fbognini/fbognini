@@ -1,8 +1,10 @@
 
 using fbognini.Application.Multitenancy;
 using fbognini.Core.Exceptions;
+using Finbuckle.MultiTenant;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -11,23 +13,22 @@ namespace fbognini.Infrastructure.Multitenancy;
 
 public class TenantMiddleware : IMiddleware
 {
-    private readonly ITenantService _tenantService;
+    private readonly ITenantInfo tenantInfo;
+    private readonly MultitenancySettings multitenancySettings;
 
-    public TenantMiddleware(ITenantService tenantService)
+    public TenantMiddleware(ITenantInfo tenantInfo, IOptions<MultitenancySettings> options)
     {
-        _tenantService = tenantService;
+        this.tenantInfo = tenantInfo;
+        this.multitenancySettings = options.Value;
     }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        if (!ExcludePath(context))
+        
+        if ((multitenancySettings.IncludeAll || StartWithPaths(context, multitenancySettings.IncludePaths))
+            && !StartWithPaths(context, multitenancySettings.ExcludePaths))
         {
-            string tenantId = TenantResolver.Resolver(context);
-            if (!string.IsNullOrEmpty(tenantId))
-            {
-                _tenantService.SetCurrentTenant(tenantId);
-            }
-            else
+            if (tenantInfo == null)
             {
                 throw new IdentityException("Authentication failed");
             }
@@ -36,15 +37,12 @@ public class TenantMiddleware : IMiddleware
         await next(context);
     }
 
-    private bool ExcludePath(HttpContext context)
+    private bool StartWithPaths(HttpContext context, List<string> paths)
     {
-        var listExclude = new List<string>()
-            {
-                "/swagger",
-                "/jobs"
-            };
+        if (paths == null)
+            return false;
 
-        foreach (string item in listExclude)
+        foreach (string item in paths)
         {
             if (context.Request.Path.StartsWithSegments(item))
             {

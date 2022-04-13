@@ -1,59 +1,83 @@
 using fbognini.Application.Multitenancy;
 using fbognini.Core.Entities;
+using Finbuckle.MultiTenant;
 using System;
 
 namespace fbognini.Application.Entities
 {
-    public class Tenant : AuditableEntityWithIdentity<string>, ISoftDelete
+    public class Tenant : ITenantInfo
     {
-        public string Name { get; private set; }
-        public string Key { get; private set; }
-        public string AdminEmail { get; private set; }
-        public string ConnectionString { get; private set; }
-        public bool IsActive { get; private set; }
-        public DateTime ValidUpto { get; private set; }
-        public DateTime? Deleted { get; set; }
-        public string DeletedBy { get; set; }
-
-        public Tenant(string name, string key, string adminEmail, string connectionString)
+        public Tenant()
         {
+        }
+
+        public Tenant(string id, string name, string? connectionString, string adminEmail, string? issuer = null)
+        {
+            Id = id;
+            Identifier = id;
             Name = name;
-            Key = key;
+            ConnectionString = connectionString ?? string.Empty;
             AdminEmail = adminEmail;
-            ConnectionString = connectionString;
             IsActive = true;
+            Issuer = issuer;
 
             // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
             ValidUpto = DateTime.UtcNow.AddMonths(1);
         }
 
-        public Tenant()
-        {
-        }
+        /// <summary>
+        /// The actual TenantId, which is also used in the TenantId shadow property on the multitenant entities.
+        /// </summary>
+        public string Id { get; set; } = default!;
 
-        public void AddValidity(int months)
-        {
-            this.ValidUpto = this.ValidUpto.AddMonths(months);
-        }
+        /// <summary>
+        /// The identifier that is used in headers/routes/querystrings. This is set to the same as Id to avoid confusion.
+        /// </summary>
+        public string Identifier { get; set; } = default!;
 
-        public void SetValidity(in DateTime validTill)
-        {
-            if (this.ValidUpto < validTill)
-                this.ValidUpto = validTill;
-            else
-                throw new Exception("Subscription cannot be backdated.");
-        }
+        public string Name { get; set; } = default!;
+        public string ConnectionString { get; set; } = default!;
+
+        public string AdminEmail { get; private set; } = default!;
+        public bool IsActive { get; private set; }
+        public DateTime ValidUpto { get; private set; }
+
+        /// <summary>
+        /// Used by AzureAd Authorization to store the AzureAd Tenant Issuer to map against.
+        /// </summary>
+        public string? Issuer { get; set; }
+
+        public void AddValidity(int months) =>
+            ValidUpto = ValidUpto.AddMonths(months);
+
+        public void SetValidity(in DateTime validTill) =>
+            ValidUpto = ValidUpto < validTill
+                ? validTill
+                : throw new Exception("Subscription cannot be backdated.");
 
         public void Activate()
         {
-            if (Key == MultitenancyConstants.Root.Key) throw new Exception("Invalid Tenant");
-            this.IsActive = true;
+            if (Identifier == MultitenancyConstants.Root.Key)
+            {
+                throw new InvalidOperationException("Invalid Tenant");
+            }
+
+            IsActive = true;
         }
 
         public void Deactivate()
         {
-            if (Key == MultitenancyConstants.Root.Key) throw new Exception("Invalid Tenant");
-            this.IsActive = false;
+            if (Identifier == MultitenancyConstants.Root.Key)
+            {
+                throw new InvalidOperationException("Invalid Tenant");
+            }
+
+            IsActive = false;
         }
+
+        string ITenantInfo.Id { get => Id; set => Id = value ?? throw new InvalidOperationException("Id can't be null."); }
+        string ITenantInfo.Identifier { get => Identifier; set => Identifier = value ?? throw new InvalidOperationException("Identifier can't be null."); }
+        string ITenantInfo.Name { get => Name; set => Name = value ?? throw new InvalidOperationException("Name can't be null."); }
+        string ITenantInfo.ConnectionString { get => ConnectionString; set => ConnectionString = value ?? throw new InvalidOperationException("ConnectionString can't be null."); }
     }
 }
