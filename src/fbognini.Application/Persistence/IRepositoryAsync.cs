@@ -15,9 +15,9 @@ namespace fbognini.Application.Persistence
     {
         #region Create
 
-       Task<T> CreateAsync<T>(T entity, CancellationToken cancellationToken = default) where T : AuditableEntity;
+        Task<T> CreateAsync<T>(T entity, CancellationToken cancellationToken = default) where T : class, IEntity;
 
-        Task<IEnumerable<T>> CreateRangeAsync<T>(IEnumerable<T> entitys, CancellationToken cancellationToken = default) where T : AuditableEntity;
+        Task<IEnumerable<T>> CreateRangeAsync<T>(IEnumerable<T> entitys, CancellationToken cancellationToken = default) where T : class, IEntity;
 
         #endregion
 
@@ -26,20 +26,20 @@ namespace fbognini.Application.Persistence
         #region GetById
 
         Task<T> GetByIdAsync<T, TPK>(TPK id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
-            where T : AuditableEntityWithIdentity<TPK>
+            where T : class, IHasIdentity<TPK>
             where TPK : notnull;
 
         Task<T> GetByIdAsync<T>(int id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
-            where T : AuditableEntityWithIdentity<int>;
+            where T : class, IHasIdentity<int>;
 
         Task<T> GetByIdAsync<T>(long id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
-            where T : AuditableEntityWithIdentity<long>;
+            where T : class, IHasIdentity<long>;
 
         Task<T> GetByIdAsync<T>(string id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
-            where T : AuditableEntityWithIdentity<string>;
+            where T : class, IHasIdentity<string>;
 
         Task<T> GetByIdAsync<T>(Guid id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
-            where T : AuditableEntityWithIdentity<Guid>;
+            where T : class, IHasIdentity<Guid>;
 
         #endregion
 
@@ -48,13 +48,13 @@ namespace fbognini.Application.Persistence
         #region GetBySlug
 
         Task<T> GetBySlugAsync<T>(string slug, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
-            where T : AuditableEntity, IHaveSlug;
+            where T : class, IEntity, IHaveSlug;
 
         #endregion
 
-        Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : AuditableEntity;
-        Task<T> GetLastAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : AuditableEntity;
-        Task<List<T>> GetAllAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : AuditableEntity;
+        Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<T> GetLastAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<List<T>> GetAllAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task<PaginationResponse<TMapped>> GetSearchResultsAsync<T, TMapped>(SearchCriteria<T> criteria, CancellationToken cancellationToken = default)
             where T : AuditableEntity
             where TMapped : class
@@ -64,29 +64,29 @@ namespace fbognini.Application.Persistence
 
         #region Update
 
-        Task UpdateAsync<T>(T entity) where T : AuditableEntity;
+        Task UpdateAsync<T>(T entity) where T : class, IEntity;
 
         #endregion
 
         #region Delete
 
-        Task DeleteAsync<T>(T entity) where T : AuditableEntity; 
-        Task DeleteRangeAsync<T>(IEnumerable<T> entitys) where T : AuditableEntity;
+        Task DeleteAsync<T>(T entity) where T : class, IEntity; 
+        Task DeleteRangeAsync<T>(IEnumerable<T> entitys) where T : class, IEntity;
 
         #region DeleteById
 
         Task<T> DeleteByIdAsync<T, TPK>(TPK id, CancellationToken cancellationToken = default)
-            where T : AuditableEntityWithIdentity<TPK>
+            where T : class, IHasIdentity<TPK>
             where TPK : notnull
             ;
 
-        Task<T> DeleteByIdAsync<T>(int id, CancellationToken cancellationToken = default) where T : AuditableEntityWithIdentity<int>;
+        Task<T> DeleteByIdAsync<T>(int id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>;
 
-        Task<T> DeleteByIdAsync<T>(long id, CancellationToken cancellationToken = default) where T : AuditableEntityWithIdentity<long>;
+        Task<T> DeleteByIdAsync<T>(long id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>;
 
-        Task<T> DeleteByIdAsync<T>(string id, CancellationToken cancellationToken = default) where T : AuditableEntityWithIdentity<string>;
+        Task<T> DeleteByIdAsync<T>(string id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>;
 
-        Task<T> DeleteByIdAsync<T>(Guid id, CancellationToken cancellationToken = default) where T : AuditableEntityWithIdentity<Guid>;
+        Task<T> DeleteByIdAsync<T>(Guid id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>;
 
         #endregion
 

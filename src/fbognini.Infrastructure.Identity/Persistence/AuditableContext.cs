@@ -332,19 +332,6 @@ namespace fbognini.Infrastructure.Identity.Persistence
 
         #region BatchUpdate
 
-        public int BatchUpdate(IQueryable query, object updateValues, List<string> updateColumns = null)
-        {
-            if (updateValues is AuditableEntity)
-            {
-                (updateValues as AuditableEntity).LastModifiedBy = currentUserService.UserId;
-                (updateValues as AuditableEntity).LastModified = DateTime.Now;
-                (updateValues as AuditableEntity).LastUpdatedBy = currentUserService.UserId;
-                (updateValues as AuditableEntity).LastUpdated = DateTime.Now;
-            }
-
-            return query.BatchUpdate(updateValues, updateColumns);
-        }
-
         public int BatchUpdate<T1>(IQueryable<T1> query, Expression<Func<T1, T1>> updateExpression) where T1 : class
         {
             if (updateExpression.Body.Type.IsSubclassOf(typeof(AuditableEntity)) && updateExpression.Body is MemberInitExpression memberInitExpression)

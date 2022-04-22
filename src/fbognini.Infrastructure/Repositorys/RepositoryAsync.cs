@@ -40,13 +40,13 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region Create
 
-        public async Task<T> CreateAsync<T>(T entity, CancellationToken cancellationToken = default) where T : AuditableEntity
+        public async Task<T> CreateAsync<T>(T entity, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             await context.Set<T>().AddAsync(entity, cancellationToken);
             return entity;
         }
 
-        public async Task<IEnumerable<T>> CreateRangeAsync<T>(IEnumerable<T> entitys, CancellationToken cancellationToken = default) where T : AuditableEntity
+        public async Task<IEnumerable<T>> CreateRangeAsync<T>(IEnumerable<T> entitys, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             await context.Set<T>().AddRangeAsync(entitys, cancellationToken);
             return entitys;
@@ -59,7 +59,7 @@ namespace fbognini.Infrastructure.Repositorys
         #region GetById
 
         public async Task<T> GetByIdAsync<T, TPK>(TPK id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
-            where T : AuditableEntityWithIdentity<TPK>
+            where T : class, IHasIdentity<TPK>
             where TPK : notnull
         {
             var query = context.Set<T>().IncludeViews(args);
@@ -69,22 +69,22 @@ namespace fbognini.Infrastructure.Repositorys
             return await query.FirstOrDefaultAsync(x => x.Id.Equals(id));
         }
 
-        public async Task<T> GetByIdAsync<T>(int id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : AuditableEntityWithIdentity<int>
+        public async Task<T> GetByIdAsync<T>(int id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>
         {
             return await GetByIdAsync<T, int>(id, args, cancellationToken);
         }
 
-        public async Task<T> GetByIdAsync<T>(long id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : AuditableEntityWithIdentity<long>
+        public async Task<T> GetByIdAsync<T>(long id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>
         {
             return await GetByIdAsync<T, long>(id, args, cancellationToken);
         }
 
-        public async Task<T> GetByIdAsync<T>(string id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : AuditableEntityWithIdentity<string>
+        public async Task<T> GetByIdAsync<T>(string id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>
         {
             return await GetByIdAsync<T, string>(id, args, cancellationToken);
         }
 
-        public async Task<T> GetByIdAsync<T>(Guid id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : AuditableEntityWithIdentity<Guid>
+        public async Task<T> GetByIdAsync<T>(Guid id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>
         {
             return await GetByIdAsync<T, Guid>(id, args, cancellationToken);
         }
@@ -94,7 +94,7 @@ namespace fbognini.Infrastructure.Repositorys
         #region GetBySlug
 
         public async Task<T> GetBySlugAsync<T>(string slug, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
-            where T : AuditableEntity, IHaveSlug
+            where T : class, IEntity, IHaveSlug
         {
             var query = context.Set<T>().IncludeViews(args);
             if (args != null && !args.Track)
@@ -105,7 +105,7 @@ namespace fbognini.Infrastructure.Repositorys
 
         #endregion
 
-        private IQueryable<T> GetQueryable<T>(SelectCriteria<T> criteria = null) where T : AuditableEntity
+        private IQueryable<T> GetQueryable<T>(SelectCriteria<T> criteria = null) where T : class, IEntity
         {
             IQueryable<T> query = context.Set<T>();
 
@@ -125,17 +125,17 @@ namespace fbognini.Infrastructure.Repositorys
             return query;
         }
 
-        public async Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : AuditableEntity
+        public async Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             return await GetQueryable(criteria).FirstOrDefaultAsync(cancellationToken);
         }
 
-        public async Task<T> GetLastAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : AuditableEntity
+        public async Task<T> GetLastAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             return await GetQueryable(criteria).LastOrDefaultAsync(cancellationToken);
         }
 
-        public async Task<List<T>> GetAllAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : AuditableEntity
+        public async Task<List<T>> GetAllAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             return await GetQueryable(criteria).ToListAsync(cancellationToken);
         }
@@ -161,7 +161,7 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region Update
 
-        public Task UpdateAsync<T>(T entity) where T : AuditableEntity
+        public Task UpdateAsync<T>(T entity) where T : class, IEntity
         {
             context.Entry(entity).State = EntityState.Modified;
             cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(entity)));
@@ -172,14 +172,14 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region Delete
 
-        public Task DeleteAsync<T>(T entity) where T : AuditableEntity
+        public Task DeleteAsync<T>(T entity) where T : class, IEntity
         {
             context.Set<T>().Remove(entity);
             cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(entity)));
             return Task.CompletedTask;
         }
 
-        public Task DeleteRangeAsync<T>(IEnumerable<T> entitys) where T : AuditableEntity
+        public Task DeleteRangeAsync<T>(IEnumerable<T> entitys) where T : class, IEntity
         {
             context.Set<T>().RemoveRange(entitys);
             foreach (var item in entitys)
@@ -192,7 +192,7 @@ namespace fbognini.Infrastructure.Repositorys
         #region DeleteById
 
         public async Task<T> DeleteByIdAsync<T, TPK>(TPK id, CancellationToken cancellationToken = default)
-            where T : AuditableEntityWithIdentity<TPK>
+            where T : class, IHasIdentity<TPK>
             where TPK : notnull
         {
             var entity = await GetByIdAsync<T, TPK>(id, cancellationToken: cancellationToken);
@@ -200,22 +200,22 @@ namespace fbognini.Infrastructure.Repositorys
             return entity;
         }
 
-        public async Task<T> DeleteByIdAsync<T>(int id, CancellationToken cancellationToken = default) where T : AuditableEntityWithIdentity<int>
+        public async Task<T> DeleteByIdAsync<T>(int id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>
         {
             return await DeleteByIdAsync<T, int>(id, cancellationToken);
         }
 
-        public async Task<T> DeleteByIdAsync<T>(long id, CancellationToken cancellationToken = default) where T : AuditableEntityWithIdentity<long>
+        public async Task<T> DeleteByIdAsync<T>(long id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>
         {
             return await DeleteByIdAsync<T, long>(id, cancellationToken);
         }
 
-        public async Task<T> DeleteByIdAsync<T>(string id, CancellationToken cancellationToken = default) where T : AuditableEntityWithIdentity<string>
+        public async Task<T> DeleteByIdAsync<T>(string id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>
         {
             return await DeleteByIdAsync<T, string>(id, cancellationToken);
         }
 
-        public async Task<T> DeleteByIdAsync<T>(Guid id, CancellationToken cancellationToken = default) where T : AuditableEntityWithIdentity<Guid>
+        public async Task<T> DeleteByIdAsync<T>(Guid id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>
         {
             return await DeleteByIdAsync<T, Guid>(id, cancellationToken);
         }

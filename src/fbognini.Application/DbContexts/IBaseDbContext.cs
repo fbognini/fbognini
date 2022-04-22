@@ -36,7 +36,6 @@ namespace fbognini.Application.DbContexts
         int BatchDelete(IQueryable query);
         Task<int> BatchDeleteAsync(IQueryable query, CancellationToken cancellationToken = default);
         
-        int BatchUpdate(IQueryable query, object updateValues, List<string> updateColumns = null);
         int BatchUpdate<T1>(IQueryable<T1> query, Expression<Func<T1, T1>> updateExpression) where T1 : class;
         Task<int> BatchUpdateAsync(IQueryable query, object updateValues, List<string> updateColumns = null, CancellationToken cancellationToken = default);
         Task<int> BatchUpdateAsync<T1>(IQueryable<T1> query, Expression<Func<T1, T1>> updateExpression, CancellationToken cancellationToken = default) where T1 : class;

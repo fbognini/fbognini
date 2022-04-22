@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageId>fbognini.Core</PackageId>
     <TargetFramework>net6.0</TargetFramework>
-    <Version>6.0.2</Version>
+    <Version>6.0.3</Version>
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
     <PackageProjectUrl>https://github.com/fbognini/fbognini</PackageProjectUrl>
@@ -11,10 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="10.3.4" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="10.3.4" />
-    <PackageReference Include="DnsClient" Version="1.5.0" />
-    <PackageReference Include="LinqKit" Version="1.1.27" />
+    <PackageReference Include="FluentValidation" Version="10.4.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="10.4.0" />
+    <PackageReference Include="DnsClient" Version="1.6.0" />
+    <PackageReference Include="LinqKit" Version="1.2.2" />
     <PackageReference Include="Pather.CSharp" Version="2.1.0" />
   </ItemGroup>
 </Project>

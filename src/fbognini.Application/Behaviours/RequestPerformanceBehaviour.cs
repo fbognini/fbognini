@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace fbognini.Core.Data
 {
     public class RequestPerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+        where TRequest : IRequest<TResponse>
     {
         private readonly Stopwatch _timer;
         private readonly ILogger<TRequest> _logger;

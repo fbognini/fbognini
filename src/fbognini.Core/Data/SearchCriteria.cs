@@ -24,7 +24,7 @@ namespace fbognini.Core.Data
     }
 
     public class SelectArgs<TEntity> : IHasViews<TEntity>
-        where TEntity : IAuditableEntity
+        where TEntity : IEntity
     {
         public bool Track { get; set; } = true;
         public List<Expression<Func<TEntity, object>>> Includes { get; } = new();
@@ -32,7 +32,7 @@ namespace fbognini.Core.Data
     }
 
     public abstract class SelectCriteria<TEntity> : SelectArgs<TEntity>, IHasSearch<TEntity>, IHasSorting
-        where TEntity : IAuditableEntity
+        where TEntity : IEntity
     {
         protected LogicalOperator Operator { get; set; } = LogicalOperator.AND;
 
