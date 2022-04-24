@@ -9,8 +9,8 @@ namespace fbognini.Core.Data
 {
     public class Search<TEntity>
     {
-        public List<Expression<Func<TEntity, object>>> Fields { get; } = new();
-        public List<string> FieldStrings { get; set; } = new();
+        public List<Expression<Func<TEntity, object>>> Fields { get; } = new List<Expression<Func<TEntity, object>>>();
+        public List<string> FieldStrings { get; set; } = new List<string>();
         public string Keyword { get; set; }
     }
 }

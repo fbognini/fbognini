@@ -86,27 +86,27 @@ namespace fbognini.Core.Data
 
         public new static Result<T> Fail()
         {
-            return new() { IsSuccess = false };
+            return new Result<T>() { IsSuccess = false };
         }
 
         public new static Result<T> Fail(string message)
         {
-            return new() { IsSuccess = false, Message = message };
+            return new Result<T>() { IsSuccess = false, Message = message };
         }
 
         public static ErrorResult<T> ReturnError(string message)
         {
-            return new() { IsSuccess = false, Message = message, StatusCode = (int)HttpStatusCode.InternalServerError };
+            return new ErrorResult<T>() { IsSuccess = false, Message = message, StatusCode = (int)HttpStatusCode.InternalServerError };
         }
 
         public new static Result<T> Fail(List<string> messages)
         {
-            return new() { IsSuccess = false, Message = string.Join(';', messages) };
+            return new Result<T>() { IsSuccess = false, Message = string.Join(';', messages) };
         }
 
         public static ErrorResult<T> ReturnError(List<string> messages)
         {
-            return new() { IsSuccess = false, Message = string.Join(';', messages), StatusCode = (int)HttpStatusCode.InternalServerError };
+            return new ErrorResult<T>() { IsSuccess = false, Message = string.Join(';', messages), StatusCode = (int)HttpStatusCode.InternalServerError };
         }
 
         public new static Task<Result<T>> FailAsync()
@@ -136,32 +136,32 @@ namespace fbognini.Core.Data
 
         public new static Result<T> Success()
         {
-            return new() { IsSuccess = true };
+            return new Result<T>() { IsSuccess = true };
         }
 
         public new static Result<T> Success(string message)
         {
-            return new() { IsSuccess = true, Message = message };
+            return new Result<T>() { IsSuccess = true, Message = message };
         }
 
         public new static Result<T> Success(List<string> messages)
         {
-            return new() { IsSuccess = true, Message = string.Join(';', messages) };
+            return new Result<T>() { IsSuccess = true, Message = string.Join(';', messages) };
         }
 
         public static Result<T> Success(T data)
         {
-            return new() { IsSuccess = true, Data = data };
+            return new Result<T>() { IsSuccess = true, Data = data };
         }
 
         public static Result<T> Success(T data, string message)
         {
-            return new() { IsSuccess = true, Data = data, Message = message };
+            return new Result<T>() { IsSuccess = true, Data = data, Message = message };
         }
 
         public static Result<T> Success(T data, List<string> messages)
         {
-            return new() { IsSuccess = true, Data = data, Message = string.Join(';', messages) };
+            return new Result<T>() { IsSuccess = true, Data = data, Message = string.Join(';', messages) };
         }
 
         public new static Task<Result<T>> SuccessAsync()

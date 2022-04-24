@@ -27,8 +27,8 @@ namespace fbognini.Core.Data
         where TEntity : IEntity
     {
         public bool Track { get; set; } = true;
-        public List<Expression<Func<TEntity, object>>> Includes { get; } = new();
-        public List<string> IncludeStrings { get; } = new();
+        public List<Expression<Func<TEntity, object>>> Includes { get; } = new List<Expression<Func<TEntity, object>>>();
+        public List<string> IncludeStrings { get; } = new List<string>();
     }
 
     public abstract class SelectCriteria<TEntity> : SelectArgs<TEntity>, IHasSearch<TEntity>, IHasSorting
@@ -37,8 +37,8 @@ namespace fbognini.Core.Data
         protected LogicalOperator Operator { get; set; } = LogicalOperator.AND;
 
         public bool Track { get; set; } = false;
-        public List<KeyValuePair<string, SortingDirection>> Sorting { get; } = new();
-        public Search<TEntity> Search { get; } = new();
+        public List<KeyValuePair<string, SortingDirection>> Sorting { get; } = new List<KeyValuePair<string, SortingDirection>>();
+        public Search<TEntity> Search { get; } = new Search<TEntity>();
 
         public void SetOperator(
             LogicalOperator logicalOperator)
