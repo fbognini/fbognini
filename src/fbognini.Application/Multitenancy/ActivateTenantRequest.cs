@@ -1,6 +1,4 @@
-using fbognini.Core.Validations;
-using FluentValidation;
-using MediatR;
+using fbognini.FluentValidation;
 using System.Threading;
 using System.Threading.Tasks;
 

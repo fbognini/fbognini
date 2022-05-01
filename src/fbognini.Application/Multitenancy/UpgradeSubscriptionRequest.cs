@@ -1,4 +1,4 @@
-using fbognini.Core.Validations;
+using fbognini.FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Threading;

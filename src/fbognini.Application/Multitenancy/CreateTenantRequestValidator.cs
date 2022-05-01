@@ -1,5 +1,5 @@
 using fbognini.Application.Persistence;
-using fbognini.Core.Validations;
+using fbognini.FluentValidation;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
