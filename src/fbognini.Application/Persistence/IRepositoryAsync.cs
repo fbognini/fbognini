@@ -102,6 +102,9 @@ namespace fbognini.Application.Persistence
 
         Task Rollback(CancellationToken cancellationToken);
 
+        void Detach(IEntity entity);
+        void DetachAll();
+
         #endregion
 
     }

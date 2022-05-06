@@ -254,8 +254,18 @@ namespace fbognini.Infrastructure.Repositorys
             return Task.CompletedTask;
         }
 
+        public void Detach(IEntity entity)
+        {
+            context.Entry(entity).State = EntityState.Detached;
+        }
+
+        public void DetachAll()
+        {
+            context.ChangeTracker.Clear();
+        }
+
         #endregion
-        
+
         public void Dispose()
         {
             Dispose(true);

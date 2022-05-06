@@ -47,6 +47,25 @@ namespace fbognini.Core.Utilities
             return (T)attribute;
         }
 
+        public static string GetPropertyDisplayName<T>(Expression<Func<T, object>> propertyExpression)
+        {
+            var memberInfo = GetPropertyInformation(propertyExpression.Body);
+            if (memberInfo == null)
+            {
+                throw new ArgumentException(
+                    "No property reference expression was found.",
+                    "propertyExpression");
+            }
+
+            var attr = memberInfo.GetAttribute<DisplayNameAttribute>(false);
+            if (attr == null)
+            {
+                return memberInfo.Name;
+            }
+
+            return attr.DisplayName;
+        }
+
         public static MemberInfo GetPropertyInformation(Expression propertyExpression)
         {
             Debug.Assert(propertyExpression != null, "propertyExpression != null");
