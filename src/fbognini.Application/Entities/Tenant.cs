@@ -37,9 +37,13 @@ namespace fbognini.Application.Entities
         public string Name { get; set; } = default!;
         public string ConnectionString { get; set; } = default!;
 
-        public string AdminEmail { get; private set; } = default!;
-        public bool IsActive { get; private set; }
-        public DateTime ValidUpto { get; private set; }
+        public string AdminEmail { get; set; } = default!;
+        public bool IsActive { get; set; }
+        public DateTime ValidUpto { get; set; }
+
+        public string OpenIdConnectAuthority { get; set; }
+        public string OpenIdConnectClientId { get; set; }
+        public string OpenIdConnectClientSecret { get; set; }
 
         /// <summary>
         /// Used by AzureAd Authorization to store the AzureAd Tenant Issuer to map against.

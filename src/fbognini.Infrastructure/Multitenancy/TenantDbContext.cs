@@ -5,9 +5,10 @@ using System;
 
 namespace fbognini.Infrastructure.Multitenancy
 {
-    public class TenantDbContext : EFCoreStoreDbContext<Tenant>
+    public class TenantDbContext<TTenant> : EFCoreStoreDbContext<TTenant>
+        where TTenant : Tenant, new()
     {
-        public TenantDbContext(DbContextOptions<TenantDbContext> options)
+        public TenantDbContext(DbContextOptions<TenantDbContext<TTenant>> options)
         : base(options)
         {
         }
@@ -16,7 +17,7 @@ namespace fbognini.Infrastructure.Multitenancy
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Tenant>().ToTable("Tenants", "multitenancy");
+            modelBuilder.Entity<TTenant>().ToTable("Tenants", "multitenancy");
         }
     }
 }

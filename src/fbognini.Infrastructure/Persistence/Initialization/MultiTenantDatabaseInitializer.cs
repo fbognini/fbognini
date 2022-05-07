@@ -12,40 +12,51 @@ using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Persistence.Initialization;
 
-public class MultiTenantDatabaseInitializer<TContext> : IMultiTenantDatabaseInitializer
+public class MultiTenantDatabaseInitializer<TContext> : MultiTenantDatabaseInitializer<TContext, Tenant>
     where TContext : DbContext
 {
-    private readonly TenantDbContext _tenantDbContext;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<MultiTenantDatabaseInitializer<TContext>> _logger;
 
-    public MultiTenantDatabaseInitializer(TenantDbContext tenantDbContext, IServiceProvider serviceProvider, ILogger<MultiTenantDatabaseInitializer<TContext>> logger)
+    public MultiTenantDatabaseInitializer(TenantDbContext<Tenant> tenantDbContext, IServiceProvider serviceProvider, ILogger<MultiTenantDatabaseInitializer<TContext>> logger)
+        : base(tenantDbContext, serviceProvider, logger)
     {
-        _tenantDbContext = tenantDbContext;
-        _serviceProvider = serviceProvider;
-        _logger = logger;
+    }
+}
+
+public class MultiTenantDatabaseInitializer<TContext, TTenantInfo> : IMultiTenantDatabaseInitializer
+    where TContext : DbContext
+    where TTenantInfo: Tenant, new()
+{
+    private readonly TenantDbContext<TTenantInfo> tenantDbContext;
+    private readonly IServiceProvider serviceProvider;
+    private readonly ILogger<MultiTenantDatabaseInitializer<TContext>> logger;
+
+    public MultiTenantDatabaseInitializer(TenantDbContext<TTenantInfo> tenantDbContext, IServiceProvider serviceProvider, ILogger<MultiTenantDatabaseInitializer<TContext>> logger)
+    {
+        this.tenantDbContext = tenantDbContext;
+        this.serviceProvider = serviceProvider;
+        this.logger = logger;
     }
 
     public async Task InitializeDatabasesAsync(CancellationToken cancellationToken)
     {
         await InitializeTenantDbAsync(cancellationToken);
 
-        foreach (var tenant in await _tenantDbContext.TenantInfo.ToListAsync(cancellationToken))
+        foreach (var tenant in await tenantDbContext.TenantInfo.ToListAsync(cancellationToken))
         {
             await InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
         }
 
-        _logger.LogInformation("For documentations and guides, visit https://www.fullstackhero.net");
-        _logger.LogInformation("To Sponsor this project, visit https://opencollective.com/fullstackhero");
+        logger.LogInformation("For documentations and guides, visit https://www.fullstackhero.net");
+        logger.LogInformation("To Sponsor this project, visit https://opencollective.com/fullstackhero");
     }
 
     public async Task InitializeApplicationDbForTenantAsync(Tenant tenant, CancellationToken cancellationToken)
     {
         // First create a new scope
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = serviceProvider.CreateScope();
 
         // Then set current tenant so the right connectionstring is used
-        _serviceProvider.GetRequiredService<IMultiTenantContextAccessor>()
+        serviceProvider.GetRequiredService<IMultiTenantContextAccessor>()
             .MultiTenantContext = new MultiTenantContext<Tenant>()
             {
                 TenantInfo = tenant
@@ -58,10 +69,10 @@ public class MultiTenantDatabaseInitializer<TContext> : IMultiTenantDatabaseInit
 
     private async Task InitializeTenantDbAsync(CancellationToken cancellationToken)
     {
-        if (_tenantDbContext.Database.GetPendingMigrations().Any())
+        if (tenantDbContext.Database.GetPendingMigrations().Any())
         {
-            _logger.LogInformation("Applying Root Migrations.");
-            await _tenantDbContext.Database.MigrateAsync(cancellationToken);
+            logger.LogInformation("Applying Root Migrations.");
+            await tenantDbContext.Database.MigrateAsync(cancellationToken);
         }
 
         await SeedRootTenantAsync(cancellationToken);
@@ -69,19 +80,25 @@ public class MultiTenantDatabaseInitializer<TContext> : IMultiTenantDatabaseInit
 
     private async Task SeedRootTenantAsync(CancellationToken cancellationToken)
     {
-        if (await _tenantDbContext.TenantInfo.FirstOrDefaultAsync(x => x.Identifier == MultitenancyConstants.Root.Key, cancellationToken) is null)
+        if (await tenantDbContext.TenantInfo.FirstOrDefaultAsync(x => x.Identifier == MultitenancyConstants.Root.Key, cancellationToken) is null)
         {
-            var rootTenant = new Tenant(
-                MultitenancyConstants.Root.Key,
-                MultitenancyConstants.Root.Name,
-                string.Empty,
-                MultitenancyConstants.Root.EmailAddress);
+            var rootTenant = new TTenantInfo();
+
+            rootTenant.Identifier = MultitenancyConstants.Root.Key;
+            rootTenant.Name = MultitenancyConstants.Root.Name;
+            rootTenant.ConnectionString = string.Empty;
+            rootTenant.AdminEmail = MultitenancyConstants.Root.EmailAddress;
+            rootTenant.IsActive = true;
+            rootTenant.Issuer = null;
+
+            // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
+            rootTenant.ValidUpto = DateTime.UtcNow.AddMonths(1);
 
             rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
 
-            _tenantDbContext.TenantInfo.Add(rootTenant);
+            tenantDbContext.TenantInfo.Add(rootTenant);
 
-            await _tenantDbContext.SaveChangesAsync(cancellationToken);
+            await tenantDbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

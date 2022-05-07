@@ -54,7 +54,6 @@ namespace fbognini.Infrastructure.Identity.Persistence
 
             if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
             {
-                //optionsBuilder.UseDatabase(_dbSettings.DBProvider!, TenantInfo.ConnectionString);
                 optionsBuilder.UseSqlServer(TenantInfo.ConnectionString);
             }
         }

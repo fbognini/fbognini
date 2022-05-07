@@ -18,5 +18,6 @@ namespace fbognini.Application.Multitenancy
         public bool IsActive { get; set; }
         public DateTime ValidUpto { get; set; }
         public string Issuer { get; set; }
+        public string OpenIdConnectAuthority { get; set; }
     }
 }

@@ -24,9 +24,8 @@ public class TenantMiddleware : IMiddleware
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        
-        if ((multitenancySettings.IncludeAll || StartWithPaths(context, multitenancySettings.IncludePaths))
-            && !StartWithPaths(context, multitenancySettings.ExcludePaths))
+        if ((multitenancySettings.IncludeAll && (StartWithPaths(context, multitenancySettings.IncludePaths) || !StartWithPaths(context, multitenancySettings.ExcludePaths)))
+            || StartWithPaths(context, multitenancySettings.IncludePaths))
         {
             if (tenantInfo == null)
             {

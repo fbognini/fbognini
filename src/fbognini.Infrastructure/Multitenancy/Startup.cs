@@ -17,7 +17,9 @@ namespace fbognini.Infrastructure.Multitenancy
 {
     public static class Startup
     {
-        public static IServiceCollection AddMultitenancy(this IServiceCollection services, IConfiguration configuration, string claimName = "client_tenant", string tenantIdName = "tenant")
+        public static FinbuckleMultiTenantBuilder<TTenant> AddMultitenancy<TTenant>(this IServiceCollection services, IConfiguration configuration)
+            where TTenant : Tenant, new()
+
         {
             // TODO: We should probably add specific dbprovider/connectionstring setting for the tenantDb with a fallback to the main databasesettings
             var databaseSettings = configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
@@ -29,22 +31,18 @@ namespace fbognini.Infrastructure.Multitenancy
             return services
                 .Configure<MultitenancySettings>(configuration.GetSection(nameof(MultitenancySettings)))
                 //.AddDbContext<TenantDbContext>(m => m.UseDatabase(dbProvider, rootConnectionString))
-                .AddDbContext<TenantDbContext>(m => m.UseSqlServer(rootConnectionString))
+                .AddDbContext<TenantDbContext<TTenant>>(m => m.UseSqlServer(rootConnectionString))
+                .AddScoped<ITenantService, TenantService<TTenant>>()
                 .AddTenantMiddleware()
-                .AddMultiTenant<Tenant>()
-                    .WithClaimStrategy(claimName)
-                    .WithHostStrategy()
-                    .WithHeaderStrategy(tenantIdName)
-                    .WithQueryStringStrategy(tenantIdName)
-                    .WithEFCoreStore<TenantDbContext, Tenant>()
-                    .Services
-                .AddScoped<ITenantService, TenantService>();
+                .AddMultiTenant<TTenant>()
+                    .WithEFCoreStore<TenantDbContext<TTenant>, TTenant>()
+                    ;
         }
 
         public static IApplicationBuilder UseMultiTenancy(this IApplicationBuilder app) =>
             app.UseMultiTenant();
 
-        private static FinbuckleMultiTenantBuilder<Tenant> WithQueryStringStrategy(this FinbuckleMultiTenantBuilder<Tenant> builder, string queryStringKey) =>
+        public static FinbuckleMultiTenantBuilder<Tenant> WithQueryStringStrategy(this FinbuckleMultiTenantBuilder<Tenant> builder, string queryStringKey) =>
             builder.WithDelegateStrategy(context =>
             {
                 if (context is not HttpContext httpContext)
@@ -57,7 +55,7 @@ namespace fbognini.Infrastructure.Multitenancy
                 return Task.FromResult((string?)tenantIdParam.ToString());
             });
 
-        private static FinbuckleMultiTenantBuilder<Tenant> WithOriginOrRefererStrategy(this FinbuckleMultiTenantBuilder<Tenant> builder, string queryStringKey) =>
+        public static FinbuckleMultiTenantBuilder<Tenant> WithOriginOrRefererStrategy(this FinbuckleMultiTenantBuilder<Tenant> builder, string queryStringKey) =>
             builder.WithDelegateStrategy(context =>
             {
                 if (context is not HttpContext httpContext)

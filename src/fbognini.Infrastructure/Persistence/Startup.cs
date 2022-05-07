@@ -22,8 +22,9 @@ namespace fbognini.Infrastructure.Persistence
 {
     public static class Startup
     {
-        public static IServiceCollection AddPersistence<T>(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddPersistence<T, TTenant>(this IServiceCollection services, IConfiguration configuration)
             where T: DbContext
+            where TTenant: Tenant, new()
         {
             var databaseSettings = configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
 
@@ -32,7 +33,7 @@ namespace fbognini.Infrastructure.Persistence
                 .AddDbContext<T>(options => options
                     .UseSqlServer(databaseSettings.ConnectionString))
 
-                .AddTransient<IMultiTenantDatabaseInitializer, MultiTenantDatabaseInitializer<T>>()
+                .AddTransient<IMultiTenantDatabaseInitializer, MultiTenantDatabaseInitializer<T, TTenant>>()
                 .AddTransient<ApplicationDatabaseInitializer<T>>()
                 .AddServices(typeof(ICustomSeeder<T>), ServiceLifetime.Transient)
                 .AddTransient<ApplicationSeederRunner<T>>()
