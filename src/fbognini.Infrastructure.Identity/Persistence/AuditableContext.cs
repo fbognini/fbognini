@@ -24,37 +24,39 @@ using Finbuckle.MultiTenant;
 
 namespace fbognini.Infrastructure.Identity.Persistence
 {
-    public class AuditableContext<TContext, TUser, TRole, TKey> : MultiTenantIdentityDbContext<TUser, TRole, TKey>, IBaseDbContext
+    public class AuditableContext<TContext, TUser, TRole, TKey> : IdentityDbContext<TUser, TRole, TKey>, IBaseDbContext
         where TContext : DbContext
         where TUser : AuditableUser<TKey>
         where TRole : IdentityRole<TKey>
         where TKey : IEquatable<TKey>
     {
+        private readonly ITenantInfo currentTenant;
         private readonly ICurrentUserService currentUserService;
         private readonly string authSchema;
 
         public AuditableContext(
-            ITenantInfo currentTenant,
             DbContextOptions<TContext> options,
+            ITenantInfo currentTenant,
             ICurrentUserService currentUserService,
             string authSchema = "auth")
-            : base(currentTenant, options)
+            : base(options)
         {
+            this.currentTenant = currentTenant;
             this.currentUserService = currentUserService;
             this.authSchema = authSchema;
         }
 
         public DbSet<Audit> AuditTrails { get; set; }
-        public string Tenant => TenantInfo.Name;
+        public string Tenant => currentTenant.Name;
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.EnableSensitiveDataLogging();
 
-            if (!string.IsNullOrWhiteSpace(TenantInfo?.ConnectionString))
+            if (!string.IsNullOrWhiteSpace(currentTenant?.ConnectionString))
             {
-                optionsBuilder.UseSqlServer(TenantInfo.ConnectionString);
+                optionsBuilder.UseSqlServer(currentTenant.ConnectionString);
             }
         }
 
