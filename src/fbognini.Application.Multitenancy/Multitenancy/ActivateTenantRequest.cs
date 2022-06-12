@@ -1,4 +1,5 @@
 using fbognini.FluentValidation;
+using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
