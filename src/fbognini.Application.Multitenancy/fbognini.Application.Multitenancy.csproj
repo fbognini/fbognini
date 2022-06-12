@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageId>fbognini.Application.Multitenancy</PackageId>
     <TargetFramework>net6.0</TargetFramework>
-    <Version>6.1.0</Version>
+    <Version>6.1.1</Version>
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
     <PackageProjectUrl>https://github.com/fbognini/fbognini</PackageProjectUrl>
@@ -13,6 +13,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\fbognini.Application\fbognini.Application.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="6.7.2" />
   </ItemGroup>
 
 </Project>

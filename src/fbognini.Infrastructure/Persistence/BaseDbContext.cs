@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Data.Common;
-using Snickler.EFCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Reflection;
 using fbognini.Core.Interfaces;
@@ -14,8 +13,8 @@ using System.Data;
 using System;
 using EFCore.BulkExtensions;
 using System.Linq.Expressions;
-using fbognini.Application.Entities;
 using fbognini.Core.Entities;
+using Snickler.EFCore;
 
 namespace fbognini.Infrastructure.Persistence
 {
