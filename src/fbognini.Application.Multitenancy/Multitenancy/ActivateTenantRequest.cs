@@ -1,30 +1,34 @@
 using fbognini.FluentValidation;
+using FluentValidation;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace fbognini.Application.Multitenancy;
-
-public class ActivateTenantRequest : IRequest<string>
+namespace fbognini.Application.Multitenancy
 {
-    public string TenantId { get; set; } = default!;
 
-    public ActivateTenantRequest(string tenantId) => TenantId = tenantId;
-}
+    public class ActivateTenantRequest : IRequest<string>
+    {
+        public string TenantId { get; set; } = default!;
 
-public class ActivateTenantRequestValidator : CustomValidator<ActivateTenantRequest>
-{
-    public ActivateTenantRequestValidator() =>
-        RuleFor(t => t.TenantId)
-            .NotEmpty();
-}
+        public ActivateTenantRequest(string tenantId) => TenantId = tenantId;
+    }
 
-public class ActivateTenantRequestHandler : IRequestHandler<ActivateTenantRequest, string>
-{
-    private readonly ITenantService _tenantService;
+    public class ActivateTenantRequestValidator : CustomValidator<ActivateTenantRequest>
+    {
+        public ActivateTenantRequestValidator() =>
+            RuleFor(t => t.TenantId)
+                .NotEmpty();
+    }
 
-    public ActivateTenantRequestHandler(ITenantService tenantService) => _tenantService = tenantService;
+    public class ActivateTenantRequestHandler : IRequestHandler<ActivateTenantRequest, string>
+    {
+        private readonly ITenantService tenantService;
 
-    public Task<string> Handle(ActivateTenantRequest request, CancellationToken cancellationToken) =>
-        _tenantService.ActivateAsync(request.TenantId);
+        public ActivateTenantRequestHandler(ITenantService tenantService) => this.tenantService = tenantService;
+
+        public Task<string> Handle(ActivateTenantRequest request, CancellationToken cancellationToken) =>
+            tenantService.ActivateAsync(request.TenantId);
+    }
+
 }

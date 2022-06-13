@@ -1,6 +1,7 @@
-﻿namespace fbognini.Application.Persistence;
-
-public interface IConnectionStringValidator
+﻿namespace fbognini.Application.Persistence
 {
-    bool TryValidate(string connectionString, string? dbProvider = null);
+    public interface IConnectionStringValidator
+    {
+        bool TryValidate(string connectionString, string? dbProvider = null);
+    }
 }

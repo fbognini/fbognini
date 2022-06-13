@@ -21,131 +21,134 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using fbognini.Infrastructure.Persistence.Initialization;
 
-namespace fbognini.Infrastructure.Multitenancy;
-
-public class TenantService<TTenant> : ITenantService
-        where TTenant : Tenant, new()
+namespace fbognini.Infrastructure.Multitenancy
 {
-    private readonly IMapper mapper;
-    private readonly IMultiTenantStore<TTenant> tenantStore;
-    private readonly IConnectionStringSecurer csSecurer;
-    private readonly IMultiTenantDatabaseInitializer _dbInitializer;
-    private readonly DatabaseSettings _dbSettings;
 
-    public TenantService(
-        IMultiTenantStore<TTenant> tenantStore,
-        IConnectionStringSecurer csSecurer,
-        IMultiTenantDatabaseInitializer dbInitializer,
-        IOptions<DatabaseSettings> dbSettings, IMapper mapper)
+    public class TenantService<TTenant> : ITenantService
+            where TTenant : Tenant, new()
     {
-        this.tenantStore = tenantStore;
-        this.csSecurer = csSecurer;
-        _dbInitializer = dbInitializer;
-        _dbSettings = dbSettings.Value;
-        this.mapper = mapper;
-    }
+        private readonly IMapper mapper;
+        private readonly IMultiTenantStore<TTenant> tenantStore;
+        private readonly IConnectionStringSecurer csSecurer;
+        private readonly IMultiTenantDatabaseInitializer _dbInitializer;
+        private readonly DatabaseSettings _dbSettings;
 
-    public async Task<List<TenantDto>> GetAllAsync()
-    {
-        var tenants = mapper.Map<List<TenantDto>>(await tenantStore.GetAllAsync());
-        tenants.ForEach(t => t.ConnectionString = csSecurer.MakeSecure(t.ConnectionString));
-        return tenants;
-    }
-
-    public async Task<bool> ExistsWithIdAsync(string id) =>
-        await tenantStore.TryGetAsync(id) is not null;
-
-    public async Task<bool> ExistsWithNameAsync(string name) =>
-        (await tenantStore.GetAllAsync()).Any(t => t.Name == name);
-
-    public async Task<TenantDto> GetByIdAsync(string id) 
-    {
-        var tenant = mapper.Map<TenantDto>(await GetTenantInfoAsync(id));
-        tenant.ConnectionString = csSecurer.MakeSecure(tenant.ConnectionString);
-
-        return tenant;
-    }
-
-    public async Task<string> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
-    {
-        if (request.ConnectionString?.Trim() == _dbSettings.ConnectionString?.Trim()) request.ConnectionString = string.Empty;
-
-        var tenant = new TTenant();
-        tenant.Identifier = request.Identifier;
-        tenant.Name = request.Name;
-        tenant.ConnectionString = request.ConnectionString ?? string.Empty;
-        tenant.AdminEmail = request.AdminEmail;
-        tenant.IsActive = true;
-        tenant.Issuer = request.Issuer;
-        // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
-        tenant.ValidUpto = DateTime.UtcNow.AddMonths(1);
-
-        await tenantStore.TryAddAsync(tenant);
-
-        // TODO: run this in a hangfire job? will then have to send mail when it's ready or not
-        try
+        public TenantService(
+            IMultiTenantStore<TTenant> tenantStore,
+            IConnectionStringSecurer csSecurer,
+            IMultiTenantDatabaseInitializer dbInitializer,
+            IOptions<DatabaseSettings> dbSettings, IMapper mapper)
         {
-            await _dbInitializer.InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
-        }
-        catch
-        {
-            await tenantStore.TryRemoveAsync(request.Identifier);
-            throw;
+            this.tenantStore = tenantStore;
+            this.csSecurer = csSecurer;
+            _dbInitializer = dbInitializer;
+            _dbSettings = dbSettings.Value;
+            this.mapper = mapper;
         }
 
-        return tenant.Id.ToString();
-    }
-
-    public async Task<string> ActivateAsync(string id)
-    {
-        var tenant = await GetTenantInfoAsync(id);
-
-        if (tenant.IsActive)
+        public async Task<List<TenantDto>> GetAllAsync()
         {
-            //throw new ConflictException(_t["Tenant is already Activated."]);
-            throw new ConflictException("Tenant is already Activated.");
+            var tenants = mapper.Map<List<TenantDto>>(await tenantStore.GetAllAsync());
+            tenants.ForEach(t => t.ConnectionString = csSecurer.MakeSecure(t.ConnectionString));
+            return tenants;
         }
 
-        tenant.Activate();
+        public async Task<bool> ExistsWithIdAsync(string id) =>
+            !(await tenantStore.TryGetAsync(id) is null);
 
-        await tenantStore.TryUpdateAsync(tenant);
+        public async Task<bool> ExistsWithNameAsync(string name) =>
+            (await tenantStore.GetAllAsync()).Any(t => t.Name == name);
 
-        //return _t["Tenant {0} is now Activated.", id];
-        return String.Format("Tenant {0} is now Activated.", id);
-    }
-
-    public async Task<string> DeactivateAsync(string id)
-    {
-        var tenant = await GetTenantInfoAsync(id);
-
-        if (!tenant.IsActive)
+        public async Task<TenantDto> GetByIdAsync(string id)
         {
-            //throw new ConflictException(_t["Tenant is already Deactivated."]);
-            throw new ConflictException("Tenant is already Deactivated.");
+            var tenant = mapper.Map<TenantDto>(await GetTenantInfoAsync(id));
+            tenant.ConnectionString = csSecurer.MakeSecure(tenant.ConnectionString);
+
+            return tenant;
         }
 
-        tenant.Deactivate();
+        public async Task<string> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
+        {
+            if (request.ConnectionString?.Trim() == _dbSettings.ConnectionString?.Trim()) request.ConnectionString = string.Empty;
 
-        await tenantStore.TryUpdateAsync(tenant);
+            var tenant = new TTenant();
+            tenant.Identifier = request.Identifier;
+            tenant.Name = request.Name;
+            tenant.ConnectionString = request.ConnectionString ?? string.Empty;
+            tenant.AdminEmail = request.AdminEmail;
+            tenant.IsActive = true;
+            tenant.Issuer = request.Issuer;
+            // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
+            tenant.ValidUpto = DateTime.UtcNow.AddMonths(1);
 
-        //return _t[$"Tenant {0} is now Deactivated.", id];
-        return String.Format("Tenant {0} is now Deactivated.", id);
+            await tenantStore.TryAddAsync(tenant);
+
+            // TODO: run this in a hangfire job? will then have to send mail when it's ready or not
+            try
+            {
+                await _dbInitializer.InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
+            }
+            catch
+            {
+                await tenantStore.TryRemoveAsync(request.Identifier);
+                throw;
+            }
+
+            return tenant.Id.ToString();
+        }
+
+        public async Task<string> ActivateAsync(string id)
+        {
+            var tenant = await GetTenantInfoAsync(id);
+
+            if (tenant.IsActive)
+            {
+                //throw new ConflictException(_t["Tenant is already Activated."]);
+                throw new ConflictException("Tenant is already Activated.");
+            }
+
+            tenant.Activate();
+
+            await tenantStore.TryUpdateAsync(tenant);
+
+            //return _t["Tenant {0} is now Activated.", id];
+            return String.Format("Tenant {0} is now Activated.", id);
+        }
+
+        public async Task<string> DeactivateAsync(string id)
+        {
+            var tenant = await GetTenantInfoAsync(id);
+
+            if (!tenant.IsActive)
+            {
+                //throw new ConflictException(_t["Tenant is already Deactivated."]);
+                throw new ConflictException("Tenant is already Deactivated.");
+            }
+
+            tenant.Deactivate();
+
+            await tenantStore.TryUpdateAsync(tenant);
+
+            //return _t[$"Tenant {0} is now Deactivated.", id];
+            return String.Format("Tenant {0} is now Deactivated.", id);
+        }
+
+        public async Task<string> UpdateSubscription(string id, DateTime extendedExpiryDate)
+        {
+            var tenant = await GetTenantInfoAsync(id);
+
+            tenant.SetValidity(extendedExpiryDate);
+
+            await tenantStore.TryUpdateAsync(tenant);
+
+            //return _t[$"Tenant {0}'s Subscription Upgraded. Now Valid till {1}.", id, tenant.ValidUpto];
+            return String.Format("Tenant {0}'s Subscription Upgraded. Now Valid till {1}.", id, tenant.ValidUpto);
+        }
+
+        private async Task<TTenant> GetTenantInfoAsync(string id) =>
+            await tenantStore.TryGetAsync(id)
+                //?? throw new NotFoundException(_t["{0} {1} Not Found.", typeof(Tenant).Name, id]);
+                ?? throw new NotFoundException(String.Format("{0} {1} Not Found.", typeof(Tenant).Name, id));
     }
 
-    public async Task<string> UpdateSubscription(string id, DateTime extendedExpiryDate)
-    {
-        var tenant = await GetTenantInfoAsync(id);
-
-        tenant.SetValidity(extendedExpiryDate);
-
-        await tenantStore.TryUpdateAsync(tenant);
-
-        //return _t[$"Tenant {0}'s Subscription Upgraded. Now Valid till {1}.", id, tenant.ValidUpto];
-        return String.Format("Tenant {0}'s Subscription Upgraded. Now Valid till {1}.", id, tenant.ValidUpto);
-    }
-
-    private async Task<TTenant> GetTenantInfoAsync(string id) =>
-        await tenantStore.TryGetAsync(id)
-            //?? throw new NotFoundException(_t["{0} {1} Not Found.", typeof(Tenant).Name, id]);
-            ?? throw new NotFoundException(String.Format("{0} {1} Not Found.", typeof(Tenant).Name, id));
 }

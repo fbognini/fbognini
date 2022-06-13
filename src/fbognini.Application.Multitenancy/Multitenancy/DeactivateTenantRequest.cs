@@ -1,29 +1,34 @@
 using fbognini.FluentValidation;
+using FluentValidation;
+using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace fbognini.Application.Multitenancy;
-
-public class DeactivateTenantRequest : IRequest<string>
+namespace fbognini.Application.Multitenancy
 {
-    public string TenantId { get; set; } = default!;
 
-    public DeactivateTenantRequest(string tenantId) => TenantId = tenantId;
-}
+    public class DeactivateTenantRequest : IRequest<string>
+    {
+        public string TenantId { get; set; } = default!;
 
-public class DeactivateTenantRequestValidator : CustomValidator<DeactivateTenantRequest>
-{
-    public DeactivateTenantRequestValidator() =>
-        RuleFor(t => t.TenantId)
-            .NotEmpty();
-}
+        public DeactivateTenantRequest(string tenantId) => TenantId = tenantId;
+    }
 
-public class DeactivateTenantRequestHandler : IRequestHandler<DeactivateTenantRequest, string>
-{
-    private readonly ITenantService _tenantService;
+    public class DeactivateTenantRequestValidator : CustomValidator<DeactivateTenantRequest>
+    {
+        public DeactivateTenantRequestValidator() =>
+            RuleFor(t => t.TenantId)
+                .NotEmpty();
+    }
 
-    public DeactivateTenantRequestHandler(ITenantService tenantService) => _tenantService = tenantService;
+    public class DeactivateTenantRequestHandler : IRequestHandler<DeactivateTenantRequest, string>
+    {
+        private readonly ITenantService tenantService;
 
-    public Task<string> Handle(DeactivateTenantRequest request, CancellationToken cancellationToken) =>
-        _tenantService.DeactivateAsync(request.TenantId);
+        public DeactivateTenantRequestHandler(ITenantService tenantService) => this.tenantService = tenantService;
+
+        public Task<string> Handle(DeactivateTenantRequest request, CancellationToken cancellationToken) =>
+            tenantService.DeactivateAsync(request.TenantId);
+    }
+
 }

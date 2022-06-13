@@ -1,6 +1,8 @@
-﻿namespace fbognini.Application.Persistence;
-
-public interface IConnectionStringSecurer
+﻿namespace fbognini.Application.Persistence
 {
-    string? MakeSecure(string? connectionString, string? dbProvider = null);
+    public interface IConnectionStringSecurer
+    {
+        string? MakeSecure(string? connectionString, string? dbProvider = null);
+    }
+
 }

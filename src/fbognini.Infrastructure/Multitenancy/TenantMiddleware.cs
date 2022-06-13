@@ -9,46 +9,49 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace fbognini.Infrastructure.Multitenancy;
-
-public class TenantMiddleware : IMiddleware
+namespace fbognini.Infrastructure.Multitenancy
 {
-    private readonly ITenantInfo tenantInfo;
-    private readonly MultitenancySettings multitenancySettings;
 
-    public TenantMiddleware(ITenantInfo tenantInfo, IOptions<MultitenancySettings> options)
+    public class TenantMiddleware : IMiddleware
     {
-        this.tenantInfo = tenantInfo;
-        this.multitenancySettings = options.Value;
-    }
+        private readonly ITenantInfo tenantInfo;
+        private readonly MultitenancySettings multitenancySettings;
 
-    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
-    {
-        if ((multitenancySettings.IncludeAll && (StartWithPaths(context, multitenancySettings.IncludePaths) || !StartWithPaths(context, multitenancySettings.ExcludePaths)))
-            || StartWithPaths(context, multitenancySettings.IncludePaths))
+        public TenantMiddleware(ITenantInfo tenantInfo, IOptions<MultitenancySettings> options)
         {
-            if (tenantInfo == null)
-            {
-                throw new IdentityException("Authentication failed");
-            }
+            this.tenantInfo = tenantInfo;
+            this.multitenancySettings = options.Value;
         }
 
-        await next(context);
-    }
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+        {
+            if ((multitenancySettings.IncludeAll && (StartWithPaths(context, multitenancySettings.IncludePaths) || !StartWithPaths(context, multitenancySettings.ExcludePaths)))
+                || StartWithPaths(context, multitenancySettings.IncludePaths))
+            {
+                if (tenantInfo == null)
+                {
+                    throw new IdentityException("Authentication failed");
+                }
+            }
 
-    private bool StartWithPaths(HttpContext context, List<string> paths)
-    {
-        if (paths == null)
+            await next(context);
+        }
+
+        private bool StartWithPaths(HttpContext context, List<string> paths)
+        {
+            if (paths == null)
+                return false;
+
+            foreach (string item in paths)
+            {
+                if (context.Request.Path.StartsWithSegments(item))
+                {
+                    return true;
+                }
+            }
+
             return false;
-
-        foreach (string item in paths)
-        {
-            if (context.Request.Path.StartsWithSegments(item))
-            {
-                return true;
-            }
         }
-
-        return false;
     }
+
 }

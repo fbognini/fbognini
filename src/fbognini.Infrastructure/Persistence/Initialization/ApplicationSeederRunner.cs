@@ -5,21 +5,24 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace fbognini.Infrastructure.Persistence.Initialization;
-
-public class ApplicationSeederRunner<TContext>
-    where TContext : DbContext
+namespace fbognini.Infrastructure.Persistence.Initialization
 {
-    private readonly ICustomSeeder<TContext>[] _seeders;
 
-    public ApplicationSeederRunner(IServiceProvider serviceProvider) =>
-        _seeders = serviceProvider.GetServices<ICustomSeeder<TContext>>().ToArray();
-
-    public async Task RunSeedersAsync(TContext context, CancellationToken cancellationToken)
+    public class ApplicationSeederRunner<TContext>
+        where TContext : DbContext
     {
-        foreach (var seeder in _seeders)
+        private readonly ICustomSeeder<TContext>[] _seeders;
+
+        public ApplicationSeederRunner(IServiceProvider serviceProvider) =>
+            _seeders = serviceProvider.GetServices<ICustomSeeder<TContext>>().ToArray();
+
+        public async Task RunSeedersAsync(TContext context, CancellationToken cancellationToken)
         {
-            await seeder.InitializeAsync(context, cancellationToken);
+            foreach (var seeder in _seeders)
+            {
+                await seeder.InitializeAsync(context, cancellationToken);
+            }
         }
     }
+
 }

@@ -6,49 +6,52 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Data.SqlClient;
 
-namespace fbognini.Infrastructure.Persistence.ConnectionString;
-
-public class ConnectionStringValidator : IConnectionStringValidator
+namespace fbognini.Infrastructure.Persistence.ConnectionString
 {
-    private readonly DatabaseSettings _dbSettings;
-    private readonly ILogger<ConnectionStringValidator> _logger;
 
-    public ConnectionStringValidator(IOptions<DatabaseSettings> dbSettings, ILogger<ConnectionStringValidator> logger)
+    public class ConnectionStringValidator : IConnectionStringValidator
     {
-        _dbSettings = dbSettings.Value;
-        _logger = logger;
-    }
+        private readonly DatabaseSettings _dbSettings;
+        private readonly ILogger<ConnectionStringValidator> _logger;
 
-    public bool TryValidate(string connectionString, string? dbProvider = null)
-    {
-        if (string.IsNullOrWhiteSpace(dbProvider))
+        public ConnectionStringValidator(IOptions<DatabaseSettings> dbSettings, ILogger<ConnectionStringValidator> logger)
         {
-            dbProvider = _dbSettings.DBProvider;
+            _dbSettings = dbSettings.Value;
+            _logger = logger;
         }
 
-        try
+        public bool TryValidate(string connectionString, string? dbProvider = null)
         {
-            switch (dbProvider?.ToLowerInvariant())
+            if (string.IsNullOrWhiteSpace(dbProvider))
             {
-                //case DbProviderKeys.Npgsql:
-                //    var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);
-                //    break;
-
-                //case DbProviderKeys.MySql:
-                //    var mysqlcs = new MySqlConnectionStringBuilder(connectionString);
-                //    break;
-
-                case DbProviderKeys.SqlServer:
-                    var mssqlcs = new SqlConnectionStringBuilder(connectionString);
-                    break;
+                dbProvider = _dbSettings.DBProvider;
             }
 
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Connection String Validation Exception : {ex.Message}");
-            return false;
+            try
+            {
+                switch (dbProvider?.ToLowerInvariant())
+                {
+                    //case DbProviderKeys.Npgsql:
+                    //    var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);
+                    //    break;
+
+                    //case DbProviderKeys.MySql:
+                    //    var mysqlcs = new MySqlConnectionStringBuilder(connectionString);
+                    //    break;
+
+                    case DbProviderKeys.SqlServer:
+                        var mssqlcs = new SqlConnectionStringBuilder(connectionString);
+                        break;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Connection String Validation Exception : {ex.Message}");
+                return false;
+            }
         }
     }
+
 }

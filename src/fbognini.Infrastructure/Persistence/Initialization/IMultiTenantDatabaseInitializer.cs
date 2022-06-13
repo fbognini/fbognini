@@ -2,10 +2,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace fbognini.Infrastructure.Persistence.Initialization;
-
-public interface IMultiTenantDatabaseInitializer
+namespace fbognini.Infrastructure.Persistence.Initialization
 {
-    Task InitializeDatabasesAsync(CancellationToken cancellationToken);
-    Task InitializeApplicationDbForTenantAsync(Tenant tenant, CancellationToken cancellationToken);
+    public interface IMultiTenantDatabaseInitializer
+    {
+        Task InitializeDatabasesAsync(CancellationToken cancellationToken);
+        Task InitializeApplicationDbForTenantAsync(Tenant tenant, CancellationToken cancellationToken);
+    }
 }

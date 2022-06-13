@@ -45,25 +45,25 @@ namespace fbognini.Infrastructure.Multitenancy
         public static FinbuckleMultiTenantBuilder<Tenant> WithQueryStringStrategy(this FinbuckleMultiTenantBuilder<Tenant> builder, string queryStringKey) =>
             builder.WithDelegateStrategy(context =>
             {
-                if (context is not HttpContext httpContext)
+                if (context is HttpContext httpContext)
                 {
-                    return Task.FromResult((string?)null);
+                    httpContext.Request.Query.TryGetValue(queryStringKey, out StringValues tenantIdParam);
+
+                    return Task.FromResult((string?)tenantIdParam.ToString());
                 }
 
-                httpContext.Request.Query.TryGetValue(queryStringKey, out StringValues tenantIdParam);
-
-                return Task.FromResult((string?)tenantIdParam.ToString());
+                return Task.FromResult((string?)null);
             });
 
         public static FinbuckleMultiTenantBuilder<Tenant> WithOriginOrRefererStrategy(this FinbuckleMultiTenantBuilder<Tenant> builder, string queryStringKey) =>
             builder.WithDelegateStrategy(context =>
             {
-                if (context is not HttpContext httpContext)
+                if (context is HttpContext httpContext)
                 {
-                    return Task.FromResult((string?)null);
+                    return Task.FromResult(ResolveFromOriginOrReferer(httpContext));
                 }
 
-                return Task.FromResult(ResolveFromOriginOrReferer(httpContext));
+                return Task.FromResult((string?)null);
             });
 
 

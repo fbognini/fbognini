@@ -1,19 +1,23 @@
-﻿using System.Collections.Generic;
+﻿using MediatR;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace fbognini.Application.Multitenancy;
-
-public class GetAllTenantsRequest : IRequest<List<TenantDto>>
+namespace fbognini.Application.Multitenancy
 {
-}
 
-public class GetAllTenantsRequestHandler : IRequestHandler<GetAllTenantsRequest, List<TenantDto>>
-{
-    private readonly ITenantService _tenantService;
+    public class GetAllTenantsRequest : IRequest<List<TenantDto>>
+    {
+    }
 
-    public GetAllTenantsRequestHandler(ITenantService tenantService) => _tenantService = tenantService;
+    public class GetAllTenantsRequestHandler : IRequestHandler<GetAllTenantsRequest, List<TenantDto>>
+    {
+        private readonly ITenantService tenantService;
 
-    public Task<List<TenantDto>> Handle(GetAllTenantsRequest request, CancellationToken cancellationToken) =>
-        _tenantService.GetAllAsync();
+        public GetAllTenantsRequestHandler(ITenantService tenantService) => this.tenantService = tenantService;
+
+        public Task<List<TenantDto>> Handle(GetAllTenantsRequest request, CancellationToken cancellationToken) =>
+            tenantService.GetAllAsync();
+    }
+
 }

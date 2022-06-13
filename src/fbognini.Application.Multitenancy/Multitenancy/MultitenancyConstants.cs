@@ -1,14 +1,17 @@
-namespace fbognini.Application.Multitenancy;
-
-public class MultitenancyConstants
+namespace fbognini.Application.Multitenancy
 {
-    public static class Root
+
+    public class MultitenancyConstants
     {
-        public const string Name = "Root";
-        public const string Key = "root";
-        public const string EmailAddress = "admin@root.com";
+        public static class Root
+        {
+            public const string Name = "Root";
+            public const string Key = "root";
+            public const string EmailAddress = "admin@root.com";
+        }
+
+        public const string DefaultPassword = "123Pa$$word!";
+        public const string TenantIdName = "tenant";
     }
 
-    public const string DefaultPassword = "123Pa$$word!";
-    public const string TenantIdName = "tenant";
 }

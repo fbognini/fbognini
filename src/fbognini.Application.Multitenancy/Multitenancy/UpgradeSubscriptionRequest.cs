@@ -1,30 +1,35 @@
 using fbognini.FluentValidation;
+using FluentValidation;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace fbognini.Application.Multitenancy;
-
-public class UpgradeSubscriptionRequest : IRequest<string>
+namespace fbognini.Application.Multitenancy
 {
-    public string TenantId { get; set; } = default!;
-    public DateTime ExtendedExpiryDate { get; set; }
-}
 
-public class UpgradeSubscriptionRequestValidator : CustomValidator<UpgradeSubscriptionRequest>
-{
-    public UpgradeSubscriptionRequestValidator() =>
-        RuleFor(t => t.TenantId)
-            .NotEmpty();
-}
+    public class UpgradeSubscriptionRequest : IRequest<string>
+    {
+        public string TenantId { get; set; } = default!;
+        public DateTime ExtendedExpiryDate { get; set; }
+    }
 
-public class UpgradeSubscriptionRequestHandler : IRequestHandler<UpgradeSubscriptionRequest, string>
-{
-    private readonly ITenantService _tenantService;
+    public class UpgradeSubscriptionRequestValidator : CustomValidator<UpgradeSubscriptionRequest>
+    {
+        public UpgradeSubscriptionRequestValidator() =>
+            RuleFor(t => t.TenantId)
+                .NotEmpty();
+    }
 
-    public UpgradeSubscriptionRequestHandler(ITenantService tenantService) => _tenantService = tenantService;
+    public class UpgradeSubscriptionRequestHandler : IRequestHandler<UpgradeSubscriptionRequest, string>
+    {
+        private readonly ITenantService tenantService;
 
-    public Task<string> Handle(UpgradeSubscriptionRequest request, CancellationToken cancellationToken) =>
-        _tenantService.UpdateSubscription(request.TenantId, request.ExtendedExpiryDate);
+        public UpgradeSubscriptionRequestHandler(ITenantService tenantService) => this.tenantService = tenantService;
+
+        public Task<string> Handle(UpgradeSubscriptionRequest request, CancellationToken cancellationToken) =>
+            tenantService.UpdateSubscription(request.TenantId, request.ExtendedExpiryDate);
+    }
+
 }
