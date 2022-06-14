@@ -1,4 +1,5 @@
-﻿using fbognini.Application.Entities;
+﻿using fbognini.Application.DependencyInjection;
+using fbognini.Application.Entities;
 using fbognini.Application.Multitenancy;
 using fbognini.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.Primitives;
 using Nager.PublicSuffix;
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Multitenancy
@@ -27,6 +29,8 @@ namespace fbognini.Infrastructure.Multitenancy
             if (string.IsNullOrEmpty(rootConnectionString)) throw new InvalidOperationException("DB ConnectionString is not configured.");
             string dbProvider = databaseSettings.DBProvider;
             if (string.IsNullOrEmpty(dbProvider)) throw new InvalidOperationException("DB Provider is not configured.");
+
+            services.AddApplication(Assembly.Load("fbognini.Application.Multitenancy"));
 
             return services
                 .Configure<MultitenancySettings>(configuration.GetSection(nameof(MultitenancySettings)))
