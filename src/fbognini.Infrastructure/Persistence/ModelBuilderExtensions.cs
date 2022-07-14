@@ -36,11 +36,12 @@ namespace fbognini.Infrastructure.Persistence
                     entity.HasIndex(r => new { r.NormalizedName, (r as IHaveTenant).Tenant }).HasDatabaseName("RoleNameIndex").IsUnique();
                 }
             });
-            modelBuilder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims", authSchema);
-            modelBuilder.Entity<IdentityUserRole<string>>().ToTable("UserRoles", authSchema);
-            modelBuilder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims", authSchema);
-            modelBuilder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins", authSchema);
-            modelBuilder.Entity<IdentityUserToken<string>>().ToTable("UserTokens", authSchema);
+
+            modelBuilder.Entity<IdentityRoleClaim<TKey>>().ToTable("RoleClaims", authSchema);
+            modelBuilder.Entity<IdentityUserRole<TKey>>().ToTable("UserRoles", authSchema);
+            modelBuilder.Entity<IdentityUserClaim<TKey>>().ToTable("UserClaims", authSchema);
+            modelBuilder.Entity<IdentityUserLogin<TKey>>().ToTable("UserLogins", authSchema);
+            modelBuilder.Entity<IdentityUserToken<TKey>>().ToTable("UserTokens", authSchema);
         }
 
 

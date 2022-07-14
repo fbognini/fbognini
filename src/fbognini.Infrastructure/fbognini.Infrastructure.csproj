@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageId>fbognini.Infrastructure</PackageId>
     <TargetFrameworks>net6.0;netcoreapp3.1</TargetFrameworks>
-    <Version>6.2.2</Version>
+    <Version>6.2.3</Version>
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
     <PackageProjectUrl>https://github.com/fbognini/fbognini</PackageProjectUrl>
@@ -40,10 +40,10 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0'">
     <DefineConstants>NET6</DefineConstants>
   </PropertyGroup>
-
+	
   <ItemGroup>
     <ProjectReference Include="..\fbognini.Application.Multitenancy\fbognini.Application.Multitenancy.csproj" />
     <ProjectReference Include="..\fbognini.Application\fbognini.Application.csproj" />
   </ItemGroup>
-	
+
 </Project>
