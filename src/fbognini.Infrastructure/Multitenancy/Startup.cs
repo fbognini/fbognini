@@ -2,6 +2,7 @@
 using fbognini.Application.Entities;
 using fbognini.Application.Multitenancy;
 using fbognini.Infrastructure.Persistence;
+using fbognini.Infrastructure.Persistence.Initialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ using Nager.PublicSuffix;
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Multitenancy
@@ -34,7 +36,6 @@ namespace fbognini.Infrastructure.Multitenancy
 
             return services
                 .Configure<MultitenancySettings>(configuration.GetSection(nameof(MultitenancySettings)))
-                //.AddDbContext<TenantDbContext>(m => m.UseDatabase(dbProvider, rootConnectionString))
                 .AddDbContext<TenantDbContext<TTenant>>(m => m.UseSqlServer(rootConnectionString))
                 .AddScoped<ITenantService, TenantService<TTenant>>()
                 .AddTenantMiddleware()
@@ -43,8 +44,21 @@ namespace fbognini.Infrastructure.Multitenancy
                     ;
         }
 
-        public static IApplicationBuilder UseMultiTenancy(this IApplicationBuilder app) =>
+        public static IApplicationBuilder UseMultiTenancy(this IApplicationBuilder app)
+        {
+            using var serviceScope = app.ApplicationServices.CreateScope();
+
+            var initializers = serviceScope.ServiceProvider.GetServices<IMultiTenantDatabaseInitializer>();
+            foreach (var initializer in initializers)
+            {
+                initializer.InitializeDatabasesAsync(CancellationToken.None).GetAwaiter().GetResult();
+            }
+
             app.UseMultiTenant();
+            app.UseTenantMiddleware();
+
+            return app;
+        }
 
         public static FinbuckleMultiTenantBuilder<Tenant> WithQueryStringStrategy(this FinbuckleMultiTenantBuilder<Tenant> builder, string queryStringKey) =>
             builder.WithDelegateStrategy(context =>

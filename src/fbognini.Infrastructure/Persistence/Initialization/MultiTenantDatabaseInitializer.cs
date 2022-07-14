@@ -42,7 +42,7 @@ namespace fbognini.Infrastructure.Persistence.Initialization
         {
             await InitializeTenantDbAsync(cancellationToken);
 
-            foreach (var tenant in await tenantDbContext.TenantInfo.ToListAsync(cancellationToken))
+            foreach (var tenant in await tenantDbContext.TenantInfo.Where(x => x.IsActive).ToListAsync(cancellationToken))
             {
                 await InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
             }
@@ -51,14 +51,20 @@ namespace fbognini.Infrastructure.Persistence.Initialization
             logger.LogInformation("To Sponsor this project, visit https://opencollective.com/fullstackhero");
         }
 
+
         public async Task InitializeApplicationDbForTenantAsync(Tenant tenant, CancellationToken cancellationToken)
+        {
+            await InitializeApplicationDbForTenantAsync(tenant as TTenantInfo, cancellationToken);
+        }
+
+        public async Task InitializeApplicationDbForTenantAsync(TTenantInfo tenant, CancellationToken cancellationToken)
         {
             // First create a new scope
             using var scope = serviceProvider.CreateScope();
 
             // Then set current tenant so the right connectionstring is used
             serviceProvider.GetRequiredService<IMultiTenantContextAccessor>()
-                .MultiTenantContext = new MultiTenantContext<Tenant>()
+                .MultiTenantContext = new MultiTenantContext<TTenantInfo>()
                 {
                     TenantInfo = tenant
                 };
