@@ -1,11 +1,14 @@
 ﻿using fbognini.Application.Entities;
 using fbognini.Application.Multitenancy;
+using fbognini.Core.Interfaces;
 using fbognini.Infrastructure.Multitenancy;
 using Finbuckle.MultiTenant;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,7 +59,6 @@ namespace fbognini.Infrastructure.Persistence.Initialization
         {
             await InitializeApplicationDbForTenantAsync(tenant as TTenantInfo, cancellationToken);
         }
-
         public async Task InitializeApplicationDbForTenantAsync(TTenantInfo tenant, CancellationToken cancellationToken)
         {
             // First create a new scope

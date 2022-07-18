@@ -11,14 +11,16 @@ namespace fbognini.Infrastructure.Persistence.Initialization
     public class ApplicationSeederRunner<TContext>
         where TContext : DbContext
     {
-        private readonly ICustomSeeder<TContext>[] _seeders;
+        private readonly IServiceProvider serviceProvider;
 
-        public ApplicationSeederRunner(IServiceProvider serviceProvider) =>
-            _seeders = serviceProvider.GetServices<ICustomSeeder<TContext>>().ToArray();
+        public ApplicationSeederRunner(IServiceProvider serviceProvider)
+        {
+            this.serviceProvider = serviceProvider;
+        }
 
         public async Task RunSeedersAsync(TContext context, CancellationToken cancellationToken)
         {
-            foreach (var seeder in _seeders)
+            foreach (var seeder in serviceProvider.GetServices<ICustomSeeder<TContext>>())
             {
                 await seeder.InitializeAsync(context, cancellationToken);
             }
