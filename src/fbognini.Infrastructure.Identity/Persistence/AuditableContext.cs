@@ -21,6 +21,8 @@ using fbognini.Infrastructure.Models;
 using Microsoft.Extensions.DependencyInjection;
 using fbognini.Infrastructure.Persistence;
 using Finbuckle.MultiTenant;
+using System.ComponentModel;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace fbognini.Infrastructure.Identity.Persistence
 {
@@ -77,12 +79,16 @@ namespace fbognini.Infrastructure.Identity.Persistence
                 switch (entry.State)
                 {
                     case EntityState.Added:
+                        SetNewProperty(entry.Entity, nameof(IAuditableEntity.CreatedBy));
+                        SetNewProperty(entry.Entity, nameof(IAuditableEntity.LastUpdatedBy));
                         entry.Entity.CreatedBy = currentUserService.UserId;
                         entry.Entity.Created = DateTime.Now;
                         entry.Entity.LastUpdatedBy = currentUserService.UserId;
                         entry.Entity.LastUpdated = DateTime.Now;
                         break;
                     case EntityState.Modified:
+                        SetNewProperty(entry.Entity, nameof(IAuditableEntity.LastModifiedBy));
+                        SetNewProperty(entry.Entity, nameof(IAuditableEntity.LastUpdatedBy));
                         entry.Entity.LastModifiedBy = currentUserService.UserId;
                         entry.Entity.LastModified = DateTime.Now;
                         entry.Entity.LastUpdatedBy = currentUserService.UserId;
@@ -91,6 +97,7 @@ namespace fbognini.Infrastructure.Identity.Persistence
                     case EntityState.Deleted:
                         if (entry.Entity is ISoftDelete softDelete)
                         {
+                            SetNewProperty(entry.Entity, nameof(ISoftDelete.DeletedBy));
                             softDelete.DeletedBy = currentUserService.UserId;
                             softDelete.Deleted = DateTime.Now;
                             entry.State = EntityState.Modified;
@@ -111,6 +118,15 @@ namespace fbognini.Infrastructure.Identity.Persistence
                 await OnAfterSaveChanges(auditEntries, cancellationToken);
 
                 return result;
+            }
+
+            void SetNewProperty(IAuditableEntity entity, string name)
+            {
+                var newProperty = entity.GetType().GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+                if (newProperty != null)
+                {
+                    newProperty.SetValue(entity, TypeDescriptor.GetConverter(newProperty.PropertyType).ConvertFromString(currentUserService.UserId));
+                }
             }
         }
 
