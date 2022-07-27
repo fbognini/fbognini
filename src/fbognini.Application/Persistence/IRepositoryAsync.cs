@@ -1,8 +1,10 @@
-﻿using fbognini.Core.Data;
+﻿using EFCore.BulkExtensions;
+using fbognini.Core.Data;
 using fbognini.Core.Data.Pagination;
 using fbognini.Core.Entities;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -14,16 +16,19 @@ namespace fbognini.Application.Persistence
     public interface IRepositoryAsync : IDisposable
     {
         #region Create
-
+        T Create<T>(T entity) where T : class, IEntity;
         Task<T> CreateAsync<T>(T entity, CancellationToken cancellationToken = default) where T : class, IEntity;
 
+        IEnumerable<T> CreateRange<T>(IEnumerable<T> entitys) where T : class, IEntity;
         Task<IEnumerable<T>> CreateRangeAsync<T>(IEnumerable<T> entitys, CancellationToken cancellationToken = default) where T : class, IEntity;
+
+        Task MassiveInsertAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
         #endregion
 
         #region Read
 
-        #region GetById
+            #region GetById
 
         Task<T> GetByIdAsync<T, TPK>(TPK id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<TPK>
@@ -45,6 +50,13 @@ namespace fbognini.Application.Persistence
 
 
 
+        #region GetByName
+
+        Task<T> GetByNameAsync<T>(string slug, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IEntity, IHaveName;
+
+        #endregion
+
         #region GetBySlug
 
         Task<T> GetBySlugAsync<T>(string slug, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
@@ -64,14 +76,17 @@ namespace fbognini.Application.Persistence
 
         #region Update
 
-        Task UpdateAsync<T>(T entity) where T : class, IEntity;
+        void Update<T>(T entity) where T : class, IEntity;
+        Task MassiveUpdateAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
         #endregion
 
         #region Delete
 
-        Task DeleteAsync<T>(T entity) where T : class, IEntity; 
-        Task DeleteRangeAsync<T>(IEnumerable<T> entitys) where T : class, IEntity;
+        void Delete<T>(T entity) where T : class, IEntity;
+        void DeleteRange<T>(SelectCriteria<T> criteria) where T : class, IEntity;
+        void DeleteRange<T>(IEnumerable<T> entitys) where T : class, IEntity;
+
 
         #region DeleteById
 
@@ -90,6 +105,11 @@ namespace fbognini.Application.Persistence
 
         #endregion
 
+
+        Task BatchDeleteAsync<T>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task MassiveDeleteAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+
+
         #endregion
 
         #region UnitOfWork
@@ -107,5 +127,6 @@ namespace fbognini.Application.Persistence
 
         #endregion
 
+        DbCommand LoadStoredProcedure(string name, bool prependDefaultSchema = true, short commandTimeout = 30);
     }
 }

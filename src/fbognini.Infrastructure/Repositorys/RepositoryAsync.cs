@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using EFCore.BulkExtensions;
 using fbognini.Application.DbContexts;
 using fbognini.Application.Persistence;
 using fbognini.Application.Utilities;
@@ -11,8 +12,10 @@ using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Caching.Distributed;
+using Snickler.EFCore;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -40,16 +43,43 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region Create
 
+        public T Create<T>(T entity) where T : class, IEntity
+        {
+            context.Set<T>().Add(entity);
+            return entity;
+        }
         public async Task<T> CreateAsync<T>(T entity, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             await context.Set<T>().AddAsync(entity, cancellationToken);
             return entity;
         }
 
+        public IEnumerable<T> CreateRange<T>(IEnumerable<T> entitys) where T : class, IEntity
+        {
+            context.Set<T>().AddRange(entitys);
+            return entitys;
+        }
+
         public async Task<IEnumerable<T>> CreateRangeAsync<T>(IEnumerable<T> entitys, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             await context.Set<T>().AddRangeAsync(entitys, cancellationToken);
             return entitys;
+        }
+
+        public async Task MassiveInsertAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            if (entities.First() is AuditableEntity)
+            {
+                foreach (var entry in entities as IList<AuditableEntity>)
+                {
+                    entry.CreatedBy = null;
+                    entry.Created = DateTime.Now;
+                    entry.LastUpdatedBy = null;
+                    entry.LastUpdated = DateTime.Now;
+                }
+            }
+
+            await context.BulkInsertAsync(entities, bulkConfig, cancellationToken: cancellationToken);
         }
 
         #endregion
@@ -101,6 +131,20 @@ namespace fbognini.Infrastructure.Repositorys
                 query = query.AsNoTracking();
 
             return await query.FirstOrDefaultAsync(x => x.Slug.Equals(slug));
+        }
+
+        #endregion
+
+        #region GetByName
+
+        public async Task<T> GetByNameAsync<T>(string name, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IEntity, IHaveName
+        {
+            var query = context.Set<T>().IncludeViews(args);
+            if (args != null && !args.Track)
+                query = query.AsNoTracking();
+
+            return await query.FirstOrDefaultAsync(x => x.Name.Equals(name));
         }
 
         #endregion
@@ -161,32 +205,87 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region Update
 
-        public Task UpdateAsync<T>(T entity) where T : class, IEntity
+        public void Update<T>(T entity) where T : class, IEntity
         {
             context.Entry(entity).State = EntityState.Modified;
             cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(entity)));
-            return Task.CompletedTask;
         }
+
+        public async Task MassiveUpdateAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            if (entities.First() is AuditableEntity)
+            {
+                foreach (var entry in entities as IList<AuditableEntity>)
+                {
+                    cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(entry)));
+
+                    entry.LastModifiedBy = null;
+                    entry.LastModified = DateTime.Now;
+                    entry.LastUpdatedBy = null;
+                    entry.LastUpdated = DateTime.Now;
+                }
+            }
+
+            await context.BulkUpdateAsync(entities, bulkConfig, cancellationToken: cancellationToken);
+        }
+
 
         #endregion
 
         #region Delete
 
-        public Task DeleteAsync<T>(T entity) where T : class, IEntity
+        public void Delete<T>(T entity) where T : class, IEntity
         {
             context.Set<T>().Remove(entity);
             cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(entity)));
-            return Task.CompletedTask;
         }
 
-        public Task DeleteRangeAsync<T>(IEnumerable<T> entitys) where T : class, IEntity
+        public void DeleteRange<T>(SelectCriteria<T> criteria) where T : class, IEntity
         {
-            context.Set<T>().RemoveRange(entitys);
-            foreach (var item in entitys)
+            var entities = GetQueryable(criteria);
+            DeleteRange(entities);
+        }
+
+        public void DeleteRange<T>(IEnumerable<T> entities) where T : class, IEntity
+        {
+            context.Set<T>().RemoveRange(entities);
+            foreach (var item in entities)
             {
                 cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(item)));
             }
-            return Task.CompletedTask;
+        }
+
+        public async Task BatchDeleteAsync<T>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            var entities = GetQueryable(criteria);
+            await entities.BatchDeleteAsync(cancellationToken);
+            foreach (var item in entities)
+            {
+                cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(item)));
+            }
+        }
+
+        public async Task MassiveDeleteAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            if (entities.First() is ISoftDelete)
+            {
+                foreach (var entry in entities as IList<ISoftDelete>)
+                {
+                    cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(entry)));
+
+                    entry.DeletedBy = null;
+                    entry.Deleted = DateTime.Now;
+                }
+
+                await context.BulkUpdateAsync(entities, bulkConfig, cancellationToken: cancellationToken);
+                return;
+            }
+
+            await context.BulkDeleteAsync(entities, bulkConfig, cancellationToken: cancellationToken);
+            foreach (var item in entities)
+            {
+                cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(item)));
+            }
         }
 
         #region DeleteById
@@ -196,7 +295,7 @@ namespace fbognini.Infrastructure.Repositorys
             where TPK : notnull
         {
             var entity = await GetByIdAsync<T, TPK>(id, cancellationToken: cancellationToken);
-            await DeleteAsync(entity);
+            Delete(entity);
             return entity;
         }
 
@@ -236,22 +335,19 @@ namespace fbognini.Infrastructure.Repositorys
             return await context.SaveChangesAsync(cancellationToken);
         }
 
-        public Task Commit(CancellationToken cancellationToken)
+        public async Task Commit(CancellationToken cancellationToken)
         {
-            transaction.CommitAsync(cancellationToken);
-            return Task.CompletedTask;
+            await transaction.CommitAsync(cancellationToken);
         }
 
-        public Task Rollback(CancellationToken cancellationToke)
+        public async Task Rollback(CancellationToken cancellationToke)
         {
             context.ChangeTracker.Entries().ToList().ForEach(x => x.Reload());
             if (transaction != null)
             {
-                transaction.RollbackAsync(cancellationToke);
+                await transaction.RollbackAsync(cancellationToke);
                 transaction.Dispose();
             }
-
-            return Task.CompletedTask;
         }
 
         public void Detach(IEntity entity)
@@ -265,6 +361,11 @@ namespace fbognini.Infrastructure.Repositorys
         }
 
         #endregion
+
+        public DbCommand LoadStoredProcedure(string name, bool prependDefaultSchema = true, short commandTimeout = 30)
+        {
+            return context.LoadStoredProc(name, prependDefaultSchema, commandTimeout);
+        }
 
         public void Dispose()
         {
