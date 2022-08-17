@@ -21,7 +21,8 @@ namespace fbognini.Infrastructure.Multitenancy
 {
     public static class Startup
     {
-        public static FinbuckleMultiTenantBuilder<TTenant> AddMultitenancy<TTenant>(this IServiceCollection services, IConfiguration configuration)
+        public static FinbuckleMultiTenantBuilder<TTenant> AddMultitenancy<TTenantContext, TTenant>(this IServiceCollection services, IConfiguration configuration)
+            where TTenantContext: TenantDbContext<TTenant>
             where TTenant : Tenant, new()
 
         {
@@ -36,12 +37,18 @@ namespace fbognini.Infrastructure.Multitenancy
 
             return services
                 .Configure<MultitenancySettings>(configuration.GetSection(nameof(MultitenancySettings)))
-                .AddDbContext<TenantDbContext<TTenant>>(m => m.UseSqlServer(rootConnectionString))
+                .AddDbContext<TTenantContext>(m => m.UseSqlServer(rootConnectionString))
                 .AddScoped<ITenantService, TenantService<TTenant>>()
                 .AddTenantMiddleware()
                 .AddMultiTenant<TTenant>()
                     .WithEFCoreStore<TenantDbContext<TTenant>, TTenant>()
                     ;
+        }
+
+        public static FinbuckleMultiTenantBuilder<TTenant> AddMultitenancy<TTenant>(this IServiceCollection services, IConfiguration configuration)
+            where TTenant : Tenant, new()
+        {
+            return services.AddMultitenancy<TenantDbContext<TTenant>, TTenant>(configuration);
         }
 
         public static IApplicationBuilder UseMultiTenancy(this IApplicationBuilder app)

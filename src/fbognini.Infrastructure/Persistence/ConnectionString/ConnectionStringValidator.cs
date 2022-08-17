@@ -11,20 +11,20 @@ namespace fbognini.Infrastructure.Persistence.ConnectionString
 
     public class ConnectionStringValidator : IConnectionStringValidator
     {
-        private readonly DatabaseSettings _dbSettings;
-        private readonly ILogger<ConnectionStringValidator> _logger;
+        private readonly DatabaseSettings dbSettings;
+        private readonly ILogger<ConnectionStringValidator> logger;
 
         public ConnectionStringValidator(IOptions<DatabaseSettings> dbSettings, ILogger<ConnectionStringValidator> logger)
         {
-            _dbSettings = dbSettings.Value;
-            _logger = logger;
+            this.dbSettings = dbSettings.Value;
+            this.logger = logger;
         }
 
         public bool TryValidate(string connectionString, string? dbProvider = null)
         {
             if (string.IsNullOrWhiteSpace(dbProvider))
             {
-                dbProvider = _dbSettings.DBProvider;
+                dbProvider = dbSettings.DBProvider;
             }
 
             try
@@ -48,7 +48,7 @@ namespace fbognini.Infrastructure.Persistence.ConnectionString
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Connection String Validation Exception : {ex.Message}");
+                logger.LogError(ex, "Connection String Validation Exception");
                 return false;
             }
         }

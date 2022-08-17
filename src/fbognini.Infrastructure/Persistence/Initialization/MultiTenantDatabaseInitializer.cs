@@ -15,26 +15,16 @@ using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Persistence.Initialization
 {
-
-    public class MultiTenantDatabaseInitializer<TContext> : MultiTenantDatabaseInitializer<TContext, Tenant>
+    internal class MultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo> : IMultiTenantDatabaseInitializer
         where TContext : DbContext
-    {
-
-        public MultiTenantDatabaseInitializer(TenantDbContext<Tenant> tenantDbContext, IServiceProvider serviceProvider, ILogger<MultiTenantDatabaseInitializer<TContext>> logger)
-            : base(tenantDbContext, serviceProvider, logger)
-        {
-        }
-    }
-
-    public class MultiTenantDatabaseInitializer<TContext, TTenantInfo> : IMultiTenantDatabaseInitializer
-        where TContext : DbContext
+        where TTenantContext: TenantDbContext<TTenantInfo>
         where TTenantInfo : Tenant, new()
     {
-        private readonly TenantDbContext<TTenantInfo> tenantDbContext;
+        private readonly TTenantContext tenantDbContext;
         private readonly IServiceProvider serviceProvider;
-        private readonly ILogger<MultiTenantDatabaseInitializer<TContext>> logger;
+        private readonly ILogger<MultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo>> logger;
 
-        public MultiTenantDatabaseInitializer(TenantDbContext<TTenantInfo> tenantDbContext, IServiceProvider serviceProvider, ILogger<MultiTenantDatabaseInitializer<TContext>> logger)
+        public MultiTenantDatabaseInitializer(TTenantContext tenantDbContext, IServiceProvider serviceProvider, ILogger<MultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo>> logger)
         {
             this.tenantDbContext = tenantDbContext;
             this.serviceProvider = serviceProvider;
@@ -50,8 +40,7 @@ namespace fbognini.Infrastructure.Persistence.Initialization
                 await InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
             }
 
-            logger.LogInformation("For documentations and guides, visit https://www.fullstackhero.net");
-            logger.LogInformation("To Sponsor this project, visit https://opencollective.com/fullstackhero");
+            logger.LogInformation("Multitenancy initialization completed");
         }
 
 
@@ -91,19 +80,16 @@ namespace fbognini.Infrastructure.Persistence.Initialization
         {
             if (await tenantDbContext.TenantInfo.FirstOrDefaultAsync(x => x.Identifier == MultitenancyConstants.Root.Key, cancellationToken) is null)
             {
-                var rootTenant = new TTenantInfo();
-
-                rootTenant.Identifier = MultitenancyConstants.Root.Key;
-                rootTenant.Name = MultitenancyConstants.Root.Name;
-                rootTenant.ConnectionString = string.Empty;
-                rootTenant.AdminEmail = MultitenancyConstants.Root.EmailAddress;
-                rootTenant.IsActive = true;
-                rootTenant.Issuer = null;
-
-                // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
-                rootTenant.ValidUpto = DateTime.UtcNow.AddMonths(1);
-
-                rootTenant.SetValidity(DateTime.UtcNow.AddYears(1));
+                var rootTenant = new TTenantInfo
+                {
+                    Identifier = MultitenancyConstants.Root.Key,
+                    Name = MultitenancyConstants.Root.Name,
+                    ConnectionString = string.Empty,
+                    AdminEmail = MultitenancyConstants.Root.EmailAddress,
+                    IsActive = true,
+                    Issuer = null,
+                    ValidUpto = DateTime.UtcNow.AddYears(1)
+                };
 
                 tenantDbContext.TenantInfo.Add(rootTenant);
 

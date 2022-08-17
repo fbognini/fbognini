@@ -9,7 +9,7 @@ namespace fbognini.Infrastructure.Multitenancy
         where TTenant : Tenant, new()
     {
         public TenantDbContext(DbContextOptions<TenantDbContext<TTenant>> options)
-        : base(options)
+            : base(options)
         {
         }
 

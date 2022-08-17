@@ -10,10 +10,10 @@ namespace fbognini.Infrastructure.Persistence.ConnectionString
     public class ConnectionStringSecurer : IConnectionStringSecurer
     {
         private const string HiddenValueDefault = "*******";
-        private readonly DatabaseSettings _dbSettings;
+        private readonly DatabaseSettings dbSettings;
 
         public ConnectionStringSecurer(IOptions<DatabaseSettings> dbSettings) =>
-            _dbSettings = dbSettings.Value;
+            this.dbSettings = dbSettings.Value;
 
         public string? MakeSecure(string? connectionString, string? dbProvider)
         {
@@ -24,7 +24,7 @@ namespace fbognini.Infrastructure.Persistence.ConnectionString
 
             if (string.IsNullOrWhiteSpace(dbProvider))
             {
-                dbProvider = _dbSettings.DBProvider;
+                dbProvider = dbSettings.DBProvider;
             }
 
             return dbProvider?.ToLower() switch
