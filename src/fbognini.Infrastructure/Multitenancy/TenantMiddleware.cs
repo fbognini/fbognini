@@ -19,9 +19,9 @@ namespace fbognini.Infrastructure.Multitenancy
         private readonly Tenant tenant;
         private readonly MultitenancySettings multitenancySettings;
 
-        public TenantMiddleware(Tenant tenant, IOptions<MultitenancySettings> options)
+        public TenantMiddleware(ITenantInfo tenant, IOptions<MultitenancySettings> options)
         {
-            this.tenant = tenant;
+            this.tenant = tenant as Tenant;
             this.multitenancySettings = options.Value;
         }
 
