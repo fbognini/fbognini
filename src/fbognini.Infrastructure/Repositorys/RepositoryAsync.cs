@@ -86,6 +86,38 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region Read
 
+        #region Exists
+
+        public async Task<bool> ExistsAsync<T, TPK>(TPK id, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull
+        {
+            var query = context.Set<T>().AsNoTracking();
+            return await query.AnyAsync(x => x.Id.Equals(id), cancellationToken: cancellationToken);
+        }
+
+        public async Task<bool> ExistsAsync<T>(int id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>
+        {
+            return await ExistsAsync<T, int>(id, cancellationToken);
+        }
+
+        public async Task<bool> ExistsAsync<T>(long id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>
+        {
+            return await ExistsAsync<T, long>(id, cancellationToken);
+        }
+
+        public async Task<bool> ExistsAsync<T>(string id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>
+        {
+            return await ExistsAsync<T, string>(id, cancellationToken);
+        }
+
+        public async Task<bool> ExistsAsync<T>(Guid id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>
+        {
+            return await ExistsAsync<T, Guid>(id, cancellationToken);
+        }
+
+        #endregion
+
         #region GetById
 
         public async Task<T> GetByIdAsync<T, TPK>(TPK id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
@@ -96,7 +128,7 @@ namespace fbognini.Infrastructure.Repositorys
             if (args != null && !args.Track)
                 query = query.AsNoTracking();
 
-            return await query.FirstOrDefaultAsync(x => x.Id.Equals(id));
+            return await query.FirstOrDefaultAsync(x => x.Id.Equals(id), cancellationToken: cancellationToken);
         }
 
         public async Task<T> GetByIdAsync<T>(int id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>
@@ -169,6 +201,11 @@ namespace fbognini.Infrastructure.Repositorys
             return query;
         }
 
+        public async Task<T> GetSingleAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).SingleOrDefaultAsync(cancellationToken);
+        }
+
         public async Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             return await GetQueryable(criteria).FirstOrDefaultAsync(cancellationToken);
@@ -199,6 +236,21 @@ namespace fbognini.Infrastructure.Repositorys
             };
 
             return response;
+        }
+
+        public async Task<bool> AnyAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).AnyAsync(cancellationToken);
+        }
+
+        public async Task<int> CountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).CountAsync(cancellationToken);
+        }
+
+        public async Task<long> LongCountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).LongCountAsync(cancellationToken);
         }
 
         #endregion
@@ -325,29 +377,54 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region UnitOfWork
 
-        public async Task CreateTransaction(CancellationToken cancellationToken)
+        public bool HasTransaction => transaction != null;
+
+        public void CreateTransaction()
+        {
+            transaction = context.Database.BeginTransaction();
+        }
+
+        public async Task CreateTransactionAsync(CancellationToken cancellationToken)
         {
             transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         }
 
-        public async Task<int> Save(CancellationToken cancellationToken)
+        public int Save()
+        {
+            return context.SaveChanges();
+        }
+
+        public async Task<int> SaveAsync(CancellationToken cancellationToken)
         {
             return await context.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task Commit(CancellationToken cancellationToken)
+        public void Commit()
         {
-            await transaction.CommitAsync(cancellationToken);
+            transaction.Commit();
+            TransactionDispose();
         }
 
-        public async Task Rollback(CancellationToken cancellationToke)
+        public async Task CommitAsync(CancellationToken cancellationToken)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            await TransactionDisposeAsync();
+        }
+
+        public void Rollback()
         {
             context.ChangeTracker.Entries().ToList().ForEach(x => x.Reload());
-            if (transaction != null)
-            {
-                await transaction.RollbackAsync(cancellationToke);
-                transaction.Dispose();
-            }
+
+            transaction.Rollback();
+            TransactionDispose();
+        }
+
+        public async Task RollbackAsync(CancellationToken cancellationToken)
+        {
+            context.ChangeTracker.Entries().ToList().ForEach(x => x.Reload()); 
+
+            await transaction.RollbackAsync(cancellationToken);
+            await TransactionDisposeAsync();
         }
 
         public void Detach(IEntity entity)
@@ -358,6 +435,18 @@ namespace fbognini.Infrastructure.Repositorys
         public void DetachAll()
         {
             context.ChangeTracker.Clear();
+        }
+
+        private void TransactionDispose()
+        {
+            transaction.Dispose();
+            transaction = null;
+        }
+
+        private async Task TransactionDisposeAsync()
+        {
+            await transaction.DisposeAsync();
+            transaction = null;
         }
 
         #endregion
@@ -381,9 +470,15 @@ namespace fbognini.Infrastructure.Repositorys
                 {
                     //dispose managed resources
 
+                    if (transaction != null)
+                    {
+                        TransactionDispose();
+                    }
+
                     context.Dispose();
                 }
             }
+
             //dispose unmanaged resources
             disposed = true;
         }

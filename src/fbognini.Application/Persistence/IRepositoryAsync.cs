@@ -28,7 +28,27 @@ namespace fbognini.Application.Persistence
 
         #region Read
 
-            #region GetById
+        #region GetById
+
+        Task<bool> ExistsAsync<T, TPK>(TPK id, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull;
+
+        Task<bool> ExistsAsync<T>(int id, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<int>;
+
+        Task<bool> ExistsAsync<T>(long id, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<long>;
+
+        Task<bool> ExistsAsync<T>(string id, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<string>;
+
+        Task<bool> ExistsAsync<T>(Guid id, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<Guid>;
+
+        #endregion
+
+        #region GetById
 
         Task<T> GetByIdAsync<T, TPK>(TPK id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<TPK>
@@ -48,8 +68,6 @@ namespace fbognini.Application.Persistence
 
         #endregion
 
-
-
         #region GetByName
 
         Task<T> GetByNameAsync<T>(string slug, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
@@ -64,6 +82,7 @@ namespace fbognini.Application.Persistence
 
         #endregion
 
+        Task<T> GetSingleAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task<T> GetLastAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task<List<T>> GetAllAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
@@ -71,6 +90,10 @@ namespace fbognini.Application.Persistence
             where T : AuditableEntity
             where TMapped : class
             ;
+
+        Task<bool> AnyAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<int> CountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<long> LongCountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
         #endregion
 
@@ -114,13 +137,19 @@ namespace fbognini.Application.Persistence
 
         #region UnitOfWork
 
-        Task CreateTransaction(CancellationToken cancellationToken);
+        bool HasTransaction { get; }
 
-        Task<int> Save(CancellationToken cancellationToken);
+        void CreateTransaction();
+        Task CreateTransactionAsync(CancellationToken cancellationToken);
 
-        Task Commit(CancellationToken cancellationToken);
+        int Save();
+        Task<int> SaveAsync(CancellationToken cancellationToken);
 
-        Task Rollback(CancellationToken cancellationToken);
+        void Commit();
+        Task CommitAsync(CancellationToken cancellationToken);
+
+        void Rollback();
+        Task RollbackAsync(CancellationToken cancellationToken);
 
         void Detach(IEntity entity);
         void DetachAll();
