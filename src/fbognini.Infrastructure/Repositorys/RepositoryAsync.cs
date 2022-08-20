@@ -32,7 +32,6 @@ namespace fbognini.Infrastructure.Repositorys
         private readonly TContext context;
         private readonly IDistributedCache cache;
         private readonly IMapper mapper;
-        private IDbContextTransaction transaction;
 
         public RepositoryAsync(TContext dbContext, IDistributedCache cache, IMapper mapper)
         {
@@ -377,16 +376,31 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region UnitOfWork
 
-        public bool HasTransaction => transaction != null;
+        private IDbContextTransaction Transaction
+        {
+            get
+            {
+                try
+                {
+                    return context.Database.CurrentTransaction;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+        }
+
+        public bool HasTransaction => Transaction != null;
 
         public void CreateTransaction()
         {
-            transaction = context.Database.BeginTransaction();
+            context.Database.BeginTransaction();
         }
 
         public async Task CreateTransactionAsync(CancellationToken cancellationToken)
         {
-            transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+            await context.Database.BeginTransactionAsync(cancellationToken);
         }
 
         public int Save()
@@ -401,30 +415,26 @@ namespace fbognini.Infrastructure.Repositorys
 
         public void Commit()
         {
-            transaction.Commit();
-            TransactionDispose();
+            Transaction.Commit();
         }
 
         public async Task CommitAsync(CancellationToken cancellationToken)
         {
-            await transaction.CommitAsync(cancellationToken);
-            await TransactionDisposeAsync();
+            await Transaction.CommitAsync(cancellationToken);
         }
 
         public void Rollback()
         {
             context.ChangeTracker.Entries().ToList().ForEach(x => x.Reload());
 
-            transaction.Rollback();
-            TransactionDispose();
+            Transaction.Rollback();
         }
 
         public async Task RollbackAsync(CancellationToken cancellationToken)
         {
             context.ChangeTracker.Entries().ToList().ForEach(x => x.Reload()); 
 
-            await transaction.RollbackAsync(cancellationToken);
-            await TransactionDisposeAsync();
+            await Transaction.RollbackAsync(cancellationToken);
         }
 
         public void Detach(IEntity entity)
@@ -435,18 +445,6 @@ namespace fbognini.Infrastructure.Repositorys
         public void DetachAll()
         {
             context.ChangeTracker.Clear();
-        }
-
-        private void TransactionDispose()
-        {
-            transaction.Dispose();
-            transaction = null;
-        }
-
-        private async Task TransactionDisposeAsync()
-        {
-            await transaction.DisposeAsync();
-            transaction = null;
         }
 
         #endregion
@@ -470,9 +468,9 @@ namespace fbognini.Infrastructure.Repositorys
                 {
                     //dispose managed resources
 
-                    if (transaction != null)
+                    if (Transaction != null)
                     {
-                        TransactionDispose();
+                        Transaction.Dispose();
                     }
 
                     context.Dispose();
