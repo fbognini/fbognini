@@ -17,10 +17,17 @@ namespace fbognini.Core.Utilities
 {
     public static class Utils
     {
-        private static Random random = new Random();
-        public static string RandomString(int length)
+        private static readonly Random random = new Random();
+        public static string RandomString(int length, bool uppercase = true, bool lowercase = true, bool number = true)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            if (!uppercase && !lowercase && !number)
+                throw new ArgumentException($"{nameof(uppercase)}, {nameof(lowercase)} or {nameof(number)} must be true");
+
+            const string lowers = "abcdefghijklmnopqrstuvwxyz";
+            const string uppers = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string numbers = "0123456789";
+
+            string chars = string.Concat(uppercase ? uppers : string.Empty, lowercase ? lowers : string.Empty, number ? numbers : string.Empty);
             return new string(Enumerable.Repeat(chars, length)
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
