@@ -24,7 +24,6 @@ namespace fbognini.Core.Data
     }
 
     public class SelectArgs<TEntity> : IHasViews<TEntity>
-        where TEntity : IEntity
     {
         public bool Track { get; set; } = true;
         public List<Expression<Func<TEntity, object>>> Includes { get; } = new List<Expression<Func<TEntity, object>>>();
@@ -32,7 +31,6 @@ namespace fbognini.Core.Data
     }
 
     public abstract class SelectCriteria<TEntity> : SelectArgs<TEntity>, IHasSearch<TEntity>, IHasSorting
-        where TEntity : IEntity
     {
         protected LogicalOperator Operator { get; set; } = LogicalOperator.AND;
 
@@ -63,15 +61,12 @@ namespace fbognini.Core.Data
         }
     }
 
-    public abstract class SearchCriteria<TEntity> : SelectCriteria<TEntity>
+    public abstract class SearchCriteria<TEntity> : OffsetCriteria<TEntity>
         where TEntity : IAuditableEntity
     {
-        public int? PageNumber { get; private set; }
-        public int? PageSize { get; private set; }
         internal long? Since { get; private set; }
         internal int? AfterId { get; private set; }
 
-        internal int? Total { get; set; }
         internal string ContinuationSince { get; set; }
 
         public void LoadPaginationAdvancedSinceQuery(PaginationAdvancedSinceQuery query)
@@ -102,6 +97,14 @@ namespace fbognini.Core.Data
             PageSize = query.PageSize;
             Since = query.Since ?? 0;
         }
+    }
+
+    public abstract class OffsetCriteria<TEntity> : SelectCriteria<TEntity>
+    {
+        public int? PageNumber { get; protected set; }
+        public int? PageSize { get; protected set; }
+
+        internal int? Total { get; set; }
 
         public void LoadPaginationOffsetQuery(PaginationOffsetQuery query)
         {
