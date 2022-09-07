@@ -1,5 +1,6 @@
 ﻿using EFCore.BulkExtensions;
 using fbognini.Application.Entities;
+using fbognini.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -15,6 +16,9 @@ namespace fbognini.Application.DbContexts
 {
     public interface IBaseDbContext
     {
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+        DbSet<Audit> AuditTrails { get; set; }
+        public string UserId { get; }
+        public string Tenant { get; }
+        public string ConnectionString { get; }
     }
 }

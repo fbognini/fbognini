@@ -71,15 +71,17 @@ namespace fbognini.Infrastructure.Multitenancy
         {
             if (request.ConnectionString?.Trim() == _dbSettings.ConnectionString?.Trim()) request.ConnectionString = string.Empty;
 
-            var tenant = new TTenant();
-            tenant.Identifier = request.Identifier;
-            tenant.Name = request.Name;
-            tenant.ConnectionString = request.ConnectionString ?? string.Empty;
-            tenant.AdminEmail = request.AdminEmail;
-            tenant.IsActive = true;
-            tenant.Issuer = request.Issuer;
-            // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
-            tenant.ValidUpto = DateTime.UtcNow.AddMonths(1);
+            var tenant = new TTenant
+            {
+                Identifier = request.Identifier,
+                Name = request.Name,
+                ConnectionString = request.ConnectionString ?? string.Empty,
+                AdminEmail = request.AdminEmail,
+                IsActive = true,
+                Issuer = request.Issuer,
+                // Add Default 1 Month Validity for all new tenants. Something like a DEMO period for tenants.
+                ValidUpto = DateTime.UtcNow.AddMonths(1)
+            };
 
             await tenantStore.TryAddAsync(tenant);
 

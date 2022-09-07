@@ -3,6 +3,7 @@ using fbognini.Application.Multitenancy;
 using fbognini.Core.Interfaces;
 using fbognini.Infrastructure.Multitenancy;
 using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.Stores;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,39 +16,33 @@ using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Persistence.Initialization
 {
-    internal class MultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo> : IMultiTenantDatabaseInitializer
+    internal abstract class BaseMultiTenantDatabaseInitializer<TContext, TTenantInfo>
         where TContext : DbContext
-        where TTenantContext: TenantDbContext<TTenantInfo>
         where TTenantInfo : Tenant, new()
     {
-        private readonly TTenantContext tenantDbContext;
         private readonly IServiceProvider serviceProvider;
-        private readonly ILogger<MultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo>> logger;
+        private readonly IMultiTenantStore<TTenantInfo> store;
 
-        public MultiTenantDatabaseInitializer(TTenantContext tenantDbContext, IServiceProvider serviceProvider, ILogger<MultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo>> logger)
+        public BaseMultiTenantDatabaseInitializer(IServiceProvider serviceProvider, IMultiTenantStore<TTenantInfo> store)
         {
-            this.tenantDbContext = tenantDbContext;
             this.serviceProvider = serviceProvider;
-            this.logger = logger;
+            this.store = store;
         }
 
         public async Task InitializeDatabasesAsync(CancellationToken cancellationToken)
         {
-            await InitializeTenantDbAsync(cancellationToken);
-
-            foreach (var tenant in await tenantDbContext.TenantInfo.Where(x => x.IsActive).ToListAsync(cancellationToken))
+            var tenants = await store.GetAllAsync();
+            foreach (var tenant in tenants.Where(x => x.IsActive))
             {
                 await InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
             }
-
-            logger.LogInformation("Multitenancy initialization completed");
         }
-
 
         public async Task InitializeApplicationDbForTenantAsync(Tenant tenant, CancellationToken cancellationToken)
         {
             await InitializeApplicationDbForTenantAsync(tenant as TTenantInfo, cancellationToken);
         }
+
         public async Task InitializeApplicationDbForTenantAsync(TTenantInfo tenant, CancellationToken cancellationToken)
         {
             // First create a new scope
@@ -63,6 +58,58 @@ namespace fbognini.Infrastructure.Persistence.Initialization
             await scope.ServiceProvider
                 .GetRequiredService<ApplicationDatabaseInitializer<TContext>>()
                 .InitializeAsync(cancellationToken);
+        }
+    }
+
+    internal class InMemoryMultiTenantDatabaseInitializer<TContext, TTenantInfo>
+        : BaseMultiTenantDatabaseInitializer<TContext, TTenantInfo>, IMultiTenantDatabaseInitializer
+        where TContext : DbContext
+        where TTenantInfo : Tenant, new()
+    {
+        private readonly ILogger<InMemoryMultiTenantDatabaseInitializer<TContext, TTenantInfo>> logger;
+
+        public InMemoryMultiTenantDatabaseInitializer(
+            IServiceProvider serviceProvider,
+            IMultiTenantStore<TTenantInfo> store,
+            ILogger<InMemoryMultiTenantDatabaseInitializer<TContext, TTenantInfo>> logger)
+            : base(serviceProvider, store)
+        {
+            this.logger = logger;
+        }
+
+        public async new Task InitializeDatabasesAsync(CancellationToken cancellationToken)
+        {
+            await base.InitializeDatabasesAsync(cancellationToken);
+            logger.LogInformation("Multitenancy (in memory) initialization completed");
+        }
+    }
+
+    internal class EFCoreMultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo> 
+        : BaseMultiTenantDatabaseInitializer<TContext, TTenantInfo>, IMultiTenantDatabaseInitializer
+        where TContext : DbContext
+        where TTenantContext: TenantDbContext<TTenantInfo>
+        where TTenantInfo : Tenant, new()
+    {
+        private readonly TTenantContext tenantDbContext;
+        private readonly ILogger<EFCoreMultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo>> logger;
+
+        public EFCoreMultiTenantDatabaseInitializer(
+            IServiceProvider serviceProvider,
+            IMultiTenantStore<TTenantInfo> store,
+            TTenantContext tenantDbContext,
+            ILogger<EFCoreMultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo>> logger)
+            : base(serviceProvider, store)
+        {
+            this.tenantDbContext = tenantDbContext;
+            this.logger = logger;
+        }
+
+        public async new Task InitializeDatabasesAsync(CancellationToken cancellationToken)
+        {
+            await InitializeTenantDbAsync(cancellationToken);
+            await base.InitializeDatabasesAsync(cancellationToken);
+
+            logger.LogInformation("Multitenancy (ef core) initialization completed");
         }
 
         private async Task InitializeTenantDbAsync(CancellationToken cancellationToken)
