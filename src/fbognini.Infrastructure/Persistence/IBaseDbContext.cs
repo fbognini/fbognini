@@ -1,6 +1,7 @@
 ﻿using EFCore.BulkExtensions;
 using fbognini.Application.Entities;
 using fbognini.Core.Interfaces;
+using fbognini.Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -12,7 +13,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace fbognini.Application.DbContexts
+namespace fbognini.Infrastructure.Persistence
 {
     public interface IBaseDbContext
     {

@@ -1,23 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System.Threading;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using System.Data.Common;
-using Microsoft.EntityFrameworkCore.Storage;
-using System.Reflection;
 using fbognini.Core.Interfaces;
-using fbognini.Application.DbContexts;
-using System.Linq;
-using System.Collections.Generic;
-using System.Data;
-using System;
-using EFCore.BulkExtensions;
-using System.Linq.Expressions;
-using fbognini.Core.Entities;
-using Snickler.EFCore;
 using fbognini.Application.Entities;
 using Finbuckle.MultiTenant;
 using fbognini.Infrastructure.Utilities;
+using fbognini.Infrastructure.Models;
 
 namespace fbognini.Infrastructure.Persistence
 {

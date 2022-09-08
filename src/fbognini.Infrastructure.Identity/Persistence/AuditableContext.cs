@@ -1,29 +1,16 @@
-﻿using EFCore.BulkExtensions;
-using fbognini.Application.DbContexts;
-using fbognini.Core.Interfaces;
+﻿using fbognini.Core.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Snickler.EFCore;
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using fbognini.Application.Entities;
 using fbognini.Core.Entities;
-using fbognini.Infrastructure.Models;
-using Microsoft.Extensions.DependencyInjection;
 using fbognini.Infrastructure.Persistence;
 using Finbuckle.MultiTenant;
-using System.ComponentModel;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using fbognini.Infrastructure.Utilities;
+using fbognini.Infrastructure.Models;
 
 namespace fbognini.Infrastructure.Identity.Persistence
 {

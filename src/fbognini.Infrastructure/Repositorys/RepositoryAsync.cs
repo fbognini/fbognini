@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
 using EFCore.BulkExtensions;
-using fbognini.Application.DbContexts;
 using fbognini.Application.Persistence;
 using fbognini.Application.Utilities;
 using fbognini.Core.Data;
 using fbognini.Core.Data.Pagination;
 using fbognini.Core.Entities;
-using fbognini.Infrastructure.Persistence;
 using fbognini.Infrastructure.Utilities;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
@@ -17,8 +15,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

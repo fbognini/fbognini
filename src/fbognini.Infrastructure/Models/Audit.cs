@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace fbognini.Application.Entities
+namespace fbognini.Infrastructure.Models
 {
     public class Audit
     {

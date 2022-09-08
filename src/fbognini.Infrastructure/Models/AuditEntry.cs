@@ -1,9 +1,9 @@
 ﻿using fbognini.Application.Entities;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 namespace fbognini.Infrastructure.Models
 {
@@ -41,10 +41,10 @@ namespace fbognini.Infrastructure.Models
                 Type = AuditType.ToString(),
                 TableName = TableName,
                 DateTime = DateTime.UtcNow,
-                PrimaryKey = JsonConvert.SerializeObject(KeyValues),
-                OldValues = OldValues.Count == 0 ? null : JsonConvert.SerializeObject(OldValues),
-                NewValues = NewValues.Count == 0 ? null : JsonConvert.SerializeObject(NewValues),
-                AffectedColumns = ChangedColumns.Count == 0 ? null : JsonConvert.SerializeObject(ChangedColumns)
+                PrimaryKey = JsonSerializer.Serialize(KeyValues),
+                OldValues = OldValues.Count == 0 ? null : JsonSerializer.Serialize(OldValues),
+                NewValues = NewValues.Count == 0 ? null : JsonSerializer.Serialize(NewValues),
+                AffectedColumns = ChangedColumns.Count == 0 ? null : JsonSerializer.Serialize(ChangedColumns)
             };
             return audit;
         }

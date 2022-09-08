@@ -1,7 +1,5 @@
-﻿using fbognini.Application.DbContexts;
-using fbognini.Application.Entities;
+﻿using fbognini.Application.Entities;
 using fbognini.Core.Entities;
-using fbognini.Core.Interfaces;
 using fbognini.Infrastructure.Models;
 using fbognini.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +8,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
