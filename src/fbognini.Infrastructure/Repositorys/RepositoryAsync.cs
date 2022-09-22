@@ -65,7 +65,7 @@ namespace fbognini.Infrastructure.Repositorys
         {
             if (entities.First() is AuditableEntity)
             {
-                foreach (var entry in entities as IList<AuditableEntity>)
+                foreach (var entry in entities.Cast<AuditableEntity>())
                 {
                     entry.CreatedBy = null;
                     entry.Created = DateTime.Now;
@@ -262,10 +262,13 @@ namespace fbognini.Infrastructure.Repositorys
         {
             if (entities.First() is AuditableEntity)
             {
-                foreach (var entry in entities as IList<AuditableEntity>)
+                foreach (var entry in entities)
                 {
                     cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(entry)));
+                }
 
+                foreach (var entry in entities.Cast<AuditableEntity>())
+                {
                     entry.LastModifiedBy = null;
                     entry.LastModified = DateTime.Now;
                     entry.LastUpdatedBy = null;
@@ -316,10 +319,13 @@ namespace fbognini.Infrastructure.Repositorys
         {
             if (entities.First() is ISoftDelete)
             {
-                foreach (var entry in entities as IList<ISoftDelete>)
+                foreach (var entry in entities)
                 {
                     cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(entry)));
+                }
 
+                foreach (var entry in entities.Cast<ISoftDelete>())
+                {
                     entry.DeletedBy = null;
                     entry.Deleted = DateTime.Now;
                 }

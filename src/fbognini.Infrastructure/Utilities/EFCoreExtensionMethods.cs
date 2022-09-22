@@ -18,21 +18,21 @@ namespace fbognini.Infrastructure.Utilities
             return keys;
         }
 
-        public static IEnumerable<string> FindPrimaryKeyNames<T>(this DbContext dbContext, T entity)
+        public static IEnumerable<string> FindPrimaryKeyNames<T>(this DbContext context, T entity)
         {
-            return from p in dbContext.FindPrimaryKeyProperties(entity)
+            return from p in context.FindPrimaryKeyProperties(entity)
                    select p.Name;
         }
 
-        public static IEnumerable<object> FindPrimaryKeyValues<T>(this DbContext dbContext, T entity)
+        public static IEnumerable<object> FindPrimaryKeyValues<T>(this DbContext context, T entity)
         {
-            return from p in dbContext.FindPrimaryKeyProperties(entity)
+            return from p in context.FindPrimaryKeyProperties(entity)
                    select entity.GetPropertyValue(p.Name);
         }
 
-        static IReadOnlyList<IProperty> FindPrimaryKeyProperties<T>(this DbContext dbContext, T entity)
+        static IReadOnlyList<IProperty> FindPrimaryKeyProperties<T>(this DbContext context, T entity)
         {
-            return dbContext.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties;
+            return context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties;
         }
 
         static object GetPropertyValue<T>(this T entity, string name)
