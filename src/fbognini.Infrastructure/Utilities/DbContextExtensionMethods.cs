@@ -30,6 +30,15 @@ namespace fbognini.Infrastructure.Utilities
             builder.ApplyGlobalFilters<ISoftDelete>(s => s.Deleted == null);
         }
 
+        public static void SetNewProperty(this IAuditableEntity entity, string name, string value)
+        {
+            var newProperty = entity.GetType().GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+            if (newProperty != null)
+            {
+                newProperty.SetValue(entity, TypeDescriptor.GetConverter(newProperty.PropertyType).ConvertFromString(value));
+            }
+        }
+
         public static async Task<int> AuditableSaveChangesAsync<TContext>(this TContext context, Func<Task<int>> baseSaveChanges, CancellationToken cancellationToken = new CancellationToken())
             where TContext : DbContext, IBaseDbContext
         {
@@ -38,16 +47,16 @@ namespace fbognini.Infrastructure.Utilities
                 switch (entry.State)
                 {
                     case EntityState.Added:
-                        SetNewProperty(entry.Entity, nameof(IAuditableEntity.CreatedBy));
-                        SetNewProperty(entry.Entity, nameof(IAuditableEntity.LastUpdatedBy));
+                        entry.Entity.SetNewProperty(nameof(IAuditableEntity.CreatedBy), context.UserId);
+                        entry.Entity.SetNewProperty(nameof(IAuditableEntity.LastUpdatedBy), context.UserId);
                         entry.Entity.CreatedBy = context.UserId;
                         entry.Entity.Created = DateTime.Now;
                         entry.Entity.LastUpdatedBy = context.UserId;
                         entry.Entity.LastUpdated = DateTime.Now;
                         break;
                     case EntityState.Modified:
-                        SetNewProperty(entry.Entity, nameof(IAuditableEntity.LastModifiedBy));
-                        SetNewProperty(entry.Entity, nameof(IAuditableEntity.LastUpdatedBy));
+                        entry.Entity.SetNewProperty(nameof(IAuditableEntity.LastModifiedBy), context.UserId);
+                        entry.Entity.SetNewProperty(nameof(IAuditableEntity.LastUpdatedBy), context.UserId);
                         entry.Entity.LastModifiedBy = context.UserId;
                         entry.Entity.LastModified = DateTime.Now;
                         entry.Entity.LastUpdatedBy = context.UserId;
@@ -56,7 +65,7 @@ namespace fbognini.Infrastructure.Utilities
                     case EntityState.Deleted:
                         if (entry.Entity is ISoftDelete softDelete)
                         {
-                            SetNewProperty(entry.Entity, nameof(ISoftDelete.DeletedBy));
+                            entry.Entity.SetNewProperty(nameof(ISoftDelete.DeletedBy), context.UserId);
                             softDelete.DeletedBy = context.UserId;
                             softDelete.Deleted = DateTime.Now;
                             entry.State = EntityState.Modified;
@@ -79,14 +88,7 @@ namespace fbognini.Infrastructure.Utilities
                 return result;
             }
 
-            void SetNewProperty(IAuditableEntity entity, string name)
-            {
-                var newProperty = entity.GetType().GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-                if (newProperty != null)
-                {
-                    newProperty.SetValue(entity, TypeDescriptor.GetConverter(newProperty.PropertyType).ConvertFromString(context.UserId));
-                }
-            }
+            
 
             List<AuditEntry> OnBeforeSaveChanges(string userId)
             {
