@@ -12,9 +12,8 @@ namespace fbognini.Core.Data
         private readonly ICurrentUserService currentUserService;
 
         public RequestLogger(
-            ILogger<TRequest> logger
-            , ICurrentUserService currentUserService
-            )
+            ILogger<TRequest> logger,
+            ICurrentUserService currentUserService)
         {
             this.logger = logger;
             this.currentUserService = currentUserService;

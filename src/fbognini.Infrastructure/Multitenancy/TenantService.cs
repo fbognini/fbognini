@@ -105,7 +105,6 @@ namespace fbognini.Infrastructure.Multitenancy
 
             if (tenant.IsActive)
             {
-                //throw new ConflictException(_t["Tenant is already Activated."]);
                 throw new ConflictException("Tenant is already Activated.");
             }
 
@@ -113,7 +112,6 @@ namespace fbognini.Infrastructure.Multitenancy
 
             await tenantStore.TryUpdateAsync(tenant);
 
-            //return _t["Tenant {0} is now Activated.", id];
             return String.Format("Tenant {0} is now Activated.", id);
         }
 
@@ -131,7 +129,6 @@ namespace fbognini.Infrastructure.Multitenancy
 
             await tenantStore.TryUpdateAsync(tenant);
 
-            //return _t[$"Tenant {0} is now Deactivated.", id];
             return String.Format("Tenant {0} is now Deactivated.", id);
         }
 
@@ -149,7 +146,6 @@ namespace fbognini.Infrastructure.Multitenancy
 
         private async Task<TTenant> GetTenantInfoAsync(string id) =>
             await tenantStore.TryGetAsync(id)
-                //?? throw new NotFoundException(_t["{0} {1} Not Found.", typeof(Tenant).Name, id]);
                 ?? throw new NotFoundException(String.Format("{0} {1} Not Found.", typeof(Tenant).Name, id));
     }
 

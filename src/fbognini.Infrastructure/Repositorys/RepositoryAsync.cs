@@ -439,6 +439,15 @@ namespace fbognini.Infrastructure.Repositorys
             await Transaction.RollbackAsync(cancellationToken);
         }
 
+        public void Reload(IEntity entity)
+        {
+            context.Entry(entity).Reload();
+        }
+        public async Task ReloadAsync(IEntity entity, CancellationToken cancellationToken)
+        {
+            await context.Entry(entity).ReloadAsync(cancellationToken);
+        }
+
         public void Detach(IEntity entity)
         {
             context.Entry(entity).State = EntityState.Detached;

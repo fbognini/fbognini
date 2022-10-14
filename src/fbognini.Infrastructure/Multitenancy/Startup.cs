@@ -55,8 +55,10 @@ namespace fbognini.Infrastructure.Multitenancy
                     .AddBaseMultitenancy<TTenant>(configuration)
                     .WithEFCoreStore<TenantDbContext<TTenant>, TTenant>();
 
-            services.AddDbContext<TTenantContext>(m => m.UseSqlServer(databaseSettings.ConnectionString));
-            
+            services.AddDbContext<TTenantContext>(m => {
+                m.UseSqlServer(databaseSettings.ConnectionString);
+            });
+
             return builder;
         }
 

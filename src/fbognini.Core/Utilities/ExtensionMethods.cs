@@ -61,14 +61,6 @@ namespace fbognini.Core.Utilities
             return obj;
         }
 
-        public static IEnumerable<List<T>> SplitList<T>(this List<T> locations, int nSize = 30)
-        {
-            for (int i = 0; i < locations.Count; i += nSize)
-            {
-                yield return locations.GetRange(i, Math.Min(nSize, locations.Count - i));
-            }
-        }
-
         public static DataTable CreateNestedDataTable<TOuter, TInner>(this IEnumerable<TOuter> list, string innerListPropertyName)
         {
             PropertyInfo[] outerProperties = typeof(TOuter).GetProperties().Where(pi => pi.Name != innerListPropertyName).ToArray();
@@ -211,14 +203,20 @@ namespace fbognini.Core.Utilities
             return numberOfRecordsAffected;
         }
 
-
-
         public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> source, int blockSize)
         {
             while (source.Any())
             {
                 yield return source.Take(blockSize);
                 source = source.Skip(blockSize);
+            }
+        }
+
+        public static IEnumerable<List<T>> SplitList<T>(this List<T> locations, int nSize = 30)
+        {
+            for (int i = 0; i < locations.Count; i += nSize)
+            {
+                yield return locations.GetRange(i, Math.Min(nSize, locations.Count - i));
             }
         }
 

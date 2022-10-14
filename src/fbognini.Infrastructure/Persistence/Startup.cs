@@ -30,8 +30,13 @@ namespace fbognini.Infrastructure.Persistence
 
             return services
                 .Configure<DatabaseSettings>(configuration.GetSection(nameof(DatabaseSettings)))
-                .AddDbContext<T>(options => options
-                    .UseSqlServer(databaseSettings.ConnectionString))
+                .AddDbContext<T>(m => {
+                    m.UseSqlServer(databaseSettings.ConnectionString);
+                    if (databaseSettings.UseNoTracking)
+                    {
+                        m.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+                    }
+                })
                 .AddTransient<ApplicationDatabaseInitializer<T>>()
                 .AddServices(typeof(ICustomSeeder<T>), ServiceLifetime.Transient)
                 .AddTransient<ApplicationSeederRunner<T>>()

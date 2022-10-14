@@ -16,8 +16,7 @@ namespace fbognini.Core.Data
 
         public RequestPerformanceBehaviour(
             ILogger<TRequest> logger,
-            ICurrentUserService currentUserService
-            )
+            ICurrentUserService currentUserService)
         {
             _timer = new Stopwatch();
 

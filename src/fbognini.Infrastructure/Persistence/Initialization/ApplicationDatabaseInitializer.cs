@@ -34,13 +34,13 @@ namespace fbognini.Infrastructure.Persistence.Initialization
                     logger.LogInformation("Applying Migrations for '{tenantId}' tenant.", currentTenant.Id);
                     await dbContext.Database.MigrateAsync(cancellationToken);
                 }
+            }
 
-                if (await dbContext.Database.CanConnectAsync(cancellationToken))
-                {
-                    logger.LogInformation("Connection to {tenantId}'s Database Succeeded.", currentTenant.Id);
+            if (await dbContext.Database.CanConnectAsync(cancellationToken))
+            {
+                logger.LogInformation("Connection to {tenantId}'s Database Succeeded.", currentTenant.Id);
 
-                    await dbSeeder.RunSeedersAsync(dbContext, cancellationToken);
-                }
+                await dbSeeder.RunSeedersAsync(dbContext, cancellationToken);
             }
         }
     }

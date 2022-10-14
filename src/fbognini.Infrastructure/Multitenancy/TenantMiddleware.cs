@@ -27,7 +27,7 @@ namespace fbognini.Infrastructure.Multitenancy
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            if ((multitenancySettings.IncludeAll && (StartWithPaths(context, multitenancySettings.IncludePaths) || !StartWithPaths(context, multitenancySettings.ExcludePaths)))
+            if ((multitenancySettings.IncludeAll && (StartWithPaths(context, multitenancySettings.IncludePaths) || !TenantMiddleware.StartWithPaths(context, multitenancySettings.ExcludePaths)))
                 || StartWithPaths(context, multitenancySettings.IncludePaths))
             {
                 if (tenant == null)
@@ -52,7 +52,7 @@ namespace fbognini.Infrastructure.Multitenancy
             await next(context);
         }
 
-        private bool StartWithPaths(HttpContext context, List<string> paths)
+        private static bool StartWithPaths(HttpContext context, List<string> paths)
         {
             if (paths == null)
                 return false;
