@@ -1,4 +1,6 @@
-﻿using EFCore.BulkExtensions;
+﻿#if NET6_0 || NETSTANDARD2_1
+using EFCore.BulkExtensions;
+#endif
 using fbognini.Application.Entities;
 using fbognini.Core.Interfaces;
 using fbognini.Infrastructure.Models;
