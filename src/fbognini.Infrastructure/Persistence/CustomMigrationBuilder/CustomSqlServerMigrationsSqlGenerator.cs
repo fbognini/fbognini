@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations.Builders;
+using Microsoft.EntityFrameworkCore.Update;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,11 +20,21 @@ namespace fbognini.Persistence.CustomMigrationBuilder
     /// </summary>
     public class CustomSqlServerMigrationsSqlGenerator : SqlServerMigrationsSqlGenerator
     {
+#if NET7_0_OR_GREATER
+
+        public CustomSqlServerMigrationsSqlGenerator(
+            MigrationsSqlGeneratorDependencies dependencies,
+            ICommandBatchPreparer relationalAnnotations) : base(dependencies, relationalAnnotations)
+        {
+        }
+#else
+
         public CustomSqlServerMigrationsSqlGenerator(
             MigrationsSqlGeneratorDependencies dependencies,
             IRelationalAnnotationProvider relationalAnnotations) : base(dependencies, relationalAnnotations)
         {
         }
+#endif
 
         protected override void Generate(
             MigrationOperation operation,

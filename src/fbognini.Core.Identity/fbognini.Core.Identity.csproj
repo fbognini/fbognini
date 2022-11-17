@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <PackageId>fbognini.Core.Identity</PackageId>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Version>6.2.0</Version>
+    <TargetFrameworks>net7.0;net6.0;netstandard2.1</TargetFrameworks>
+    <Version>6.2.1</Version>
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
     <PackageProjectUrl>https://github.com/fbognini/fbognini</PackageProjectUrl>
@@ -12,7 +12,14 @@
   
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.4" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' != 'net7.0' ">
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.11" />
   </ItemGroup>
   
   <ItemGroup>

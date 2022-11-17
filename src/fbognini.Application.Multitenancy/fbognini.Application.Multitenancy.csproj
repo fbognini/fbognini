@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <PackageId>fbognini.Application.Multitenancy</PackageId>
-    <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
-    <Version>6.2.0</Version>
+    <TargetFrameworks>net7.0;net6.0;netstandard2.1</TargetFrameworks>
+    <Version>6.2.1</Version>
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
     <PackageProjectUrl>https://github.com/fbognini/fbognini</PackageProjectUrl>
@@ -17,7 +17,7 @@
 
 
   <ItemGroup>
-    <PackageReference Include="Finbuckle.MultiTenant" Version="6.7.2" />
+    <PackageReference Include="Finbuckle.MultiTenant" Version="6.9.1" />
   </ItemGroup>
 
 </Project>

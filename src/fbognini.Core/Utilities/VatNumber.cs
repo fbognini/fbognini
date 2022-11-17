@@ -41,7 +41,7 @@ namespace fbognini.Core.Utilities
                     return false;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
