@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageId>fbognini.Application</PackageId>
     <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
-    <Version>6.5.2</Version>
+    <Version>6.5.3</Version>
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
     <PackageProjectUrl>https://github.com/fbognini/fbognini</PackageProjectUrl>
@@ -11,7 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.0.0" />
     <PackageReference Include="MediatR" Version="10.0.1" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="10.0.1" />

@@ -22,7 +22,7 @@ namespace fbognini.Core.Mappings
         }
     }
 
-    public abstract class Mappable<TSource, TDestination1, TDestination2> : Mappable<TSource, TDestination1>
+    public abstract class Mappable<TSource, TDestination1, TDestination2> : Mappable<TSource, TDestination1>, IHaveCustomMapping
     {
         public new void CreateMappings(Profile profile)
         {
@@ -44,7 +44,7 @@ namespace fbognini.Core.Mappings
         }
     }
 
-    public abstract class Mappable<TSource, TDestination1, TDestination2, TDestination3> : Mappable<TSource, TDestination1, TDestination2>
+    public abstract class Mappable<TSource, TDestination1, TDestination2, TDestination3> : Mappable<TSource, TDestination1, TDestination2>, IHaveCustomMapping
     {
         public new void CreateMappings(Profile profile)
         {
@@ -66,7 +66,7 @@ namespace fbognini.Core.Mappings
         }
     }
 
-    public abstract class Mappable<TSource, TDestination1, TDestination2, TDestination3, TDestination4> : Mappable<TSource, TDestination1, TDestination2, TDestination3>
+    public abstract class Mappable<TSource, TDestination1, TDestination2, TDestination3, TDestination4> : Mappable<TSource, TDestination1, TDestination2, TDestination3>, IHaveCustomMapping
     {
         public new void CreateMappings(Profile profile)
         {
