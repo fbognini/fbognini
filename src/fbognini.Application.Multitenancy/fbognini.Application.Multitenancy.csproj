@@ -3,21 +3,26 @@
   <PropertyGroup>
     <PackageId>fbognini.Application.Multitenancy</PackageId>
     <TargetFrameworks>net7.0;net6.0;netstandard2.1</TargetFrameworks>
-    <Version>6.2.1</Version>
+    <Version>6.2.2</Version>
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/fbognini/fbognini</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fbognini/fbognini</RepositoryUrl>
   </PropertyGroup>
-
+  
+  <ItemGroup>
+    <PackageReference Include="Finbuckle.MultiTenant" Version="6.9.1" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\fbognini.Application\fbognini.Application.csproj" />
   </ItemGroup>
 
-
   <ItemGroup>
-    <PackageReference Include="Finbuckle.MultiTenant" Version="6.9.1" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
+    <None Include="..\..\README.md" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 </Project>

@@ -16,7 +16,7 @@ namespace fbognini.Infrastructure.Identity.Persistence
 {
     public class AuditableContext<TContext, TUser, TRole, TKey> : IdentityDbContext<TUser, TRole, TKey>, IBaseDbContext
         where TContext : DbContext
-        where TUser : AuditableUser<TKey>
+        where TUser : IdentityUser<TKey>
         where TRole : IdentityRole<TKey>
         where TKey : IEquatable<TKey>
     {

@@ -3,9 +3,11 @@
   <PropertyGroup>
     <PackageId>fbognini.Application</PackageId>
     <TargetFrameworks>net7.0;net6.0;netstandard2.1</TargetFrameworks>
-    <Version>6.5.6</Version>
+    <Version>6.5.7</Version>
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/fbognini/fbognini</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fbognini/fbognini</RepositoryUrl>
   </PropertyGroup>
@@ -37,5 +39,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\fbognini.Core\fbognini.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
+    <None Include="..\..\README.md" Pack="true" PackagePath=""/>
   </ItemGroup>
 </Project>

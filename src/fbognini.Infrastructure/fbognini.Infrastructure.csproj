@@ -3,9 +3,11 @@
   <PropertyGroup>
     <PackageId>fbognini.Infrastructure</PackageId>
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
-    <Version>6.5.6</Version>
+    <Version>6.5.7</Version>
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/fbognini/fbognini</PackageProjectUrl>
     <RepositoryUrl>https://github.com/fbognini/fbognini</RepositoryUrl>
   </PropertyGroup>
@@ -39,6 +41,11 @@
   <ItemGroup>
     <ProjectReference Include="..\fbognini.Application.Multitenancy\fbognini.Application.Multitenancy.csproj" />
     <ProjectReference Include="..\fbognini.Application\fbognini.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
+    <None Include="..\..\README.md" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 </Project>
