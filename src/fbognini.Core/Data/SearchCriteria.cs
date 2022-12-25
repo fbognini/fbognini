@@ -6,43 +6,25 @@ using System.Linq.Expressions;
 
 namespace fbognini.Core.Data
 {
-    public interface IHasSearch<TEntity>
-    {
-        Search<TEntity> Search { get; }
-    }
 
-    public interface IHasSorting
-    {
-        List<KeyValuePair<string, SortingDirection>> Sorting { get; }
-        void LoadSortingQuery(SortingQuery query);
-    }
-
-    public interface IHasViews<TEntity>
-    {
-        List<Expression<Func<TEntity, object>>> Includes { get; }
-        List<string> IncludeStrings { get; }
-    }
-
-    public class SelectArgs<TEntity> : IHasViews<TEntity>
+    public class SelectArgs<TEntity> : IHasViews<TEntity>, IArgs
     {
         public bool Track { get; set; } = true;
         public List<Expression<Func<TEntity, object>>> Includes { get; } = new List<Expression<Func<TEntity, object>>>();
         public List<string> IncludeStrings { get; } = new List<string>();
     }
 
-    public abstract class SelectCriteria<TEntity> : SelectArgs<TEntity>, IHasSearch<TEntity>, IHasSorting
+    public abstract class SelectCriteria<TEntity> : SelectArgs<TEntity>, IHasFilter<TEntity>, IHasSearch<TEntity>, IHasSorting
     {
-        protected LogicalOperator Operator { get; set; } = LogicalOperator.AND;
+        public SelectCriteria()
+        {
+            Track = false;
+        }
 
-        public bool Track { get; set; } = false;
         public List<KeyValuePair<string, SortingDirection>> Sorting { get; } = new List<KeyValuePair<string, SortingDirection>>();
         public Search<TEntity> Search { get; } = new Search<TEntity>();
 
-        public void SetOperator(
-            LogicalOperator logicalOperator)
-        {
-            Operator = logicalOperator;
-        }
+        protected LogicalOperator Operator { get; set; } = LogicalOperator.AND;
 
         public abstract List<Expression<Func<TEntity, bool>>> ToWhereClause();
 
@@ -59,13 +41,18 @@ namespace fbognini.Core.Data
 
             Sorting.Add(new KeyValuePair<string, SortingDirection>(query.SortingCriteria, query.SortingDirection));
         }
+
+        public void SetOperator(LogicalOperator logicalOperator)
+        {
+            Operator = logicalOperator;
+        }
     }
 
-    public abstract class SearchCriteria<TEntity> : OffsetCriteria<TEntity>
+    public abstract class SearchCriteria<TEntity> : OffsetCriteria<TEntity>, IHasSinceOffset
         where TEntity : IAuditableEntity
     {
-        internal long? Since { get; private set; }
-        internal int? AfterId { get; private set; }
+        public long? Since { get; private set; }
+        public int? AfterId { get; private set; }
 
         internal string ContinuationSince { get; set; }
 
@@ -99,7 +86,7 @@ namespace fbognini.Core.Data
         }
     }
 
-    public abstract class OffsetCriteria<TEntity> : SelectCriteria<TEntity>
+    public abstract class OffsetCriteria<TEntity> : SelectCriteria<TEntity>, IHasOffset
     {
         public int? PageNumber { get; protected set; }
         public int? PageSize { get; protected set; }

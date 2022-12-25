@@ -12,8 +12,10 @@ using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using Snickler.EFCore;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -27,18 +29,21 @@ namespace fbognini.Infrastructure.Repositorys
         where TContext : DbContext
     {
         private bool disposed;
+
         private readonly TContext context;
-        private readonly IDistributedCache cache;
         private readonly IMapper mapper;
 
-        public RepositoryAsync(TContext dbContext, IDistributedCache cache, IMapper mapper)
+        protected readonly Hashtable repositorys = new();
+        protected ILogger<RepositoryAsync<TContext>> logger;
+
+        public RepositoryAsync(TContext dbContext, IMapper mapper, ILogger<RepositoryAsync<TContext>> logger)
         {
             context = dbContext;
-            this.cache = cache;
             this.mapper = mapper;
+            this.logger = logger;
         }
 
-#region Create
+        #region Create
 
         public T Create<T>(T entity) where T : class, IEntity
         {
@@ -87,170 +92,173 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region Exists
 
-                public async Task<bool> ExistsAsync<T, TPK>(TPK id, CancellationToken cancellationToken = default)
-                    where T : class, IHasIdentity<TPK>
-                    where TPK : notnull
-                {
-                    var query = context.Set<T>().AsNoTracking();
-                    return await query.AnyAsync(x => x.Id.Equals(id), cancellationToken: cancellationToken);
-                }
+        public async Task<bool> ExistsAsync<T, TPK>(TPK id, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull
+        {
+            var query = context.Set<T>().AsNoTracking();
+            return await query.AnyAsync(x => x.Id.Equals(id), cancellationToken: cancellationToken);
+        }
 
-                public async Task<bool> ExistsAsync<T>(int id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>
-                {
-                    return await ExistsAsync<T, int>(id, cancellationToken);
-                }
+        public async Task<bool> ExistsAsync<T>(int id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>
+        {
+            return await ExistsAsync<T, int>(id, cancellationToken);
+        }
 
-                public async Task<bool> ExistsAsync<T>(long id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>
-                {
-                    return await ExistsAsync<T, long>(id, cancellationToken);
-                }
+        public async Task<bool> ExistsAsync<T>(long id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>
+        {
+            return await ExistsAsync<T, long>(id, cancellationToken);
+        }
 
-                public async Task<bool> ExistsAsync<T>(string id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>
-                {
-                    return await ExistsAsync<T, string>(id, cancellationToken);
-                }
+        public async Task<bool> ExistsAsync<T>(string id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>
+        {
+            return await ExistsAsync<T, string>(id, cancellationToken);
+        }
 
-                public async Task<bool> ExistsAsync<T>(Guid id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>
-                {
-                    return await ExistsAsync<T, Guid>(id, cancellationToken);
-                }
+        public async Task<bool> ExistsAsync<T>(Guid id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>
+        {
+            return await ExistsAsync<T, Guid>(id, cancellationToken);
+        }
 
         #endregion
 
         #region GetById
 
-                public async Task<T> GetByIdAsync<T, TPK>(TPK id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
-                    where T : class, IHasIdentity<TPK>
-                    where TPK : notnull
-                {
-                    var query = context.Set<T>().IncludeViews(args);
-                    if (args != null && !args.Track)
-                        query = query.AsNoTracking();
+        public async Task<T> GetByIdAsync<T, TPK>(TPK id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull
+        {
+            var query = context.Set<T>().IncludeViews(args);
+            if (args != null && !args.Track)
+                query = query.AsNoTracking();
 
-                    return await query.FirstOrDefaultAsync(x => x.Id.Equals(id), cancellationToken: cancellationToken);
-                }
+            return await query.FirstOrDefaultAsync(x => x.Id.Equals(id), cancellationToken: cancellationToken);
+        }
 
-                public async Task<T> GetByIdAsync<T>(int id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>
-                {
-                    return await GetByIdAsync<T, int>(id, args, cancellationToken);
-                }
+        public async Task<T> GetByIdAsync<T>(int id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>
+        {
+            return await GetByIdAsync<T, int>(id, args, cancellationToken);
+        }
 
-                public async Task<T> GetByIdAsync<T>(long id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>
-                {
-                    return await GetByIdAsync<T, long>(id, args, cancellationToken);
-                }
+        public async Task<T> GetByIdAsync<T>(long id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>
+        {
+            return await GetByIdAsync<T, long>(id, args, cancellationToken);
+        }
 
-                public async Task<T> GetByIdAsync<T>(string id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>
-                {
-                    return await GetByIdAsync<T, string>(id, args, cancellationToken);
-                }
+        public async Task<T> GetByIdAsync<T>(string id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>
+        {
+            return await GetByIdAsync<T, string>(id, args, cancellationToken);
+        }
 
-                public async Task<T> GetByIdAsync<T>(Guid id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>
-                {
-                    return await GetByIdAsync<T, Guid>(id, args, cancellationToken);
-                }
+        public async Task<T> GetByIdAsync<T>(Guid id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>
+        {
+            return await GetByIdAsync<T, Guid>(id, args, cancellationToken);
+        }
 
         #endregion
 
         #region GetBySlug
 
-                public async Task<T> GetBySlugAsync<T>(string slug, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
-                    where T : class, IEntity, IHaveSlug
-                {
-                    var query = context.Set<T>().IncludeViews(args);
-                    if (args != null && !args.Track)
-                        query = query.AsNoTracking();
+        public async Task<T> GetBySlugAsync<T>(string slug, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IEntity, IHaveSlug
+        {
+            var query = context.Set<T>().IncludeViews(args);
+            if (args != null && !args.Track)
+                query = query.AsNoTracking();
 
-                    return await query.FirstOrDefaultAsync(x => x.Slug.Equals(slug));
-                }
+            return await query.FirstOrDefaultAsync(x => x.Slug.Equals(slug), cancellationToken: cancellationToken);
+        }
 
         #endregion
 
         #region GetByName
 
-                public async Task<T> GetByNameAsync<T>(string name, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
-                    where T : class, IEntity, IHaveName
-                {
-                    var query = context.Set<T>().IncludeViews(args);
-                    if (args != null && !args.Track)
-                        query = query.AsNoTracking();
+        public async Task<T> GetByNameAsync<T>(string name, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IEntity, IHaveName
+        {
+            var query = context.Set<T>().IncludeViews(args);
+            if (args != null && !args.Track)
+                query = query.AsNoTracking();
 
-                    return await query.FirstOrDefaultAsync(x => x.Name.Equals(name));
-                }
+            return await query.FirstOrDefaultAsync(x => x.Name.Equals(name), cancellationToken: cancellationToken);
+        }
 
         #endregion
 
-                private IQueryable<T> GetQueryable<T>(SelectCriteria<T> criteria = null) where T : class, IEntity
-                {
-                    IQueryable<T> query = context.Set<T>();
+        public async Task<T> GetSingleAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).SingleOrDefaultAsync(cancellationToken);
+        }
 
-                    if (criteria == null)
-                    {
-                        return query;
-                    }
+        public async Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).FirstOrDefaultAsync(cancellationToken);
+        }
 
-                    if (!criteria.Track) query = query.AsNoTracking();
+        public async Task<T> GetLastAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).LastOrDefaultAsync(cancellationToken);
+        }
 
-                    query = query
-                            .Where(criteria.ResolveFilter().Expand())
-                            .AdvancedSearch(criteria)
-                            .OrderByDynamic(criteria)
-                            .IncludeViews(criteria);
+        public async Task<List<T>> GetAllAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).ToListAsync(cancellationToken);
+        }
 
-                    return query;
-                }
+        public async Task<PaginationResponse<TMapped>> GetSearchResultsAsync<T, TMapped>(SearchCriteria<T> criteria, CancellationToken cancellationToken = default)
+            where T : AuditableEntity
+            where TMapped : class
+        {
+            var query = GetQueryable(criteria)
+                .QueryPagination(criteria, out var pagination);
 
-                public async Task<T> GetSingleAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
-                {
-                    return await GetQueryable(criteria).SingleOrDefaultAsync(cancellationToken);
-                }
+            var list = await query.ToListAsync(cancellationToken);
+            var response = new PaginationResponse<TMapped>()
+            {
+                Pagination = pagination,
+                Response = mapper.Map<List<TMapped>>(list)
+            };
 
-                public async Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
-                {
-                    return await GetQueryable(criteria).FirstOrDefaultAsync(cancellationToken);
-                }
+            return response;
+        }
 
-                public async Task<T> GetLastAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
-                {
-                    return await GetQueryable(criteria).LastOrDefaultAsync(cancellationToken);
-                }
+        public async Task<bool> AnyAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).AnyAsync(cancellationToken);
+        }
 
-                public async Task<List<T>> GetAllAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
-                {
-                    return await GetQueryable(criteria).ToListAsync(cancellationToken);
-                }
+        public async Task<int> CountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).CountAsync(cancellationToken);
+        }
 
-                public async Task<PaginationResponse<TMapped>> GetSearchResultsAsync<T, TMapped>(SearchCriteria<T> criteria, CancellationToken cancellationToken = default)
-                    where T : AuditableEntity
-                    where TMapped: class
-                {
-                    var query = GetQueryable(criteria)
-                        .QueryPagination(criteria, out var pagination);
+        public async Task<long> LongCountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).LongCountAsync(cancellationToken);
+        }
 
-                    var list = await query.ToListAsync(cancellationToken);
-                    var response = new PaginationResponse<TMapped>()
-                    {
-                        Pagination = pagination,
-                        Response = mapper.Map<List<TMapped>>(list)
-                    };
+        private IQueryable<T> GetQueryable<T>(SelectCriteria<T> criteria = null) where T : class, IEntity
+        {
+            if (criteria == null)
+            {
+                return context.Set<T>();
+            }
 
-                    return response;
-                }
+            var query = GetNotNullQueryable();
+            if (!criteria.Track) query = query.AsNoTracking();
 
-                public async Task<bool> AnyAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
-                {
-                    return await GetQueryable(criteria).AnyAsync(cancellationToken);
-                }
+            return query;
 
-                public async Task<int> CountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
-                {
-                    return await GetQueryable(criteria).CountAsync(cancellationToken);
-                }
+            IQueryable<T> GetNotNullQueryable() 
+            {
+                return context.Set<T>()
+                    .Where(criteria.ResolveFilter().Expand())
+                    .AdvancedSearch(criteria)
+                    .OrderByDynamic(criteria)
+                    .IncludeViews(criteria);
+            }
+        }
 
-                public async Task<long> LongCountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
-                {
-                    return await GetQueryable(criteria).LongCountAsync(cancellationToken);
-                }
 
         #endregion
 
@@ -259,7 +267,6 @@ namespace fbognini.Infrastructure.Repositorys
         public void Update<T>(T entity) where T : class, IEntity
         {
             context.Entry(entity).State = EntityState.Modified;
-            cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(entity)));
         }
 
 #if NET6_0 || NETSTANDARD2_1
@@ -268,10 +275,6 @@ namespace fbognini.Infrastructure.Repositorys
         {
             if (entities.First() is AuditableEntity)
             {
-                foreach (var entry in entities)
-                {
-                    cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(entry)));
-                }
 
                 foreach (var entry in entities.Cast<AuditableEntity>())
                 {
@@ -287,14 +290,13 @@ namespace fbognini.Infrastructure.Repositorys
 #endif
 
 
-#endregion
+        #endregion
 
-#region Delete
+        #region Delete
 
         public void Delete<T>(T entity) where T : class, IEntity
         {
             context.Set<T>().Remove(entity);
-            cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(entity)));
         }
 
         public void DeleteRange<T>(SelectCriteria<T> criteria) where T : class, IEntity
@@ -306,10 +308,6 @@ namespace fbognini.Infrastructure.Repositorys
         public void DeleteRange<T>(IEnumerable<T> entities) where T : class, IEntity
         {
             context.Set<T>().RemoveRange(entities);
-            foreach (var item in entities)
-            {
-                cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(item)));
-            }
         }
 
 #if NET6_0 || NETSTANDARD2_1
@@ -317,10 +315,6 @@ namespace fbognini.Infrastructure.Repositorys
         {
             var entities = GetQueryable(criteria);
             await entities.BatchDeleteAsync(cancellationToken);
-            foreach (var item in entities)
-            {
-                cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(item)));
-            }
         }
 #endif
 
@@ -329,11 +323,6 @@ namespace fbognini.Infrastructure.Repositorys
         {
             if (entities.First() is ISoftDelete)
             {
-                foreach (var entry in entities)
-                {
-                    cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(entry)));
-                }
-
                 foreach (var entry in entities.Cast<ISoftDelete>())
                 {
                     entry.DeletedBy = null;
@@ -345,10 +334,6 @@ namespace fbognini.Infrastructure.Repositorys
             }
 
             await context.BulkDeleteAsync(entities, bulkConfig, cancellationToken: cancellationToken);
-            foreach (var item in entities)
-            {
-                cache.Remove(CacheKeys.GetCacheKey<T>(context.FindPrimaryKeyValues(item)));
-            }
         }
 #endif
 
@@ -445,7 +430,7 @@ namespace fbognini.Infrastructure.Repositorys
 
         public async Task RollbackAsync(CancellationToken cancellationToken)
         {
-            context.ChangeTracker.Entries().ToList().ForEach(x => x.Reload()); 
+            context.ChangeTracker.Entries().ToList().ForEach(x => x.Reload());
 
             await Transaction.RollbackAsync(cancellationToken);
         }
@@ -470,6 +455,23 @@ namespace fbognini.Infrastructure.Repositorys
         }
 
         #endregion
+
+        protected T CreateInstanceRepository<T>()
+        {
+            var key = typeof(T).Name;
+            if (!repositorys.ContainsKey(key))
+            {
+                var instance = CreateRepositoryInstance<T>();
+                repositorys.Add(key, instance);
+            }
+
+            return (T)repositorys[key]!;
+        }
+
+        protected virtual object CreateRepositoryInstance<T>()
+        {
+            return Activator.CreateInstance(typeof(T), this, logger);
+        }
 
         public DbCommand LoadStoredProcedure(string name, bool prependDefaultSchema = true, short commandTimeout = 30)
         {

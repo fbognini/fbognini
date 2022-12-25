@@ -1,12 +1,16 @@
 ﻿
+using fbognini.Core.Entities;
 using fbognini.Core.Utilities;
 using LinqKit;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace fbognini.Core.Data
 {
@@ -91,8 +95,161 @@ namespace fbognini.Core.Data
         public static IQueryable<T> AdvancedSearch<T>(this IQueryable<T> query, IHasSearch<T> searchCriteria)
             where T: class
         {
-            if (searchCriteria.Search == null || searchCriteria.Search.Keyword == null)
+            var predicate = GetSearchPredicate(searchCriteria);
+            if (predicate == null)
                 return query;
+
+            return query.Where(predicate);
+        }
+
+        public static Expression<Func<T, bool>> BuildPredicate<T>(
+            this List<Expression<Func<T, bool>>> expressions
+            , LogicalOperator logicalOperator)
+        {
+            if (expressions == null || expressions.Count == 0)
+            {
+                return PredicateBuilder.New<T>(true);
+            }
+
+            Expression<Func<T, bool>> expression = (logicalOperator == LogicalOperator.OR) ? PredicateBuilder.New<T>(false) : PredicateBuilder.New<T>(true);
+            foreach (Expression<System.Func<T, bool>> current in expressions)
+            {
+                if (logicalOperator == LogicalOperator.OR)
+                {
+                    expression = expression.Or(current);
+                }
+                else
+                {
+                    expression = expression.And(current);
+                }
+            }
+            return expression;
+        }
+
+        public static string GetArgsKey<TEntity>(this IArgs args)
+        {
+            var builder = new StringBuilder();
+            builder.Append(typeof(TEntity).Name);
+
+            if (args is IHasViews<TEntity> hasViews)
+            {
+                builder.Append($"|v:");
+                builder.Append(string.Join(',', hasViews.AllIncludes.OrderBy(x => x)));
+            }
+
+            if (args is IHasFilter<TEntity> hasFilter)
+            {
+                var filter = hasFilter.ResolveFilter();
+                var key = filter.GenerateHumanReadableKey();
+                builder.Append($"|f:{key}");
+            }
+
+            if (args is IHasSearch<TEntity> hasSearch)
+            {
+                if (hasSearch.Search != null && hasSearch.Search.AllFields.Any())
+                {
+                    builder.Append($"|q:");
+                    builder.Append($"q={hasSearch.Search.Keyword}&t=");
+                    builder.Append(string.Join(',', hasSearch.Search.AllFields.OrderBy(x => x)));
+                }
+            }
+
+            if (args is IHasSorting hasSorting && hasSorting.Sorting.Any())
+            {
+                builder.Append($"|s:");
+                builder.Append(string.Join(',', hasSorting.Sorting.OrderBy(x => x.Key).Select(s => $"{s.Key}x{s.Value}")));
+            }
+
+            if (args is IHasOffset hasOffset && hasOffset.PageSize.HasValue)
+            {
+                builder.Append($"|p:");
+                builder.Append($"n={hasOffset.PageNumber}&s={hasOffset.PageSize}");
+
+                if (args is IHasSinceOffset hasSinceOffset && hasSinceOffset.Since.HasValue)
+                {
+                    builder.Append($"&since={hasSinceOffset.Since}&after={hasSinceOffset.AfterId}");
+                }
+            }
+
+            return builder.ToString();
+        }
+
+        public static string GenerateHumanReadableKey<T>(this Expression<Func<T, bool>> expression)
+        {
+            Dictionary<string, string> dictionary = new Dictionary<string, string>();
+            WalkExpression(dictionary, expression);
+            string text = expression.ToString();
+            foreach (ParameterExpression parameter in expression.Parameters)
+            {
+                string name = parameter.Name;
+                string typeName = parameter.Type.Name;
+                text = text.Replace(name + ".", typeName + ".");
+            }
+
+            foreach (KeyValuePair<string, string> item in dictionary)
+            {
+                text = text.Replace(item.Key, item.Value);
+            }
+
+            text = text.Replace(" ", string.Empty);
+            return text;
+        }
+
+        private static void WalkExpression(Dictionary<string, string> replacements, Expression expression)
+        {
+            switch (expression.NodeType)
+            {
+                case ExpressionType.MemberAccess:
+                    {
+                        string text = expression.ToString();
+                        if (text.Contains("value(") && !replacements.ContainsKey(text))
+                        {
+                            object obj = Expression.Lambda(expression).Compile().DynamicInvoke();
+                            if (obj != null)
+                            {
+                                string text2 = obj.ToString();
+                                replacements.Add(text, text2.ToString());
+                            }
+                        }
+
+                        break;
+                    }
+                case ExpressionType.AndAlso:
+                case ExpressionType.Equal:
+                case ExpressionType.GreaterThan:
+                case ExpressionType.GreaterThanOrEqual:
+                case ExpressionType.LessThan:
+                case ExpressionType.LessThanOrEqual:
+                case ExpressionType.OrElse:
+                    {
+                        BinaryExpression binaryExpression = expression as BinaryExpression;
+                        WalkExpression(replacements, binaryExpression.Left);
+                        WalkExpression(replacements, binaryExpression.Right);
+                        break;
+                    }
+                case ExpressionType.Call:
+                    {
+                        MethodCallExpression methodCallExpression = expression as MethodCallExpression;
+                        foreach (Expression argument in methodCallExpression.Arguments)
+                        {
+                            WalkExpression(replacements, argument);
+                        }
+
+                        break;
+                    }
+                case ExpressionType.Lambda:
+                    {
+                        LambdaExpression lambdaExpression = expression as LambdaExpression;
+                        WalkExpression(replacements, lambdaExpression.Body);
+                        break;
+                    }
+            }
+        }
+
+        private static Expression<Func<T, bool>> GetSearchPredicate<T>(IHasSearch<T> searchCriteria)
+        {
+            if (searchCriteria.Search == null || searchCriteria.Search.Keyword == null)
+                return null;
 
             var predicate = PredicateBuilder.New<T>(false);
 
@@ -108,10 +265,9 @@ namespace fbognini.Core.Data
                 var names = field.Split('.');
                 LambdaExpression lambda = InnerSearch(typeof(T), names, searchCriteria.Search.Keyword);
                 predicate = predicate.Or((Expression<Func<T, bool>>)lambda);
-
             }
 
-            return query.Where(predicate);
+            return predicate;
 
             static LambdaExpression InnerSearch(Type type, string[] names, string keyword, int i = 0, ParameterExpression parameter = null, Expression property = null)
             {
@@ -164,32 +320,5 @@ namespace fbognini.Core.Data
             }
         }
 
-        public static Expression<Func<T, bool>> BuildPredicate<T>(
-            this List<Expression<Func<T, bool>>> expressions
-            , LogicalOperator logicalOperator)
-        {
-            Expression<Func<T, bool>> result;
-            if (expressions == null || expressions.Count == 0)
-            {
-                result = PredicateBuilder.New<T>(true);
-            }
-            else
-            {
-                Expression<Func<T, bool>> expression = (logicalOperator == LogicalOperator.OR) ? PredicateBuilder.New<T>(false) : PredicateBuilder.New<T>(true);
-                foreach (Expression<System.Func<T, bool>> current in expressions)
-                {
-                    if (logicalOperator == LogicalOperator.OR)
-                    {
-                        expression = expression.Or(current);
-                    }
-                    else
-                    {
-                        expression = expression.And(current);
-                    }
-                }
-                result = expression;
-            }
-            return result;
-        }
     }
 }
