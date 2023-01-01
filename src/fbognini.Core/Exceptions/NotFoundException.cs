@@ -3,6 +3,19 @@ using System.Net;
 
 namespace fbognini.Core.Exceptions
 {
+    public class NotFoundAdditionalData : AdditionalData
+    {
+        public override string Entity { get; }
+        public object Key { get; set; }
+
+        public NotFoundAdditionalData(string entity, object key)
+            : base("NotFound")
+        {
+            Entity = entity;
+            Key = key;
+        }
+    }
+
     public class NotFoundException : AppException
     {
         public NotFoundException()
@@ -12,45 +25,20 @@ namespace fbognini.Core.Exceptions
         }
 
         public NotFoundException(
-            string message)
-            : base(HttpStatusCode.NotFound, message)
+            string message, string title = null)
+            : base(HttpStatusCode.NotFound, message, title)
         {
 
         }
 
         public NotFoundException(
-            object additionalData)
-            : base(HttpStatusCode.NotFound, additionalData)
-        {
-
-        }
-
-        public NotFoundException(
-            Type type
-            , object key)
-            : base(HttpStatusCode.NotFound, $"Entity \"{type}\" ({key}) was not found.", new NotFoundAdditionalData(type.Name, key))
-        {
-        }
-
-        public NotFoundException(
-            string message
-            , object additionalData)
-            : base(HttpStatusCode.NotFound, message, additionalData)
-        {
-        }
-
-        public NotFoundException(
-            string message
-            , Exception exception)
-            : base(HttpStatusCode.NotFound, message, exception)
-        {
-        }
-
-        public NotFoundException(
-            string message
-            , Exception exception
-            , object additionalData)
-            : base(HttpStatusCode.NotFound, message, exception, additionalData)
+            Type type,
+            object key)
+            : base(
+                  HttpStatusCode.NotFound,
+                  $"Entity \"{type.Name}\" ({key}) was not found.",
+                  $"{type.Name} was not found.",
+                  new NotFoundAdditionalData(type.Name, key))
         {
         }
     }

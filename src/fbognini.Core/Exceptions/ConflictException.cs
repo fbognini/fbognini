@@ -26,13 +26,6 @@ namespace fbognini.Core.Exceptions
         }
 
         public ConflictException(
-            Type type
-            , object key)
-            : base(HttpStatusCode.Conflict, $"Entity \"{type}\" ({key}) was not found.", null)
-        {
-        }
-
-        public ConflictException(
             string message
             , object additionalData)
             : base(HttpStatusCode.Conflict, message, additionalData)
@@ -50,7 +43,7 @@ namespace fbognini.Core.Exceptions
             string message
             , Exception exception
             , object additionalData)
-            : base(HttpStatusCode.Conflict, message, exception, additionalData)
+            : base(HttpStatusCode.Conflict, null, message, exception, additionalData)
         {
         }
     }

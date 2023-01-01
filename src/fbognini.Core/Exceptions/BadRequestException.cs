@@ -3,30 +3,6 @@ using System.Net;
 
 namespace fbognini.Core.Exceptions
 {
-    public class NotFoundAdditionalData : AdditionalData
-    {
-        public override string Entity { get; }
-        public object Key { get; set; }
-
-        public NotFoundAdditionalData(string entity, object key)
-            : base("NotFound")
-        {
-            Entity = entity;
-            Key = key;
-        }
-    }
-
-    public abstract class AdditionalData
-    {
-        public abstract string Entity { get; }
-        public string Error { get; }
-
-        protected AdditionalData(string error)
-        {
-            Error = error;
-        }
-    }
-
     public class BadRequestException: AppException
     {
 
@@ -68,7 +44,7 @@ namespace fbognini.Core.Exceptions
             string message
             , Exception exception
             , object additionalData)
-            : base(HttpStatusCode.BadRequest, message, exception, additionalData)
+            : base(HttpStatusCode.BadRequest, null, message, exception, additionalData)
         {
         }
     }

@@ -44,7 +44,7 @@ namespace fbognini.Core.Exceptions
             string message
             , Exception exception
             , object additionalData)
-            : base(HttpStatusCode.ServiceUnavailable, message, exception, additionalData)
+            : base(HttpStatusCode.ServiceUnavailable, null, message, exception, additionalData)
         {
         }
     }

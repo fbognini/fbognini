@@ -32,19 +32,19 @@ namespace fbognini.Infrastructure.Multitenancy
             {
                 if (tenant == null)
                 {
-                    throw new IdentityException("Authentication failed");
+                    throw new IdentityException("Tenant is not provided or it doesn't exist.", "Tenant authentication failed.");
                 }
 
                 if (tenant.Identifier != MultitenancyConstants.Root.Key)
                 {
                     if (!tenant.IsActive)
                     {
-                        throw new IdentityException("Tenant is not active. Please contact the Administrator.");
+                        throw new IdentityException("Tenant is not active. Please contact the Administrator.", "Tenant is not active.");
                     }
 
                     if (DateTime.UtcNow > tenant.ValidUpto)
                     {
-                        throw new IdentityException("Tenant validity has expired. Please contact the Administrator.");
+                        throw new IdentityException($"Tenant validity has expired on {tenant.ValidUpto.ToString("O")}. Please contact the Administrator.", "Tenant validity has expired.");
                     }
                 }
             }

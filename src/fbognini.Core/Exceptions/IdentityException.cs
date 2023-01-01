@@ -12,8 +12,8 @@ namespace fbognini.Core.Exceptions
         }
 
         public IdentityException(
-            string message)
-            : base(HttpStatusCode.Unauthorized, message)
+            string message, string title = null)
+            : base(HttpStatusCode.Unauthorized, message, title ?? "You're not authorized.")
         {
 
         }
@@ -23,20 +23,6 @@ namespace fbognini.Core.Exceptions
             : base(HttpStatusCode.Unauthorized, additionalData)
         {
 
-        }
-
-        public IdentityException(
-            Type type
-            , object key)
-            : base(HttpStatusCode.Unauthorized, $"Entity \"{type}\" ({key}) was not found.", new NotFoundAdditionalData(type.Name, key))
-        {
-        }
-
-        public IdentityException(
-            string message
-            , object additionalData)
-            : base(HttpStatusCode.Unauthorized, message, additionalData)
-        {
         }
 
         public IdentityException(
@@ -50,7 +36,7 @@ namespace fbognini.Core.Exceptions
             string message
             , Exception exception
             , object additionalData)
-            : base(HttpStatusCode.Unauthorized, message, exception, additionalData)
+            : base(HttpStatusCode.Unauthorized, null, message, exception, additionalData)
         {
         }
     }
