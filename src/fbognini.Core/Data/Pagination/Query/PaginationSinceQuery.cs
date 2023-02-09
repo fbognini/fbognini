@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-
-namespace fbognini.Core.Data.Pagination
+﻿namespace fbognini.Core.Data.Pagination
 {
     public class PaginationAdvancedSinceQuery : PaginationQuery
     {
@@ -24,14 +22,6 @@ namespace fbognini.Core.Data.Pagination
         public string Since { get; set; }
     }
 
-    public class PaginationSinceQueryValidator : AbstractValidator<PaginationSinceQuery>
-    {
-        public PaginationSinceQueryValidator()
-        {
-            Include(new PaginationQueryValidator());
-            RuleFor(x => x.Since).GreaterThan(0).When(x => x.Since.HasValue);
-        }
-    }
 
     public class PaginationSinceQuery : PaginationQuery
     {
@@ -53,14 +43,5 @@ namespace fbognini.Core.Data.Pagination
         /// </summary>
         /// <example>1588725310636</example>
         public long? Since { get; set; }
-    }
-
-    public class PaginationSinceQueryyValidator : AbstractValidator<PaginationSinceQuery>
-    {
-        public PaginationSinceQueryyValidator()
-        {
-            Include(new PaginationQueryValidator());
-            RuleFor(x => x.Since).GreaterThan(0).When(x => x.Since.HasValue);
-        }
     }
 }

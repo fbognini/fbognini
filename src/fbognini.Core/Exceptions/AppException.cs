@@ -32,7 +32,7 @@ namespace fbognini.Core.Exceptions
             HttpStatusCode httpStatusCode,
             string message,
             string title = null)
-            : this(httpStatusCode, title, message, null)
+            : this(httpStatusCode, message, title, null)
         {
         }
 
@@ -46,7 +46,7 @@ namespace fbognini.Core.Exceptions
         public AppException(
             string message
             , Exception exception)
-            : this(HttpStatusCode.InternalServerError, null, message, exception, null)
+            : this(HttpStatusCode.InternalServerError, message, null, exception, null)
         {
         }
 
@@ -61,7 +61,7 @@ namespace fbognini.Core.Exceptions
             HttpStatusCode httpStatusCode
             , string message
             , object additionalData)
-            : this(httpStatusCode, null, message, null, additionalData)
+            : this(httpStatusCode, message, null, null, additionalData)
         {
         }
 
@@ -69,7 +69,7 @@ namespace fbognini.Core.Exceptions
             string message
             , Exception exception
             , object additionalData)
-            : this(HttpStatusCode.InternalServerError, null, message, exception, additionalData)
+            : this(HttpStatusCode.InternalServerError, message, null, exception, additionalData)
         {
         }
 

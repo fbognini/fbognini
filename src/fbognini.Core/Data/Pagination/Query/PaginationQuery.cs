@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-
-namespace fbognini.Core.Data.Pagination
+﻿namespace fbognini.Core.Data.Pagination
 {
     public abstract class PaginationQuery
     {
@@ -9,14 +7,5 @@ namespace fbognini.Core.Data.Pagination
         /// </summary>
         /// <example>5</example>
         public int? PageSize { get; set; }
-    }
-
-
-    public class PaginationQueryValidator : AbstractValidator<PaginationQuery>
-    {
-        public PaginationQueryValidator()
-        {
-            RuleFor(x => x.PageSize).GreaterThan(1).When(x => x.PageSize.HasValue);
-        }
     }
 }
