@@ -4,21 +4,12 @@ using fbognini.Application.Multitenancy;
 using fbognini.Application.Persistence;
 using fbognini.Core.Exceptions;
 using Finbuckle.MultiTenant;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using fbognini.Infrastructure.Persistence.Initialization;
 
 namespace fbognini.Infrastructure.Multitenancy
@@ -30,8 +21,8 @@ namespace fbognini.Infrastructure.Multitenancy
         private readonly IMapper mapper;
         private readonly IMultiTenantStore<TTenant> tenantStore;
         private readonly IConnectionStringSecurer csSecurer;
-        private readonly IMultiTenantDatabaseInitializer _dbInitializer;
-        private readonly DatabaseSettings _dbSettings;
+        private readonly IMultiTenantDatabaseInitializer dbInitializer;
+        private readonly DatabaseSettings dbSettings;
 
         public TenantService(
             IMultiTenantStore<TTenant> tenantStore,
@@ -41,8 +32,8 @@ namespace fbognini.Infrastructure.Multitenancy
         {
             this.tenantStore = tenantStore;
             this.csSecurer = csSecurer;
-            _dbInitializer = dbInitializer;
-            _dbSettings = dbSettings.Value;
+            this.dbInitializer = dbInitializer;
+            this.dbSettings = dbSettings.Value;
             this.mapper = mapper;
         }
 
@@ -69,7 +60,7 @@ namespace fbognini.Infrastructure.Multitenancy
 
         public async Task<string> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
         {
-            if (request.ConnectionString?.Trim() == _dbSettings.ConnectionString?.Trim()) request.ConnectionString = string.Empty;
+            if (request.ConnectionString?.Trim() == dbSettings.ConnectionString?.Trim()) request.ConnectionString = string.Empty;
 
             var tenant = new TTenant
             {
@@ -88,7 +79,7 @@ namespace fbognini.Infrastructure.Multitenancy
             // TODO: run this in a hangfire job? will then have to send mail when it's ready or not
             try
             {
-                await _dbInitializer.InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
+                await dbInitializer.InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
             }
             catch
             {

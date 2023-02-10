@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
-#if NET6_0 || NETSTANDARD2_1
 using EFCore.BulkExtensions;
-#endif
 using fbognini.Application.Persistence;
 using fbognini.Application.Utilities;
 using fbognini.Core.Data;
@@ -67,8 +65,6 @@ namespace fbognini.Infrastructure.Repositorys
             await context.Set<T>().AddRangeAsync(entitys, cancellationToken);
             return entitys;
         }
-
-#if NET6_0 || NETSTANDARD2_1
         public async Task MassiveInsertAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             if (entities.First() is AuditableEntity)
@@ -84,7 +80,6 @@ namespace fbognini.Infrastructure.Repositorys
 
             await context.BulkInsertAsync(entities, bulkConfig, cancellationToken: cancellationToken);
         }
-#endif
 
         #endregion
 
@@ -269,7 +264,6 @@ namespace fbognini.Infrastructure.Repositorys
             context.Entry(entity).State = EntityState.Modified;
         }
 
-#if NET6_0 || NETSTANDARD2_1
         public async Task MassiveUpdateAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
 
         {
@@ -287,7 +281,6 @@ namespace fbognini.Infrastructure.Repositorys
 
             await context.BulkUpdateAsync(entities, bulkConfig, cancellationToken: cancellationToken);
         }
-#endif
 
 
         #endregion
@@ -310,15 +303,12 @@ namespace fbognini.Infrastructure.Repositorys
             context.Set<T>().RemoveRange(entities);
         }
 
-#if NET6_0 || NETSTANDARD2_1
         public async Task BatchDeleteAsync<T>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             var entities = GetQueryable(criteria);
             await entities.BatchDeleteAsync(cancellationToken);
         }
-#endif
 
-#if NET6_0 || NETSTANDARD2_1
         public async Task MassiveDeleteAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             if (entities.First() is ISoftDelete)
@@ -335,7 +325,6 @@ namespace fbognini.Infrastructure.Repositorys
 
             await context.BulkDeleteAsync(entities, bulkConfig, cancellationToken: cancellationToken);
         }
-#endif
 
         #region DeleteById
 
