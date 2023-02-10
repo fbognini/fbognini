@@ -58,6 +58,5 @@ namespace fbognini.Core.Data
 
             return list;
         }
-
     }
 }

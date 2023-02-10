@@ -2,9 +2,6 @@
 using fbognini.Common.Application.Mappings;
 using fbognini.Core.Data;
 using fbognini.Core.Mappings;
-using FluentValidation;
-using MediatR;
-using MediatR.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
@@ -25,25 +22,6 @@ namespace fbognini.Application.DependencyInjection
             {
                 config.AddCustomMappingProfile(assembly);
             });
-
-            services.AddMediatR(assembly);
-            services.AddMediatRBehaviors();
-            services.AddValidatorsFromAssembly(assembly);
-
-            return services;
-        }
-
-        public static IServiceCollection AddMediatRBehaviors(this IServiceCollection services, bool logging = true, bool validation = false)
-        {
-            if (logging)
-            {
-                services.AddTransient(typeof(IRequestPreProcessor<>), typeof(RequestLogger<>));
-            }
-
-            if (validation)
-            {
-                services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
-            }
 
             return services;
         }
