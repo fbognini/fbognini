@@ -18,6 +18,4 @@ namespace fbognini.Common.Application.Mappings
                 item.CreateMappings(this);
         }
     }
-
-    
 }

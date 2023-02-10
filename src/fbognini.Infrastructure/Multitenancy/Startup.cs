@@ -31,8 +31,6 @@ namespace fbognini.Infrastructure.Multitenancy
             string dbProvider = databaseSettings.DBProvider;
             if (string.IsNullOrEmpty(dbProvider)) throw new InvalidOperationException("DB Provider is not configured.");
 
-            services.AddApplication(Assembly.Load("fbognini.Application.Multitenancy"));
-
             return services
                 .Configure<MultitenancySettings>(configuration.GetSection(nameof(MultitenancySettings)))
                 .AddScoped<ITenantService<TTenant>, TenantService<TTenant>>()

@@ -7,26 +7,10 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-namespace fbognini.Application.DependencyInjection
+namespace fbognini.Application.Mappings
 {
-    public static class DependencyInjection
+    public static class Startup
     {
-        public static IServiceCollection AddApplication(this IServiceCollection services, Assembly assembly = null)
-        {
-            if (assembly == null)
-            {
-                assembly = Assembly.GetExecutingAssembly();
-            }
-
-            services.AddAutoMapper(config =>
-            {
-                config.AddCustomMappingProfile(assembly);
-            });
-
-            return services;
-        }
-
-
         public static void AddCustomMappingProfile<TTypeMarker>(this IMapperConfigurationExpression config)
         {
             config.AddCustomMappingProfile(typeof(TTypeMarker));
