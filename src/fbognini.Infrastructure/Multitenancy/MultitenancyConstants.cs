@@ -1,4 +1,4 @@
-namespace fbognini.Application.Multitenancy
+namespace fbognini.Infrastructure.Multitenancy
 {
 
     public class MultitenancyConstants

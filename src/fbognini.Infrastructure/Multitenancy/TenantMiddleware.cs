@@ -1,14 +1,10 @@
-
-using fbognini.Application.Entities;
-using fbognini.Application.Multitenancy;
 using fbognini.Core.Exceptions;
+using fbognini.Infrastructure.Entities;
 using Finbuckle.MultiTenant;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Multitenancy
@@ -44,7 +40,7 @@ namespace fbognini.Infrastructure.Multitenancy
 
                     if (DateTime.UtcNow > tenant.ValidUpto)
                     {
-                        throw new IdentityException($"Tenant validity has expired on {tenant.ValidUpto.ToString("O")}. Please contact the Administrator.", "Tenant validity has expired.");
+                        throw new IdentityException($"Tenant validity has expired on {tenant.ValidUpto:O}. Please contact the Administrator.", "Tenant validity has expired.");
                     }
                 }
             }

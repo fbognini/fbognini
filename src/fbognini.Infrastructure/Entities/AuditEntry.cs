@@ -1,11 +1,10 @@
-﻿using fbognini.Application.Entities;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
-namespace fbognini.Infrastructure.Models
+namespace fbognini.Infrastructure.Entities
 {
     public enum AuditType : byte
     {

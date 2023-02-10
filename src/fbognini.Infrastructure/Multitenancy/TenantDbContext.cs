@@ -1,4 +1,4 @@
-﻿using fbognini.Application.Entities;
+﻿using fbognini.Infrastructure.Entities;
 using Finbuckle.MultiTenant.Stores;
 using Microsoft.EntityFrameworkCore;
 using System;

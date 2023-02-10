@@ -5,12 +5,10 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using fbognini.Application.Entities;
-using fbognini.Core.Entities;
 using fbognini.Infrastructure.Persistence;
 using Finbuckle.MultiTenant;
 using fbognini.Infrastructure.Utilities;
-using fbognini.Infrastructure.Models;
+using fbognini.Infrastructure.Entities;
 
 namespace fbognini.Infrastructure.Identity.Persistence
 {
@@ -41,7 +39,6 @@ namespace fbognini.Infrastructure.Identity.Persistence
         public string UserId => currentUserService.UserId;
         public string Tenant => currentTenant.Name;
         public string ConnectionString => currentTenant?.ConnectionString;
-
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

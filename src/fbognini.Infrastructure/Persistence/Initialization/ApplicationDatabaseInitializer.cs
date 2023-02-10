@@ -1,4 +1,3 @@
-using fbognini.Application.Entities;
 using Finbuckle.MultiTenant;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

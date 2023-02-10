@@ -1,5 +1,3 @@
-using AutoMapper;
-using fbognini.Application.Entities;
 using fbognini.Application.Multitenancy;
 using fbognini.Application.Persistence;
 using fbognini.Core.Exceptions;
@@ -11,14 +9,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using fbognini.Infrastructure.Persistence.Initialization;
+using fbognini.Infrastructure.Entities;
 
 namespace fbognini.Infrastructure.Multitenancy
 {
-
-    public class TenantService<TTenant> : ITenantService
+    public class TenantService<TTenant> : ITenantService<TTenant>
             where TTenant : Tenant, new()
     {
-        private readonly IMapper mapper;
         private readonly IMultiTenantStore<TTenant> tenantStore;
         private readonly IConnectionStringSecurer csSecurer;
         private readonly IMultiTenantDatabaseInitializer dbInitializer;
@@ -28,18 +25,17 @@ namespace fbognini.Infrastructure.Multitenancy
             IMultiTenantStore<TTenant> tenantStore,
             IConnectionStringSecurer csSecurer,
             IMultiTenantDatabaseInitializer dbInitializer,
-            IOptions<DatabaseSettings> dbSettings, IMapper mapper)
+            IOptions<DatabaseSettings> dbSettings)
         {
             this.tenantStore = tenantStore;
             this.csSecurer = csSecurer;
             this.dbInitializer = dbInitializer;
             this.dbSettings = dbSettings.Value;
-            this.mapper = mapper;
         }
 
-        public async Task<List<TenantDto>> GetAllAsync()
+        public async Task<List<TTenant>> GetAllAsync()
         {
-            var tenants = mapper.Map<List<TenantDto>>(await tenantStore.GetAllAsync());
+            var tenants = (await tenantStore.GetAllAsync()).ToList();
             tenants.ForEach(t => t.ConnectionString = csSecurer.MakeSecure(t.ConnectionString));
             return tenants;
         }
@@ -50,9 +46,9 @@ namespace fbognini.Infrastructure.Multitenancy
         public async Task<bool> ExistsWithNameAsync(string name) =>
             (await tenantStore.GetAllAsync()).Any(t => t.Name == name);
 
-        public async Task<TenantDto> GetByIdAsync(string id)
+        public async Task<TTenant> GetByIdAsync(string id)
         {
-            var tenant = mapper.Map<TenantDto>(await GetTenantInfoAsync(id));
+            var tenant = await GetTenantInfoAsync(id);
             tenant.ConnectionString = csSecurer.MakeSecure(tenant.ConnectionString);
 
             return tenant;
@@ -137,7 +133,7 @@ namespace fbognini.Infrastructure.Multitenancy
 
         private async Task<TTenant> GetTenantInfoAsync(string id) =>
             await tenantStore.TryGetAsync(id)
-                ?? throw new NotFoundException(String.Format("{0} {1} Not Found.", typeof(Tenant).Name, id));
+                ?? throw new NotFoundException(typeof(TTenant), id);
     }
 
 }

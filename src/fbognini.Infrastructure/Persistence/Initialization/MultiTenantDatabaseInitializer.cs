@@ -1,15 +1,10 @@
-﻿using fbognini.Application.Entities;
-using fbognini.Application.Multitenancy;
-using fbognini.Core.Interfaces;
+﻿using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Multitenancy;
 using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Stores;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;

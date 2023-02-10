@@ -1,9 +1,10 @@
 using fbognini.Application.Multitenancy;
 using fbognini.Core.Entities;
+using fbognini.Infrastructure.Multitenancy;
 using Finbuckle.MultiTenant;
 using System;
 
-namespace fbognini.Application.Entities
+namespace fbognini.Infrastructure.Entities
 {
     public class Tenant : ITenantInfo
     {

@@ -2,10 +2,9 @@
 using System.Threading.Tasks;
 using System.Threading;
 using fbognini.Core.Interfaces;
-using fbognini.Application.Entities;
 using Finbuckle.MultiTenant;
 using fbognini.Infrastructure.Utilities;
-using fbognini.Infrastructure.Models;
+using fbognini.Infrastructure.Entities;
 
 namespace fbognini.Infrastructure.Persistence
 {

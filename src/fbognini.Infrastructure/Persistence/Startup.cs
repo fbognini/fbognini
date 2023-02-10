@@ -1,22 +1,13 @@
-﻿using fbognini.Application.Entities;
-using fbognini.Application.Multitenancy;
-using fbognini.Application.Persistence;
+﻿using fbognini.Application.Persistence;
 using fbognini.Infrastructure.Common;
+using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Multitenancy;
-using fbognini.Infrastructure.Persistence;
 using fbognini.Infrastructure.Persistence.ConnectionString;
 using fbognini.Infrastructure.Persistence.Initialization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
-using Nager.PublicSuffix;
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Persistence
 {

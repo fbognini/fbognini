@@ -1,6 +1,5 @@
-﻿using fbognini.Application.Entities;
-using fbognini.Core.Entities;
-using fbognini.Infrastructure.Models;
+﻿using fbognini.Core.Entities;
+using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System;

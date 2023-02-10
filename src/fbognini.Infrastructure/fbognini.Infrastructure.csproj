@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageId>fbognini.Infrastructure</PackageId>
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
-    <Version>7.0.0</Version>
+    <Version>7.0.2</Version>
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -39,13 +39,12 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\fbognini.Application.Multitenancy\fbognini.Application.Multitenancy.csproj" />
     <ProjectReference Include="..\fbognini.Application\fbognini.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
-    <None Include="..\..\README.md" Pack="true" PackagePath=""/>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>

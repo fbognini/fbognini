@@ -1,6 +1,6 @@
 ﻿using fbognini.Application.DependencyInjection;
-using fbognini.Application.Entities;
 using fbognini.Application.Multitenancy;
+using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Persistence;
 using fbognini.Infrastructure.Persistence.Initialization;
 using Microsoft.AspNetCore.Builder;
@@ -35,7 +35,7 @@ namespace fbognini.Infrastructure.Multitenancy
 
             return services
                 .Configure<MultitenancySettings>(configuration.GetSection(nameof(MultitenancySettings)))
-                .AddScoped<ITenantService, TenantService<TTenant>>()
+                .AddScoped<ITenantService<TTenant>, TenantService<TTenant>>()
                 .AddTenantMiddleware()
                 .AddMultiTenant<TTenant>();
         }

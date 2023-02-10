@@ -1,4 +1,4 @@
-﻿using fbognini.Application.Entities;
+﻿using fbognini.Infrastructure.Entities;
 using System.Threading;
 using System.Threading.Tasks;
 
