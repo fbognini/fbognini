@@ -1,6 +1,4 @@
-﻿#if NET6_0 || NETSTANDARD2_1
-using EFCore.BulkExtensions;
-#endif
+﻿using EFCore.BulkExtensions;
 using fbognini.Core.Data;
 using fbognini.Core.Data.Pagination;
 using fbognini.Core.Entities;
@@ -23,13 +21,8 @@ namespace fbognini.Application.Persistence
 
         IEnumerable<T> CreateRange<T>(IEnumerable<T> entitys) where T : class, IEntity;
         Task<IEnumerable<T>> CreateRangeAsync<T>(IEnumerable<T> entitys, CancellationToken cancellationToken = default) where T : class, IEntity;
-
-#if NET6_0 || NETSTANDARD2_1
-        
         Task MassiveInsertAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-        
-#endif
-        
+       
         
         #endregion
 
@@ -108,11 +101,8 @@ namespace fbognini.Application.Persistence
 
         void Update<T>(T entity) where T : class, IEntity;
         
-#if NET6_0 || NETSTANDARD2_1        
-        
         Task MassiveUpdateAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
-#endif
         
         #endregion
 
@@ -121,7 +111,6 @@ namespace fbognini.Application.Persistence
         void Delete<T>(T entity) where T : class, IEntity;
         void DeleteRange<T>(SelectCriteria<T> criteria) where T : class, IEntity;
         void DeleteRange<T>(IEnumerable<T> entitys) where T : class, IEntity;
-
 
         #region DeleteById
 
@@ -140,19 +129,9 @@ namespace fbognini.Application.Persistence
 
         #endregion
 
-
-#if NET6_0 || NETSTANDARD2_1
-
         Task BatchDeleteAsync<T>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default) where T : class, IEntity;
 
-#endif
-
-
-#if NET6_0 || NETSTANDARD2_1
-
         Task MassiveDeleteAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-
-#endif
 
         #endregion
 
