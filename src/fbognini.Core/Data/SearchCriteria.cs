@@ -14,12 +14,17 @@ namespace fbognini.Core.Data
         public List<string> IncludeStrings { get; } = new List<string>();
     }
 
-    public abstract class SelectCriteria<TEntity> : SelectArgs<TEntity>, IHasFilter<TEntity>, IHasSearch<TEntity>, IHasSorting
+    public abstract class SelectCriteria<TEntity> : SelectArgs<TEntity>, IHasFilter<TEntity>, IHasSearch<TEntity>, IHasSorting, IHasOffset
     {
         public SelectCriteria()
         {
             Track = false;
         }
+
+        public int? PageNumber { get; protected set; }
+        public int? PageSize { get; protected set; }
+
+        internal int? Total { get; set; }
 
         public List<KeyValuePair<string, SortingDirection>> Sorting { get; } = new List<KeyValuePair<string, SortingDirection>>();
         public Search<TEntity> Search { get; } = new Search<TEntity>();
@@ -42,13 +47,22 @@ namespace fbognini.Core.Data
             Sorting.Add(new KeyValuePair<string, SortingDirection>(query.SortingCriteria, query.SortingDirection));
         }
 
+        public void LoadPaginationOffsetQuery(PaginationOffsetQuery query)
+        {
+            if (query == null)
+                throw new ArgumentNullException(nameof(query));
+
+            PageNumber = query.PageNumber;
+            PageSize = query.PageSize;
+        }
+
         public void SetOperator(LogicalOperator logicalOperator)
         {
             Operator = logicalOperator;
         }
     }
 
-    public abstract class SearchCriteria<TEntity> : OffsetCriteria<TEntity>, IHasSinceOffset
+    public abstract class SearchCriteria<TEntity> : SelectCriteria<TEntity>, IHasSinceOffset
         where TEntity : IAuditableEntity
     {
         public long? Since { get; private set; }
@@ -84,23 +98,5 @@ namespace fbognini.Core.Data
             PageSize = query.PageSize;
             Since = query.Since ?? 0;
         }
-    }
-
-    public abstract class OffsetCriteria<TEntity> : SelectCriteria<TEntity>, IHasOffset
-    {
-        public int? PageNumber { get; protected set; }
-        public int? PageSize { get; protected set; }
-
-        internal int? Total { get; set; }
-
-        public void LoadPaginationOffsetQuery(PaginationOffsetQuery query)
-        {
-            if (query == null)
-                throw new ArgumentNullException(nameof(query));
-
-            PageNumber = query.PageNumber;
-            PageSize = query.PageSize;
-        }
-
     }
 }

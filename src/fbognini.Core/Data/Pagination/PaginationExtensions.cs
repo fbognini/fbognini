@@ -6,7 +6,7 @@ namespace fbognini.Core.Data.Pagination
 {
     public static class PaginationExtensions
     {
-        public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, OffsetCriteria<T> offsetCriteria)
+        public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, SelectCriteria<T> offsetCriteria)
         {
             return list.QueryPagination(offsetCriteria, out var _);
         }
@@ -17,7 +17,7 @@ namespace fbognini.Core.Data.Pagination
             return list.QueryPagination(searchCriteria, out var _);
         }
 
-        public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, OffsetCriteria<T> offsetCriteria, out Pagination pagination)
+        public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, SelectCriteria<T> offsetCriteria, out Pagination pagination)
         {
             if (!offsetCriteria.PageSize.HasValue)
             {
