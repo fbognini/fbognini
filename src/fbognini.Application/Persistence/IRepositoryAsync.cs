@@ -86,10 +86,15 @@ namespace fbognini.Application.Persistence
         Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task<T> GetLastAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task<List<T>> GetAllAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+
+        Task<PaginationResponse<TMapped>> GetSearchResultsAsync<T, TMapped>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default)
+            where T : class, IEntity
+            where TMapped : class;
+
+
         Task<PaginationResponse<TMapped>> GetSearchResultsAsync<T, TMapped>(SearchCriteria<T> criteria, CancellationToken cancellationToken = default)
             where T : AuditableEntity
-            where TMapped : class
-            ;
+            where TMapped : class;
 
         Task<bool> AnyAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task<int> CountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;

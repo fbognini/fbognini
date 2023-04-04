@@ -200,6 +200,23 @@ namespace fbognini.Infrastructure.Repositorys
             return await GetQueryable(criteria).ToListAsync(cancellationToken);
         }
 
+        public async Task<PaginationResponse<TMapped>> GetSearchResultsAsync<T, TMapped>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default)
+            where T : class, IEntity
+            where TMapped : class
+        {
+            var query = GetQueryable(criteria)
+                .QueryPagination(criteria, out var pagination);
+
+            var list = await query.ToListAsync(cancellationToken);
+            var response = new PaginationResponse<TMapped>()
+            {
+                Pagination = pagination,
+                Items = mapper.Map<List<TMapped>>(list)
+            };
+
+            return response;
+        }
+
         public async Task<PaginationResponse<TMapped>> GetSearchResultsAsync<T, TMapped>(SearchCriteria<T> criteria, CancellationToken cancellationToken = default)
             where T : AuditableEntity
             where TMapped : class
@@ -211,7 +228,7 @@ namespace fbognini.Infrastructure.Repositorys
             var response = new PaginationResponse<TMapped>()
             {
                 Pagination = pagination,
-                Response = mapper.Map<List<TMapped>>(list)
+                Items = mapper.Map<List<TMapped>>(list)
             };
 
             return response;

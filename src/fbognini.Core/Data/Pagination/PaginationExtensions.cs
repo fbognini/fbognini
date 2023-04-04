@@ -17,9 +17,9 @@ namespace fbognini.Core.Data.Pagination
             return list.QueryPagination(searchCriteria, out var _);
         }
 
-        public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, SelectCriteria<T> offsetCriteria, out Pagination pagination)
+        public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, SelectCriteria<T> selectCriteria, out Pagination pagination)
         {
-            if (!offsetCriteria.PageSize.HasValue)
+            if (!selectCriteria.PageSize.HasValue)
             {
                 pagination = null;
                 return list;
@@ -29,21 +29,20 @@ namespace fbognini.Core.Data.Pagination
 
             int total = list.Count();
             pagination.Total = total;
-            offsetCriteria.Total = total;
+            selectCriteria.Total = total;
 
-            if (offsetCriteria.PageSize == -1)
+            if (selectCriteria.PageSize == -1)
             {
                 return list;
             }
 
-            pagination.PageSize = offsetCriteria.PageSize.Value;
-            if (offsetCriteria.PageNumber.HasValue)
+            pagination.PageSize = selectCriteria.PageSize.Value;
+            if (selectCriteria.PageNumber.HasValue)
             {
-
                 list = list
-                    .Skip((offsetCriteria.PageNumber.Value - 1) * offsetCriteria.PageSize.Value)
-                    .Take(offsetCriteria.PageSize.Value);
-                pagination.PageNumber = offsetCriteria.PageNumber.Value;
+                    .Skip((selectCriteria.PageNumber.Value - 1) * selectCriteria.PageSize.Value)
+                    .Take(selectCriteria.PageSize.Value);
+                pagination.PageNumber = selectCriteria.PageNumber.Value;
             }
 
             return list;
