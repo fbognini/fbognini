@@ -1,4 +1,4 @@
-﻿namespace fbognini.Application.Persistence
+﻿namespace fbognini.Infrastructure.Persistence.ConnectionString
 {
     public interface IConnectionStringSecurer
     {

@@ -14,7 +14,7 @@ namespace fbognini.Core.Data
         {
             get
             {
-                var allFields = Fields.Select(x => Utils.GetPropertyPath(x, true)).ToList();
+                var allFields = Fields.Select(x => PropertyExtensions.GetPropertyPath(x, true)).ToList();
                 allFields.AddRange(FieldStrings);
 
                 return allFields;

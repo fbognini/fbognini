@@ -255,7 +255,7 @@ namespace fbognini.Core.Data
 
             foreach (var field in searchCriteria.Search.Fields)
             {
-                var names = Utils.GetPropertyNames(field, true).ToArray();
+                var names = field.GetPropertyNames(true).ToArray();
                 LambdaExpression lambda = InnerSearch(typeof(T), names, searchCriteria.Search.Keyword);
                 predicate = predicate.Or((Expression<Func<T, bool>>)lambda);
             }

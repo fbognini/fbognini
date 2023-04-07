@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 namespace fbognini.Infrastructure.Persistence.Initialization
 {
 
-
     public interface ICustomSeeder<TContext>
         where TContext : DbContext
     {

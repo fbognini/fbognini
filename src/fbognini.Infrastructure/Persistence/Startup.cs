@@ -29,7 +29,7 @@ namespace fbognini.Infrastructure.Persistence
                     }
                 })
                 .AddTransient<ApplicationDatabaseInitializer<T>>()
-                .AddServices(typeof(ICustomSeeder<T>), ServiceLifetime.Transient)
+                .AddTransient<ICustomSeeder<T>>()
                 .AddTransient<ApplicationSeederRunner<T>>()
                 .AddTransient<IConnectionStringSecurer, ConnectionStringSecurer>()
                 .AddTransient<IConnectionStringValidator, ConnectionStringValidator>()

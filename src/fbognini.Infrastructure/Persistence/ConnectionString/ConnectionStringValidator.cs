@@ -9,7 +9,7 @@ using System.Data.SqlClient;
 namespace fbognini.Infrastructure.Persistence.ConnectionString
 {
 
-    public class ConnectionStringValidator : IConnectionStringValidator
+    internal class ConnectionStringValidator : IConnectionStringValidator
     {
         private readonly DatabaseSettings dbSettings;
         private readonly ILogger<ConnectionStringValidator> logger;

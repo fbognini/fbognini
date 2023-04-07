@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace fbognini.Infrastructure.Persistence.ConnectionString
 {
 
-    public class ConnectionStringSecurer : IConnectionStringSecurer
+    internal class ConnectionStringSecurer : IConnectionStringSecurer
     {
         private const string HiddenValueDefault = "*******";
         private readonly DatabaseSettings dbSettings;

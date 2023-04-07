@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace fbognini.Core.Utilities
+namespace fbognini.Core.Extensions
 {
     public static class StringExtensions
     {
@@ -68,7 +68,7 @@ namespace fbognini.Core.Utilities
             return sb.ToString();
         }
 
-        public static IEnumerable<string> Split(this string str, int chunkSize)
+        public static IEnumerable<string> SplitInChunk(this string str, int chunkSize)
         {
             return Enumerable.Range(0, str.Length / chunkSize)
                 .Select(i => str.Substring(i * chunkSize, chunkSize));

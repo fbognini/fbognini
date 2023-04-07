@@ -1,12 +1,14 @@
-﻿using fbognini.Core.Utilities;
+﻿using fbognini.Core.Data;
+using fbognini.Core.Utilities;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using PropertyExtensions = fbognini.Core.Utilities.PropertyExtensions;
 
-namespace fbognini.Core.Data
+namespace fbognini.Infrastructure.Utilities
 {
     public static class SearchCriteriaExtensionMethods
     {
@@ -33,7 +35,7 @@ namespace fbognini.Core.Data
 
             foreach (var view in includes.Includes)
             {
-                var path = Utils.GetPropertyPath(view, true); // it must works even with x.OrderLines.First().Product.Retailer.DisplayName
+                var path = view.GetPropertyPath(true); // it must works even with x.OrderLines.First().Product.Retailer.DisplayName
                 list = list.Include(path);
             }
 

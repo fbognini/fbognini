@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using fbognini.Infrastructure.Persistence.Initialization;
 using fbognini.Infrastructure.Entities;
+using fbognini.Infrastructure.Persistence.ConnectionString;
 
 namespace fbognini.Infrastructure.Multitenancy
 {

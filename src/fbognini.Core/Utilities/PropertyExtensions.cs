@@ -12,6 +12,88 @@ namespace fbognini.Core.Utilities
 {
     public static class PropertyExtensions
     {
+
+        /// <summary>
+        /// x => x.OrderLines.First().Product.RetailerId returns Product.RetailerId if ignoreMethods = false, otherwise OrderLines.Product.RetailerId
+        /// </summary>
+        public static string GetPropertyPath<T>(this Expression<Func<T, object>> expression, bool ignoreMethods = false)
+        {
+            return string.Join(".", GetPropertyNames(expression, ignoreMethods));
+        }
+
+        /// <summary>
+        /// x => x.OrderLines.First().Product.RetailerId returns Product.RetailerId if ignoreMethods = false, otherwise OrderLines.Product.RetailerId
+        /// </summary>
+        public static IEnumerable<string> GetPropertyNames<T>(this Expression<Func<T, object>> expression, bool ignoreMethods = false)
+        {
+            var body = expression.Body as MemberExpression;
+
+            if (body == null)
+            {
+                body = ((UnaryExpression)expression.Body).Operand as MemberExpression;
+            }
+
+            return GetPropertyNames(body, ignoreMethods);
+        }
+
+
+        public static IEnumerable<string> GetPropertyNames(MemberExpression body, bool ignoreMethods)
+        {
+            var names = new List<string>();
+
+            while (body != null)
+            {
+                names.Add(body.Member.Name);
+                var inner = body.Expression;
+                switch (inner.NodeType)
+                {
+                    case ExpressionType.MemberAccess:
+                        body = inner as MemberExpression;
+                        break;
+                    case ExpressionType.Call:
+                        if (ignoreMethods)
+                        {
+                            var call = inner as MethodCallExpression;
+                            body = call.Arguments[0] as MemberExpression;
+                        }
+                        else
+                        {
+                            body = null;
+                        }
+                        break;
+                    default:
+                        body = null;
+                        break;
+
+                }
+            }
+
+            names.Reverse();
+
+            return names;
+        }
+
+
+        public static string GetPropertyDisplayName<T>(this Expression<Func<T, object>> propertyExpression)
+        {
+            var memberInfo = GetPropertyInformation(propertyExpression.Body);
+            if (memberInfo == null)
+            {
+                throw new ArgumentException(
+                    "No property reference expression was found.",
+                    "propertyExpression");
+            }
+
+            var attr = memberInfo.GetAttribute<DisplayNameAttribute>(false);
+            if (attr == null)
+            {
+                return memberInfo.Name;
+            }
+
+            return attr.DisplayName;
+        }
+
+
         public static PropertyInfo GetNestedProperty(this Type type, string propertyName, BindingFlags bindingFlags = BindingFlags.Default)
         {
             return type.GetNestedProperty(propertyName.Split('.'), bindingFlags);
@@ -46,26 +128,7 @@ namespace fbognini.Core.Utilities
 
             return (T)attribute;
         }
-
-        public static string GetPropertyDisplayName<T>(Expression<Func<T, object>> propertyExpression)
-        {
-            var memberInfo = GetPropertyInformation(propertyExpression.Body);
-            if (memberInfo == null)
-            {
-                throw new ArgumentException(
-                    "No property reference expression was found.",
-                    "propertyExpression");
-            }
-
-            var attr = memberInfo.GetAttribute<DisplayNameAttribute>(false);
-            if (attr == null)
-            {
-                return memberInfo.Name;
-            }
-
-            return attr.DisplayName;
-        }
-
+        
         public static MemberInfo GetPropertyInformation(Expression propertyExpression)
         {
             Debug.Assert(propertyExpression != null, "propertyExpression != null");
@@ -128,6 +191,11 @@ namespace fbognini.Core.Utilities
             }
 
             return false;
+        }
+
+        public static object GetPropertyValue(this object src, string propName)
+        {
+            return src.GetType().GetProperty(propName).GetValue(src, null);
         }
 
         private static Type GetFullTypeDefinition(Type type)

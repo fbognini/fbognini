@@ -7,11 +7,6 @@ namespace fbognini.Infrastructure.Common
 
     public static class Startup
     {
-        //internal static IServiceCollection AddServices(this IServiceCollection services) =>
-        //    services
-        //        .AddServices(typeof(ITransientService), ServiceLifetime.Transient)
-        //        .AddServices(typeof(IScopedService), ServiceLifetime.Scoped);
-
         public static IServiceCollection AddServices(this IServiceCollection services, Type interfaceType, ServiceLifetime lifetime)
         {
             var interfaceTypes =

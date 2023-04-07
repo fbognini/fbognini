@@ -19,7 +19,7 @@ namespace fbognini.Core.Data
         {
             get
             {
-                var allViews = Includes.Select(x => Utils.GetPropertyPath(x, true)).ToList();
+                var allViews = Includes.Select(x => PropertyExtensions.GetPropertyPath(x, true)).ToList();
                 allViews.AddRange(IncludeStrings);
 
                 return allViews;

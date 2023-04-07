@@ -5,16 +5,6 @@ namespace fbognini.Core.Utilities
 {
     public static class MMath
     {
-        //public static DateTime? Max(DateTime? a, DateTime? b)
-        //{
-        //    if (!a.HasValue)
-        //        return b;
-
-        //    if (!b.HasValue)
-        //        return a;
-
-        //    return new DateTime(Math.Max(a.Value.Ticks, a.Value.Ticks));
-        //}
 
         public static DateTime? Max(params DateTime?[] array)
         {

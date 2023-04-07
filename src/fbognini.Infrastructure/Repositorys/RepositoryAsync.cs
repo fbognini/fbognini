@@ -1,7 +1,5 @@
-﻿using AutoMapper;
-using EFCore.BulkExtensions;
+﻿using EFCore.BulkExtensions;
 using fbognini.Application.Persistence;
-using fbognini.Application.Utilities;
 using fbognini.Core.Data;
 using fbognini.Core.Data.Pagination;
 using fbognini.Core.Entities;
@@ -9,7 +7,6 @@ using fbognini.Infrastructure.Utilities;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Snickler.EFCore;
 using System;
@@ -29,15 +26,13 @@ namespace fbognini.Infrastructure.Repositorys
         private bool disposed;
 
         private readonly TContext context;
-        private readonly IMapper mapper;
 
         protected readonly Hashtable repositorys = new();
         protected ILogger<RepositoryAsync<TContext>> logger;
 
-        public RepositoryAsync(TContext dbContext, IMapper mapper, ILogger<RepositoryAsync<TContext>> logger)
+        public RepositoryAsync(TContext context, ILogger<RepositoryAsync<TContext>> logger)
         {
-            context = dbContext;
-            this.mapper = mapper;
+            this.context = context;
             this.logger = logger;
         }
 
@@ -200,35 +195,33 @@ namespace fbognini.Infrastructure.Repositorys
             return await GetQueryable(criteria).ToListAsync(cancellationToken);
         }
 
-        public async Task<PaginationResponse<TMapped>> GetSearchResultsAsync<T, TMapped>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default)
+        public async Task<PaginationResponse<T>> GetSearchResultsAsync<T>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default)
             where T : class, IEntity
-            where TMapped : class
         {
             var query = GetQueryable(criteria)
                 .QueryPagination(criteria, out var pagination);
 
             var list = await query.ToListAsync(cancellationToken);
-            var response = new PaginationResponse<TMapped>()
+            var response = new PaginationResponse<T>()
             {
                 Pagination = pagination,
-                Items = mapper.Map<List<TMapped>>(list)
+                Items = list
             };
 
             return response;
         }
 
-        public async Task<PaginationResponse<TMapped>> GetSearchResultsAsync<T, TMapped>(SearchCriteria<T> criteria, CancellationToken cancellationToken = default)
+        public async Task<PaginationResponse<T>> GetSearchResultsAsync<T>(SearchCriteria<T> criteria, CancellationToken cancellationToken = default)
             where T : AuditableEntity
-            where TMapped : class
         {
             var query = GetQueryable(criteria)
                 .QueryPagination(criteria, out var pagination);
 
             var list = await query.ToListAsync(cancellationToken);
-            var response = new PaginationResponse<TMapped>()
+            var response = new PaginationResponse<T>()
             {
                 Pagination = pagination,
-                Items = mapper.Map<List<TMapped>>(list)
+                Items = list
             };
 
             return response;
