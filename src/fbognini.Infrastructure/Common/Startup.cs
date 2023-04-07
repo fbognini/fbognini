@@ -7,7 +7,7 @@ namespace fbognini.Infrastructure.Common
 
     public static class Startup
     {
-        public static IServiceCollection AddServices(this IServiceCollection services, Type interfaceType, ServiceLifetime lifetime)
+        public static IServiceCollection AddImplementations(this IServiceCollection services, Type interfaceType, ServiceLifetime lifetime)
         {
             var interfaceTypes =
                 AppDomain.CurrentDomain.GetAssemblies()
@@ -23,13 +23,13 @@ namespace fbognini.Infrastructure.Common
 
             foreach (var type in interfaceTypes)
             {
-                services.AddService(type.Service!, type.Implementation, lifetime);
+                services.AddImplementation(type.Service!, type.Implementation, lifetime);
             }
 
             return services;
         }
 
-        public static IServiceCollection AddService(this IServiceCollection services, Type serviceType, Type implementationType, ServiceLifetime lifetime) =>
+        public static IServiceCollection AddImplementation(this IServiceCollection services, Type serviceType, Type implementationType, ServiceLifetime lifetime) =>
             lifetime switch
             {
                 ServiceLifetime.Transient => services.AddTransient(serviceType, implementationType),

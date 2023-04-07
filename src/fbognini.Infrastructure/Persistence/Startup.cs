@@ -23,17 +23,13 @@ namespace fbognini.Infrastructure.Persistence
                 .Configure<DatabaseSettings>(configuration.GetSection(nameof(DatabaseSettings)))
                 .AddDbContext<T>(m => {
                     m.UseSqlServer(databaseSettings.ConnectionString);
-                    if (databaseSettings.UseNoTracking)
-                    {
-                        m.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-                    }
+                    m.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
                 })
                 .AddTransient<ApplicationDatabaseInitializer<T>>()
-                .AddTransient<ICustomSeeder<T>>()
+                .AddImplementations(typeof(ICustomSeeder<T>), ServiceLifetime.Transient)
                 .AddTransient<ApplicationSeederRunner<T>>()
                 .AddTransient<IConnectionStringSecurer, ConnectionStringSecurer>()
-                .AddTransient<IConnectionStringValidator, ConnectionStringValidator>()
-                ;
+                .AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
         }
 
         public static IServiceCollection AddPersistence<T, TTenantContext, TTenant>(this IServiceCollection services, IConfiguration configuration)
@@ -49,8 +45,7 @@ namespace fbognini.Infrastructure.Persistence
 
             return services
                 .AddBasePersistence<T, TTenant>(configuration)
-                .AddTransient<IMultiTenantDatabaseInitializer, EFCoreMultiTenantDatabaseInitializer<T, TTenantContext, TTenant>>()
-                ;
+                .AddTransient<IMultiTenantDatabaseInitializer, EFCoreMultiTenantDatabaseInitializer<T, TTenantContext, TTenant>>();
         }
 
         public static IServiceCollection AddPersistence<T, TTenant>(this IServiceCollection services, IConfiguration configuration)
@@ -62,8 +57,7 @@ namespace fbognini.Infrastructure.Persistence
             {
                 return services
                     .AddBasePersistence<T, TTenant>(configuration)
-                    .AddTransient<IMultiTenantDatabaseInitializer, InMemoryMultiTenantDatabaseInitializer<T, TTenant>>()
-                    ;   
+                    .AddTransient<IMultiTenantDatabaseInitializer, InMemoryMultiTenantDatabaseInitializer<T, TTenant>>();   
             }
 
             return services.AddPersistence<T, TenantDbContext<TTenant>, TTenant>(configuration);

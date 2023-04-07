@@ -7,6 +7,4 @@
         public const string MySql = "mysql";
         public const string Oracle = "oracle";
     }
-
-
 }

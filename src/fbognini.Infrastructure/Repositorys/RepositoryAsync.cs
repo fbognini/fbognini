@@ -119,9 +119,6 @@ namespace fbognini.Infrastructure.Repositorys
             where TPK : notnull
         {
             var query = context.Set<T>().IncludeViews(args);
-            if (args != null && !args.Track)
-                query = query.AsNoTracking();
-
             return await query.FirstOrDefaultAsync(x => x.Id.Equals(id), cancellationToken: cancellationToken);
         }
 
@@ -153,9 +150,6 @@ namespace fbognini.Infrastructure.Repositorys
             where T : class, IEntity, IHaveSlug
         {
             var query = context.Set<T>().IncludeViews(args);
-            if (args != null && !args.Track)
-                query = query.AsNoTracking();
-
             return await query.FirstOrDefaultAsync(x => x.Slug.Equals(slug), cancellationToken: cancellationToken);
         }
 
@@ -167,9 +161,6 @@ namespace fbognini.Infrastructure.Repositorys
             where T : class, IEntity, IHaveName
         {
             var query = context.Set<T>().IncludeViews(args);
-            if (args != null && !args.Track)
-                query = query.AsNoTracking();
-
             return await query.FirstOrDefaultAsync(x => x.Name.Equals(name), cancellationToken: cancellationToken);
         }
 
@@ -250,7 +241,6 @@ namespace fbognini.Infrastructure.Repositorys
             }
 
             var query = GetNotNullQueryable();
-            if (!criteria.Track) query = query.AsNoTracking();
 
             return query;
 

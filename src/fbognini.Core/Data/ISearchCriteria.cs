@@ -10,7 +10,6 @@ namespace fbognini.Core.Data
 {
     public interface IArgs
     {
-        bool Track { get; set; }
     }
 
     public interface IHasViews<TEntity>

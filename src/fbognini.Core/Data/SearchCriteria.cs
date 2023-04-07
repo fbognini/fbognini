@@ -9,7 +9,6 @@ namespace fbognini.Core.Data
 
     public class SelectArgs<TEntity> : IHasViews<TEntity>, IArgs
     {
-        public bool Track { get; set; } = true;
         public List<Expression<Func<TEntity, object>>> Includes { get; } = new List<Expression<Func<TEntity, object>>>();
         public List<string> IncludeStrings { get; } = new List<string>();
     }
@@ -18,7 +17,6 @@ namespace fbognini.Core.Data
     {
         public SelectCriteria()
         {
-            Track = false;
         }
 
         public int? PageNumber { get; protected set; }
