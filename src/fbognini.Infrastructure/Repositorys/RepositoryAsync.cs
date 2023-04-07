@@ -14,6 +14,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -122,9 +123,22 @@ namespace fbognini.Infrastructure.Repositorys
             return await query.FirstOrDefaultAsync(x => x.Id.Equals(id), cancellationToken: cancellationToken);
         }
 
+        public async Task<TResult> GetByIdAsync<T, TPK, TResult>(TPK id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull
+        {
+            var query = context.Set<T>().IncludeViews(args).Where(x => x.Id.Equals(id)).Take(1).Select(select);
+            return await query.FirstOrDefaultAsync(cancellationToken: cancellationToken);
+        }
+
         public async Task<T> GetByIdAsync<T>(int id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>
         {
             return await GetByIdAsync<T, int>(id, args, cancellationToken);
+        }
+
+        public async Task<TResult> GetByIdAsync<T, TResult>(int id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>
+        {
+            return await GetByIdAsync<T, int, TResult>(id, select, args, cancellationToken);
         }
 
         public async Task<T> GetByIdAsync<T>(long id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>
@@ -132,14 +146,28 @@ namespace fbognini.Infrastructure.Repositorys
             return await GetByIdAsync<T, long>(id, args, cancellationToken);
         }
 
+        public async Task<TResult> GetByIdAsync<T, TResult>(long id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>
+        {
+            return await GetByIdAsync<T, long, TResult>(id, select, args, cancellationToken);
+        }
+
         public async Task<T> GetByIdAsync<T>(string id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>
         {
             return await GetByIdAsync<T, string>(id, args, cancellationToken);
         }
 
+        public async Task<TResult> GetByIdAsync<T, TResult>(string id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>
+        {
+            return await GetByIdAsync<T, string, TResult>(id, select, args, cancellationToken);
+        }
+
         public async Task<T> GetByIdAsync<T>(Guid id, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>
         {
             return await GetByIdAsync<T, Guid>(id, args, cancellationToken);
+        }
+        public async Task<TResult> GetByIdAsync<T, TResult>(Guid id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>
+        {
+            return await GetByIdAsync<T, Guid, TResult>(id, select, args, cancellationToken);
         }
 
         #endregion
@@ -153,6 +181,13 @@ namespace fbognini.Infrastructure.Repositorys
             return await query.FirstOrDefaultAsync(x => x.Slug.Equals(slug), cancellationToken: cancellationToken);
         }
 
+        public async Task<TResult> GetBySlugAsync<T, TResult>(string slug, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IEntity, IHaveSlug
+        {
+            var query = context.Set<T>().IncludeViews(args).Where(x => x.Slug.Equals(slug)).Take(1).Select(select);
+            return await query.FirstOrDefaultAsync(cancellationToken: cancellationToken);
+        }
+
         #endregion
 
         #region GetByName
@@ -164,6 +199,13 @@ namespace fbognini.Infrastructure.Repositorys
             return await query.FirstOrDefaultAsync(x => x.Name.Equals(name), cancellationToken: cancellationToken);
         }
 
+        public async Task<TResult> GetByNameAsync<T, TResult>(string name, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IEntity, IHaveName
+        {
+            var query = context.Set<T>().IncludeViews(args).Where(x => x.Name.Equals(name)).Take(1).Select(select);
+            return  await query.FirstOrDefaultAsync(cancellationToken: cancellationToken);
+        }
+
         #endregion
 
         public async Task<T> GetSingleAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
@@ -171,9 +213,19 @@ namespace fbognini.Infrastructure.Repositorys
             return await GetQueryable(criteria).SingleOrDefaultAsync(cancellationToken);
         }
 
+        public async Task<TResult> GetSingleAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).Select(select).SingleOrDefaultAsync(cancellationToken);
+        }
+
         public async Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             return await GetQueryable(criteria).FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<TResult> GetFirstAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).Select(select).FirstOrDefaultAsync(cancellationToken);
         }
 
         public async Task<T> GetLastAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
@@ -181,9 +233,20 @@ namespace fbognini.Infrastructure.Repositorys
             return await GetQueryable(criteria).LastOrDefaultAsync(cancellationToken);
         }
 
+        public async Task<TResult> GetLastAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await GetQueryable(criteria).Select(select).LastOrDefaultAsync(cancellationToken);
+        }
+
         public async Task<List<T>> GetAllAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             return await GetQueryable(criteria).ToListAsync(cancellationToken);
+        }
+
+        public async Task<List<TResult>> GetAllAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default)
+            where T : class, IEntity
+        {
+            return await GetQueryable(criteria).Select(select).ToListAsync(cancellationToken);
         }
 
         public async Task<PaginationResponse<T>> GetSearchResultsAsync<T>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default)
@@ -240,18 +303,18 @@ namespace fbognini.Infrastructure.Repositorys
                 return context.Set<T>();
             }
 
-            var query = GetNotNullQueryable();
-
-            return query;
-
-            IQueryable<T> GetNotNullQueryable() 
-            {
-                return context.Set<T>()
+            var query = context.Set<T>()
                     .Where(criteria.ResolveFilter().Expand())
                     .AdvancedSearch(criteria)
                     .OrderByDynamic(criteria)
                     .IncludeViews(criteria);
+
+            if (criteria.QueryProcessing != null)
+            {
+                query = criteria.QueryProcessing(query);
             }
+
+            return query;
         }
 
 

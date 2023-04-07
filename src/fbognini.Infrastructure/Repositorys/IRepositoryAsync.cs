@@ -28,7 +28,7 @@ namespace fbognini.Application.Persistence
 
         #region Read
 
-        #region GetById
+        #region Exists
 
         Task<bool> ExistsAsync<T, TPK>(TPK id, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<TPK>
@@ -54,16 +54,32 @@ namespace fbognini.Application.Persistence
             where T : class, IHasIdentity<TPK>
             where TPK : notnull;
 
+        Task<TResult> GetByIdAsync<T, TPK, TResult>(TPK id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull;
+
         Task<T> GetByIdAsync<T>(int id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<int>;
+
+        Task<TResult> GetByIdAsync<T, TResult>(int id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default) 
             where T : class, IHasIdentity<int>;
 
         Task<T> GetByIdAsync<T>(long id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<long>;
 
+        Task<TResult> GetByIdAsync<T, TResult>(long id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<long>;
+
         Task<T> GetByIdAsync<T>(string id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<string>;
 
+        Task<TResult> GetByIdAsync<T, TResult>(string id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default) 
+            where T : class, IHasIdentity<string>;
+
         Task<T> GetByIdAsync<T>(Guid id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<Guid>;
+
+        Task<TResult> GetByIdAsync<T, TResult>(Guid id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<Guid>;
 
         #endregion
@@ -73,6 +89,9 @@ namespace fbognini.Application.Persistence
         Task<T> GetByNameAsync<T>(string slug, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IEntity, IHaveName;
 
+        Task<TResult> GetByNameAsync<T, TResult>(string name, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IEntity, IHaveName;
+
         #endregion
 
         #region GetBySlug
@@ -80,16 +99,22 @@ namespace fbognini.Application.Persistence
         Task<T> GetBySlugAsync<T>(string slug, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IEntity, IHaveSlug;
 
+        Task<TResult> GetBySlugAsync<T, TResult>(string slug, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+            where T : class, IEntity, IHaveSlug;
+
         #endregion
 
         Task<T> GetSingleAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<TResult> GetSingleAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<TResult> GetFirstAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task<T> GetLastAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<TResult> GetLastAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task<List<T>> GetAllAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<List<TResult>> GetAllAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
         Task<PaginationResponse<T>> GetSearchResultsAsync<T>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default)
             where T : class, IEntity;
-
 
         Task<PaginationResponse<T>> GetSearchResultsAsync<T>(SearchCriteria<T> criteria, CancellationToken cancellationToken = default)
             where T : AuditableEntity;
