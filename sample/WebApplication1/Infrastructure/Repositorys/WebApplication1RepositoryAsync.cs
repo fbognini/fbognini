@@ -12,8 +12,8 @@ namespace WebApplication1.Infrastructure.Repositorys
 {
     public class WebApplication1RepositoryAsync : RepositoryAsync<WebApplication1DbContext>, IWebApplication1RepositoryAsync
     {
-        public WebApplication1RepositoryAsync(WebApplication1DbContext context, IMapper mapper, ILogger<WebApplication1RepositoryAsync> logger)
-            : base(context, mapper, logger)
+        public WebApplication1RepositoryAsync(WebApplication1DbContext context, ILogger<WebApplication1RepositoryAsync> logger)
+            : base(context, logger)
         {
 
         }

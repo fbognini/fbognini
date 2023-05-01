@@ -11,10 +11,16 @@ namespace WebApplication1.Application.SearchCriterias
 {
     public class AuthorSearchCriteria: SearchCriteria<Author>
     {
+        public string? LastName { get; set; }
 
         public override List<Expression<Func<Author, bool>>> ToWhereClause()
         {
             var list = new List<Expression<Func<Author, bool>>>();
+
+            if (!string.IsNullOrWhiteSpace(LastName))
+            {
+                list.Add(x => x.LastName.Contains(LastName));
+            }
 
             return list;
         }

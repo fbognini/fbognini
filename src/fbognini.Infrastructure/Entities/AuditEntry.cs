@@ -23,6 +23,7 @@ namespace fbognini.Infrastructure.Entities
 
         public EntityEntry Entry { get; }
         public string UserId { get; set; }
+        public DateTime DateTime { get; set; }
         public string TableName { get; set; }
         public Dictionary<string, object> KeyValues { get; } = new Dictionary<string, object>();
         public Dictionary<string, object> OldValues { get; } = new Dictionary<string, object>();
@@ -31,6 +32,7 @@ namespace fbognini.Infrastructure.Entities
         public AuditType AuditType { get; set; }
         public List<string> ChangedColumns { get; } = new List<string>();
         public bool HasTemporaryProperties => TemporaryProperties.Any();
+        public bool HasProperties => OldValues.Any() || NewValues.Any();
 
         public Audit ToAudit()
         {
@@ -39,7 +41,7 @@ namespace fbognini.Infrastructure.Entities
                 UserId = UserId,
                 Type = AuditType.ToString(),
                 TableName = TableName,
-                DateTime = DateTime.UtcNow,
+                DateTime = DateTime,
                 PrimaryKey = JsonSerializer.Serialize(KeyValues),
                 OldValues = OldValues.Count == 0 ? null : JsonSerializer.Serialize(OldValues),
                 NewValues = NewValues.Count == 0 ? null : JsonSerializer.Serialize(NewValues),

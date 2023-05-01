@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using fbognini.Infrastructure.Persistence;
 using Finbuckle.MultiTenant;
-using fbognini.Infrastructure.Utilities;
+using fbognini.Infrastructure.Extensions;
 using fbognini.Infrastructure.Entities;
 
 namespace fbognini.Infrastructure.Identity.Persistence
@@ -37,6 +37,7 @@ namespace fbognini.Infrastructure.Identity.Persistence
 
         public DbSet<Audit> AuditTrails { get; set; }
         public string UserId => currentUserService.UserId;
+        public DateTime Timestamp => DateTime.Now;
         public string Tenant => currentTenant.Name;
         public string ConnectionString => currentTenant?.ConnectionString;
 
@@ -54,9 +55,14 @@ namespace fbognini.Infrastructure.Identity.Persistence
             builder.ApplyIdentityConfiguration<TUser, TRole, TKey>(authschema);
         }
 
-        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
-            return await this.AuditableSaveChangesAsync(() => base.SaveChangesAsync(cancellationToken), cancellationToken);
+            return this.AuditableSaveChangesAsync(cancellationToken);
+        }
+
+        public Task<int> BaseSaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            return base.SaveChangesAsync(cancellationToken);
         }
     }
 }

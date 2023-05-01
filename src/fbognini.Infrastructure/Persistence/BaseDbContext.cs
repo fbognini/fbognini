@@ -5,6 +5,7 @@ using fbognini.Core.Interfaces;
 using Finbuckle.MultiTenant;
 using fbognini.Infrastructure.Utilities;
 using fbognini.Infrastructure.Entities;
+using System;
 
 namespace fbognini.Infrastructure.Persistence
 {
@@ -26,6 +27,7 @@ namespace fbognini.Infrastructure.Persistence
 
         public DbSet<Audit> AuditTrails { get; set; }
         public string UserId => currentUserService.UserId;
+        public DateTime Timestamp => DateTime.Now;
         public string Tenant => currentTenant.Id;
         public string ConnectionString => currentTenant?.ConnectionString;
 
@@ -42,9 +44,14 @@ namespace fbognini.Infrastructure.Persistence
             builder.OnCustomModelCreating(this);
         }
 
-        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
-            return await this.AuditableSaveChangesAsync(() => base.SaveChangesAsync(cancellationToken), cancellationToken);
+            return this.AuditableSaveChangesAsync(cancellationToken);
+        }
+
+        public Task<int> BaseSaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            return base.SaveChangesAsync(cancellationToken);
         }
     }
 }

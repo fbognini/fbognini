@@ -1,3 +1,5 @@
+using Bogus;
+using EFCore.BulkExtensions;
 using fbognini.Core.Data;
 using fbognini.Infrastructure.Multitenancy;
 using Microsoft.AspNetCore.Http.Json;
@@ -76,6 +78,125 @@ app.MapPost("/authors", async (Author author, IWebApplication1RepositoryAsync re
     return author;
 })
 .WithName("CreateAuthor")
+.WithOpenApi();
+
+app.MapPut("/authors/{id}", async (int id, Author author, IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+{
+    var entity = await repository.GetByIdAsync<Author>(id, cancellationToken: cancellationToken);
+    entity.FirstName = author.FirstName;
+    entity.LastName = author.LastName;
+
+    repository.Update(entity);
+    await repository.SaveAsync(cancellationToken);
+    return entity;
+})
+.WithName("UpdateAuthor")
+.WithOpenApi();
+
+app.MapDelete("/authors/{id}", async (int id, IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+{
+    var entity = await repository.GetByIdAsync<Author>(id, cancellationToken: cancellationToken);
+    repository.Delete(entity);
+    await repository.SaveAsync(cancellationToken);
+    return entity;
+})
+.WithName("DeleteAuthor")
+.WithOpenApi();
+
+app.MapPost("/authors/bulk", async (IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+{
+    var testUsers = new Faker<Author>()
+        .RuleFor(u => u.FirstName, (f, u) => f.Name.FirstName())
+        .RuleFor(u => u.LastName, (f, u) => f.Name.LastName());
+
+    var authors = testUsers.Generate(10);
+
+    await repository.MassiveInsertAsync(authors, cancellationToken: cancellationToken);
+})
+.WithName("BulkAuthor")
+.WithOpenApi();
+
+app.MapPost("/authors/bulk-update", async (IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+{
+    var testUsers = new Faker<Author>()
+        .RuleFor(u => u.FirstName, (f, u) => f.Name.FirstName())
+        .RuleFor(u => u.LastName, (f, u) => f.Name.LastName());
+
+    var authors = testUsers.Generate(10);
+
+    var config = new BulkConfig()
+    {
+        SetOutputIdentity = true,
+    };
+    await repository.MassiveInsertAsync(authors, config, cancellationToken: cancellationToken);
+
+    foreach (var author in authors)
+    {
+        author.LastName = "Modificato";
+    }
+
+    await repository.MassiveUpdateAsync(authors, cancellationToken: cancellationToken);
+})
+.WithName("BulkAuthorUpdate")
+.WithOpenApi();
+
+
+app.MapPost("/authors/batch-delete", async (string lastname, IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+{
+    var criteria = new AuthorSearchCriteria()
+    {
+        LastName = lastname
+    };
+
+    await repository.BatchDeleteAsync(criteria, cancellationToken: cancellationToken);
+})
+.WithName("BatchAuthorDelete")
+.WithOpenApi();
+
+app.MapPost("/authors/bulk-delete", async (string lastname, IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+{
+    var criteria = new AuthorSearchCriteria()
+    {
+        LastName = lastname
+    };
+
+    var authors = await repository.GetAllAsync<Author>(criteria);
+
+    await repository.MassiveDeleteAsync(authors, cancellationToken: cancellationToken);
+})
+.WithName("BulkAuthorDelete")
+.WithOpenApi();
+
+
+
+app.MapPost("/authors/bulk-upsert", async (IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+{
+    var testUsers = new Faker<Author>()
+        .RuleFor(u => u.FirstName, (f, u) => f.Name.FirstName())
+        .RuleFor(u => u.LastName, (f, u) => f.Name.LastName());
+
+    var authors = testUsers.Generate(10);
+
+    var config = new BulkConfig()
+    {
+        SetOutputIdentity = true,
+    };
+    await repository.MassiveInsertAsync(authors, config, cancellationToken: cancellationToken);
+
+    foreach (var author in authors)
+    {
+        author.LastName = "Upsert";
+    }
+
+    var newAuthors = testUsers.Generate(10);
+
+    var allAuthors = new List<Author>();
+    allAuthors.AddRange(authors);
+    allAuthors.AddRange(newAuthors);
+
+    await repository.MassiveUpsertAsync(allAuthors, cancellationToken: cancellationToken);
+})
+.WithName("BulkAuthorUpsert")
 .WithOpenApi();
 
 app.Run();

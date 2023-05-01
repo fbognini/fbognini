@@ -6,9 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using PropertyExtensions = fbognini.Core.Utilities.PropertyExtensions;
 
-namespace fbognini.Infrastructure.Utilities
+namespace fbognini.Infrastructure.Extensions
 {
     public static class SearchCriteriaExtensionMethods
     {

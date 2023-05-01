@@ -3,7 +3,8 @@
   <PropertyGroup>
     <PackageId>fbognini.Infrastructure.Identity</PackageId>
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
-    <Version>8.0.0</Version>
+    <Version>8.1.0</Version>
+
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -17,11 +18,11 @@
   </ItemGroup>
   
   <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
-    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="7.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="7.0.5" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
-    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.13" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.16" />
   </ItemGroup>
   
   <ItemGroup>

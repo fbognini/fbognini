@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace fbognini.Infrastructure.Utilities
+namespace fbognini.Infrastructure.Extensions
 {
     public static class MigrationBuilderExtensions
     {

@@ -4,14 +4,14 @@ using System.Text.Json;
 
 namespace fbognini.Infrastructure.Persistence.ValueConverters
 {
-    public class DictionaryConverter : ValueConverter<Dictionary<string, object>, string>
+    public class SerializedJsonConverter<T> : ValueConverter<T, string>
     {
         private static readonly JsonSerializerOptions options = new();
 
-        public DictionaryConverter()
+        public SerializedJsonConverter()
             : base(
                 v => JsonSerializer.Serialize(v, options),
-                v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, options))
+                v => JsonSerializer.Deserialize<T>(v, options)!)
         {
         }
     }

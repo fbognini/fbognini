@@ -22,8 +22,10 @@ namespace fbognini.Application.Persistence
         IEnumerable<T> CreateRange<T>(IEnumerable<T> entitys) where T : class, IEntity;
         Task<IEnumerable<T>> CreateRangeAsync<T>(IEnumerable<T> entitys, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task MassiveInsertAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-       
         
+        Task MassiveUpsertAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task MassiveMergeAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+
         #endregion
 
         #region Read
@@ -31,22 +33,22 @@ namespace fbognini.Application.Persistence
         #region Exists
 
         Task<bool> ExistsAsync<T, TPK>(TPK id, CancellationToken cancellationToken = default)
-            where T : class, IHasIdentity<TPK>
-            where TPK : notnull;
+        where T : class, IHasIdentity<TPK>
+        where TPK : notnull;
 
-        Task<bool> ExistsAsync<T>(int id, CancellationToken cancellationToken = default)
-            where T : class, IHasIdentity<int>;
+    Task<bool> ExistsAsync<T>(int id, CancellationToken cancellationToken = default)
+        where T : class, IHasIdentity<int>;
 
-        Task<bool> ExistsAsync<T>(long id, CancellationToken cancellationToken = default)
-            where T : class, IHasIdentity<long>;
+    Task<bool> ExistsAsync<T>(long id, CancellationToken cancellationToken = default)
+        where T : class, IHasIdentity<long>;
 
-        Task<bool> ExistsAsync<T>(string id, CancellationToken cancellationToken = default)
-            where T : class, IHasIdentity<string>;
+    Task<bool> ExistsAsync<T>(string id, CancellationToken cancellationToken = default)
+        where T : class, IHasIdentity<string>;
 
-        Task<bool> ExistsAsync<T>(Guid id, CancellationToken cancellationToken = default)
-            where T : class, IHasIdentity<Guid>;
+    Task<bool> ExistsAsync<T>(Guid id, CancellationToken cancellationToken = default)
+        where T : class, IHasIdentity<Guid>;
 
-        #endregion
+    #endregion
 
         #region GetById
 

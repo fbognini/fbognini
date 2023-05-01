@@ -4,7 +4,8 @@ using fbognini.Core.Data;
 using fbognini.Core.Data.Pagination;
 using fbognini.Core.Entities;
 using fbognini.Core.Exceptions;
-using fbognini.Infrastructure.Utilities;
+using fbognini.Infrastructure.Persistence;
+using fbognini.Infrastructure.Extensions;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -23,7 +24,7 @@ namespace fbognini.Infrastructure.Repositorys
 {
 
     public class RepositoryAsync<TContext> : IRepositoryAsync
-        where TContext : DbContext
+        where TContext : DbContext, IBaseDbContext
     {
         private bool disposed;
 
@@ -62,20 +63,58 @@ namespace fbognini.Infrastructure.Repositorys
             await context.Set<T>().AddRangeAsync(entitys, cancellationToken);
             return entitys;
         }
+
         public async Task MassiveInsertAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            if (entities.First() is AuditableEntity)
+            if (entities.First() is IAuditableEntity)
             {
                 foreach (var entry in entities.Cast<AuditableEntity>())
                 {
-                    entry.CreatedBy = null;
-                    entry.Created = DateTime.Now;
-                    entry.LastUpdatedBy = null;
-                    entry.LastUpdated = DateTime.Now;
+                    entry.FillAuditablePropertysAdded(context);
                 }
             }
 
             await context.BulkInsertAsync(entities, bulkConfig, cancellationToken: cancellationToken);
+        }
+
+        public async Task MassiveUpsertAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            if (entities.First() is IAuditableEntity)
+            {
+                foreach (var entry in entities.Cast<AuditableEntity>())
+                {
+                    entry.FillAuditablePropertysAdded(context);
+                    entry.FillAuditablePropertysModified(context);
+                }
+            }
+
+            bulkConfig ??= new BulkConfig();
+
+            bulkConfig.PropertiesToExcludeOnUpdate ??= new List<string>();
+            bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.CreatedBy));
+            bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.Created));
+
+            await context.BulkInsertOrUpdateAsync(entities, bulkConfig, cancellationToken: cancellationToken);
+        }
+
+        public async Task MassiveMergeAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            if (entities.First() is IAuditableEntity)
+            {
+                foreach (var entry in entities.Cast<AuditableEntity>())
+                {
+                    entry.FillAuditablePropertysAdded(context);
+                    entry.FillAuditablePropertysModified(context);
+                }
+            }
+
+            bulkConfig ??= new BulkConfig();
+
+            bulkConfig.PropertiesToExcludeOnUpdate ??= new List<string>();
+            bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.CreatedBy));
+            bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.Created));
+
+            await context.BulkInsertOrUpdateOrDeleteAsync(entities, bulkConfig, cancellationToken: cancellationToken);
         }
 
         #endregion
@@ -327,17 +366,12 @@ namespace fbognini.Infrastructure.Repositorys
         }
 
         public async Task MassiveUpdateAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
-
         {
-            if (entities.First() is AuditableEntity)
+            if (entities.First() is IAuditableEntity)
             {
-
                 foreach (var entry in entities.Cast<AuditableEntity>())
                 {
-                    entry.LastModifiedBy = null;
-                    entry.LastModified = DateTime.Now;
-                    entry.LastUpdatedBy = null;
-                    entry.LastUpdated = DateTime.Now;
+                    entry.FillAuditablePropertysModified(context);
                 }
             }
 
@@ -560,8 +594,10 @@ namespace fbognini.Infrastructure.Repositorys
         {
             if (args == null) return result;
 
-            if (args.ThrowExceptionIfNull)
+            if (args.ThrowExceptionIfNull && result == null)
+            {
                 throw new NotFoundException(typeof(T), key);
+            }
 
             return result;
         }

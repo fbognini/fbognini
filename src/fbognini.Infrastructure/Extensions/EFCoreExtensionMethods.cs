@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace fbognini.Infrastructure.Utilities
+namespace fbognini.Infrastructure.Extensions
 {
     public static class EFCoreExtensionMethods
     {
