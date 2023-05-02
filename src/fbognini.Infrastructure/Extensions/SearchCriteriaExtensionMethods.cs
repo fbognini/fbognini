@@ -13,66 +13,17 @@ namespace fbognini.Infrastructure.Extensions
 {
     public static class SearchCriteriaExtensionMethods
     {
-        public static IQueryable<T> QuerySelect<T>(this IQueryable<T> query, SelectCriteria<T> criteria = null)
-            where T : class
-        {
-            if (criteria == null)
-            {
-                return query;
-            }
-
-            query = query
-                    .Where(criteria.ResolveFilter().Expand())
-                    .AdvancedSearch(criteria)
-                    .OrderByDynamic(criteria)
-                    .IncludeViews(criteria);
-
-            if (criteria.QueryProcessing != null)
-            {
-                query = criteria.QueryProcessing(query);
-            }
-
-            return query;
-        }
-
-        public static IQueryable<T> QuerySearch<T>(this IQueryable<T> query, SelectCriteria<T> criteria, out Pagination pagination)
-            where T : class
-        {
-            query = query
-                    .QueryPagination(criteria, out pagination);
-
-            return query;
-        }
-
-        public static IQueryable<T> QuerySearch<T>(this IQueryable<T> query, SearchCriteria<T> criteria, out Pagination pagination)
-            where T : class, IAuditableEntity
-        {
-            query = query
-                    .QueryPagination(criteria, out pagination);
-
-            return query;
-        }
-
-        public static IQueryable<T> IncludeViews<T, TViews>(this IQueryable<T> list, IList<TViews> views)
-            where T : class
-            where TViews : struct, IConvertible
-        {
-            if (views == null)
-                return list;
-
-            foreach (var view in views)
-            {
-                list = list.Include(view.ToString().Replace('_', '.'));
-            }
-
-            return list;
-        }
+        public static IQueryable<T> QueryArgs<T>(this IQueryable<T> query, SelectArgs<T> criteria = null) 
+            where T : class 
+            => query.IncludeViews(criteria);
 
         public static IQueryable<T> IncludeViews<T>(this IQueryable<T> list, IHasViews<T> includes)
             where T : class
         {
             if (includes == null)
+            {
                 return list;
+            }
 
             foreach (var view in includes.Includes)
             {
@@ -92,7 +43,9 @@ namespace fbognini.Infrastructure.Extensions
             where T : class
         {
             if (includes == null)
+            {
                 return list;
+            }
 
             foreach (var view in includes)
             {

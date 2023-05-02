@@ -1,4 +1,5 @@
 ﻿
+using fbognini.Core.Data.Pagination;
 using fbognini.Core.Entities;
 using fbognini.Core.Utilities;
 using LinqKit;
@@ -16,6 +17,35 @@ namespace fbognini.Core.Data
 {
     public static class SearchCriteriaExtensionMethods
     {
+        public static IQueryable<T> QuerySelect<T>(this IQueryable<T> query, SelectCriteria<T> criteria = null)
+            where T : class
+        {
+            if (criteria == null)
+            {
+                return query;
+            }
+
+            query = query
+                    .Where(criteria.ResolveFilter().Expand())
+                    .AdvancedSearch(criteria)
+                    .OrderByDynamic(criteria);
+
+            if (criteria.QueryProcessing != null)
+            {
+                query = criteria.QueryProcessing(query);
+            }
+
+            return query;
+        }
+
+        public static IQueryable<T> QuerySearch<T>(this IQueryable<T> query, SelectCriteria<T> criteria, out PaginationResult pagination)
+            where T : class 
+            => query.QueryPagination(criteria, out pagination);
+
+        public static IQueryable<T> QuerySearch<T>(this IQueryable<T> query, SearchCriteria<T> criteria, out PaginationResult pagination)
+            where T : class, IAuditableEntity 
+            => query.QueryPagination(criteria, out pagination);
+
         public static IOrderedQueryable<TEntity> OrderBy<TEntity>(
             this IQueryable<TEntity> source
             , string property

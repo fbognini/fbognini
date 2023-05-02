@@ -7,10 +7,10 @@ namespace fbognini.Core.Data.Pagination
     {
         public PaginationResponse()
         {
-            Pagination = new Pagination();
+            Pagination = new PaginationResult();
         }
 
         public List<TClass> Items { get; set; }
-        public Pagination Pagination { get; set; }
+        public PaginationResult Pagination { get; set; }
     }
 }

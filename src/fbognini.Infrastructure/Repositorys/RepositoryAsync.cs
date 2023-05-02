@@ -166,7 +166,7 @@ namespace fbognini.Infrastructure.Repositorys
             where T : class, IHasIdentity<TPK>
             where TPK : notnull
         {
-            var query = context.Set<T>().IncludeViews(args).Where(x => x.Id.Equals(id)).Take(1).Select(select);
+            var query = context.Set<T>().QueryArgs(args).Where(x => x.Id.Equals(id)).Take(1).Select(select);
             return PostProcessing(await query.FirstOrDefaultAsync(cancellationToken: cancellationToken), id, args);
         }
 
@@ -223,7 +223,7 @@ namespace fbognini.Infrastructure.Repositorys
         public async Task<TResult> GetBySlugAsync<T, TResult>(string slug, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IEntity, IHaveSlug
         {
-            var query = context.Set<T>().IncludeViews(args).Where(x => x.Slug.Equals(slug)).Take(1).Select(select);
+            var query = context.Set<T>().QueryArgs(args).Where(x => x.Slug.Equals(slug)).Take(1).Select(select);
             return PostProcessing(await query.FirstOrDefaultAsync(cancellationToken: cancellationToken), slug, args);
         }
 
@@ -240,7 +240,7 @@ namespace fbognini.Infrastructure.Repositorys
         public async Task<TResult> GetByNameAsync<T, TResult>(string name, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IEntity, IHaveName
         {
-            var query = context.Set<T>().IncludeViews(args).Where(x => x.Name.Equals(name)).Take(1).Select(select);
+            var query = context.Set<T>().QueryArgs(args).Where(x => x.Name.Equals(name)).Take(1).Select(select);
             return PostProcessing(await query.FirstOrDefaultAsync(cancellationToken: cancellationToken), name, args);
         }
 
@@ -253,7 +253,7 @@ namespace fbognini.Infrastructure.Repositorys
 
         public async Task<TResult> GetSingleAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            return PostProcessing(await QuerySelect(criteria).Select(select).SingleOrDefaultAsync(cancellationToken), criteria, criteria);
+            return PostProcessing(await GetQueryable(criteria).Select(select).SingleOrDefaultAsync(cancellationToken), criteria, criteria);
         }
 
         public async Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
@@ -263,7 +263,7 @@ namespace fbognini.Infrastructure.Repositorys
 
         public async Task<TResult> GetFirstAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            return PostProcessing(await QuerySelect(criteria).Select(select).FirstOrDefaultAsync(cancellationToken), criteria, criteria);
+            return PostProcessing(await GetQueryable(criteria).Select(select).FirstOrDefaultAsync(cancellationToken), criteria, criteria);
         }
 
         public async Task<T> GetLastAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
@@ -273,24 +273,24 @@ namespace fbognini.Infrastructure.Repositorys
 
         public async Task<TResult> GetLastAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            return PostProcessing(await QuerySelect(criteria).Select(select).LastOrDefaultAsync(cancellationToken), criteria, criteria);
+            return PostProcessing(await GetQueryable(criteria).Select(select).LastOrDefaultAsync(cancellationToken), criteria, criteria);
         }
 
         public async Task<List<T>> GetAllAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            return await QuerySelect(criteria).ToListAsync(cancellationToken);
+            return await GetQueryable(criteria).ToListAsync(cancellationToken);
         }
 
         public async Task<List<TResult>> GetAllAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default)
             where T : class, IEntity
         {
-            return await QuerySelect(criteria).Select(select).ToListAsync(cancellationToken);
+            return await GetQueryable(criteria).Select(select).ToListAsync(cancellationToken);
         }
 
         public async Task<PaginationResponse<T>> GetSearchResultsAsync<T>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default)
             where T : class, IEntity
         {
-            var query = QuerySelect(criteria)
+            var query = GetQueryable(criteria)
                 .QuerySearch(criteria, out var pagination);
 
             var list = await query.ToListAsync(cancellationToken);
@@ -306,7 +306,7 @@ namespace fbognini.Infrastructure.Repositorys
         public async Task<PaginationResponse<T>> GetSearchResultsAsync<T>(SearchCriteria<T> criteria, CancellationToken cancellationToken = default)
             where T : AuditableEntity
         {
-            var query = QuerySelect(criteria)
+            var query = GetQueryable(criteria)
                 .QuerySearch(criteria, out var pagination);
 
             var list = await query.ToListAsync(cancellationToken);
@@ -321,20 +321,20 @@ namespace fbognini.Infrastructure.Repositorys
 
         public async Task<bool> AnyAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            return await QuerySelect(criteria).AnyAsync(cancellationToken);
+            return await GetQueryable(criteria).AnyAsync(cancellationToken);
         }
 
         public async Task<int> CountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            return await QuerySelect(criteria).CountAsync(cancellationToken);
+            return await GetQueryable(criteria).CountAsync(cancellationToken);
         }
 
         public async Task<long> LongCountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            return await QuerySelect(criteria).LongCountAsync(cancellationToken);
+            return await GetQueryable(criteria).LongCountAsync(cancellationToken);
         }
 
-        private IQueryable<T> QuerySelect<T>(SelectCriteria<T> criteria = null) where T : class, IEntity => context.Set<T>().QuerySelect(criteria);
+        private IQueryable<T> GetQueryable<T>(SelectCriteria<T> criteria = null) where T : class, IEntity => context.Set<T>().QuerySelect(criteria).QueryArgs(criteria);
 
 
         #endregion
@@ -371,7 +371,7 @@ namespace fbognini.Infrastructure.Repositorys
 
         public void DeleteRange<T>(SelectCriteria<T> criteria) where T : class, IEntity
         {
-            var entities = QuerySelect(criteria);
+            var entities = GetQueryable(criteria);
             DeleteRange(entities);
         }
 
@@ -382,7 +382,7 @@ namespace fbognini.Infrastructure.Repositorys
 
         public async Task BatchDeleteAsync<T>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            var entities = QuerySelect(criteria);
+            var entities = GetQueryable(criteria);
             await entities.BatchDeleteAsync(cancellationToken);
         }
 
