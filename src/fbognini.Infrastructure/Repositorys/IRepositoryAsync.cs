@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -180,7 +181,12 @@ namespace fbognini.Application.Persistence
 
         void Rollback();
         Task RollbackAsync(CancellationToken cancellationToken);
-
+        void Reload(IEntity entity);
+        Task ReloadAsync(IEntity entity, CancellationToken cancellationToken);
+        void Attach<T>(T entity)
+            where T : class, IEntity;
+        void AttachRange<T>(params T[] entity)
+            where T : class, IEntity;
         void Detach(IEntity entity);
         void DetachAll();
 

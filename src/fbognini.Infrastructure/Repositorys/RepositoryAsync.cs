@@ -496,7 +496,7 @@ namespace fbognini.Infrastructure.Repositorys
 
         public async Task RollbackAsync(CancellationToken cancellationToken)
         {
-            context.ChangeTracker.Entries().ToList().ForEach(x => x.Reload());
+            context.ChangeTracker.Entries().ToList().ForEach(async x => await x.ReloadAsync(cancellationToken));
 
             await Transaction.RollbackAsync(cancellationToken);
         }
@@ -505,9 +505,23 @@ namespace fbognini.Infrastructure.Repositorys
         {
             context.Entry(entity).Reload();
         }
+
         public async Task ReloadAsync(IEntity entity, CancellationToken cancellationToken)
         {
             await context.Entry(entity).ReloadAsync(cancellationToken);
+        }
+
+
+        public void Attach<T>(T entity)
+            where T : class, IEntity
+        {
+            context.Set<T>().Attach(entity);
+        }
+
+        public void AttachRange<T>(params T[] entity)
+            where T : class, IEntity
+        {
+            context.Set<T>().AttachRange(entity);
         }
 
         public void Detach(IEntity entity)
@@ -519,6 +533,7 @@ namespace fbognini.Infrastructure.Repositorys
         {
             context.ChangeTracker.Clear();
         }
+
 
         #endregion
 
