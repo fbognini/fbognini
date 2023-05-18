@@ -1,7 +1,6 @@
 ﻿using fbognini.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 

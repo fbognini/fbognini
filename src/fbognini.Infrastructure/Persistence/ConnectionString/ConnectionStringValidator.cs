@@ -1,5 +1,4 @@
-﻿using fbognini.Application.Persistence;
-using fbognini.Infrastructure.Common;
+﻿using fbognini.Infrastructure.Common;
 using fbognini.Infrastructure.Multitenancy;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

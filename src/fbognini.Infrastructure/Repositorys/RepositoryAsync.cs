@@ -1,12 +1,10 @@
 ﻿using EFCore.BulkExtensions;
-using fbognini.Application.Persistence;
 using fbognini.Core.Data;
 using fbognini.Core.Data.Pagination;
 using fbognini.Core.Entities;
 using fbognini.Core.Exceptions;
 using fbognini.Infrastructure.Persistence;
 using fbognini.Infrastructure.Extensions;
-using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
@@ -22,7 +20,6 @@ using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Repositorys
 {
-
     public class RepositoryAsync<TContext> : IRepositoryAsync
         where TContext : DbContext, IBaseDbContext
     {
@@ -511,7 +508,6 @@ namespace fbognini.Infrastructure.Repositorys
             await context.Entry(entity).ReloadAsync(cancellationToken);
         }
 
-
         public void Attach<T>(T entity)
             where T : class, IEntity
         {
@@ -523,7 +519,6 @@ namespace fbognini.Infrastructure.Repositorys
         {
             context.Set<T>().AttachRange(entity);
         }
-
         public void Detach(IEntity entity)
         {
             context.Entry(entity).State = EntityState.Detached;
@@ -533,7 +528,6 @@ namespace fbognini.Infrastructure.Repositorys
         {
             context.ChangeTracker.Clear();
         }
-
 
         #endregion
 

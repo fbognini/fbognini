@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System.Collections.Generic;
 using System.Text.Json;
 
 namespace fbognini.Infrastructure.Persistence.ValueConverters

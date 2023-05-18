@@ -1,5 +1,3 @@
-using fbognini.Application.Multitenancy;
-using fbognini.Core.Entities;
 using fbognini.Infrastructure.Multitenancy;
 using Finbuckle.MultiTenant;
 using System;

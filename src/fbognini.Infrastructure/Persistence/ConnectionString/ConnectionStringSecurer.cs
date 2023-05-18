@@ -1,5 +1,4 @@
 using System.Data.SqlClient;
-using fbognini.Application.Persistence;
 using fbognini.Infrastructure.Common;
 using fbognini.Infrastructure.Multitenancy;
 using Microsoft.Extensions.Options;

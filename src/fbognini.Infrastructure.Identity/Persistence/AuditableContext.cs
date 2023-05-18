@@ -21,7 +21,7 @@ namespace fbognini.Infrastructure.Identity.Persistence
         private readonly ICurrentUserService currentUserService;
         private readonly ITenantInfo currentTenant;
 
-        private readonly string authschema;
+        protected readonly string authschema;
 
         public AuditableContext(
             DbContextOptions<TContext> options,
@@ -43,15 +43,14 @@ namespace fbognini.Infrastructure.Identity.Persistence
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.EnableSensitiveDataLogging();
-            optionsBuilder.OnCustomConfiguring(this);
+            optionsBuilder.ConfigureSqlServer(this);
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            builder.OnCustomModelCreating(this);
+            builder.ApplyConfigurationsAndFilters(this);
             builder.ApplyIdentityConfiguration<TUser, TRole, TKey>(authschema);
         }
 

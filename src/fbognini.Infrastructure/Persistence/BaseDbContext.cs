@@ -33,15 +33,14 @@ namespace fbognini.Infrastructure.Persistence
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.EnableSensitiveDataLogging();
-            optionsBuilder.OnCustomConfiguring(this);
+            optionsBuilder.ConfigureSqlServer(this);
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            builder.OnCustomModelCreating(this);
+            builder.ApplyConfigurationsAndFilters(this);
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())

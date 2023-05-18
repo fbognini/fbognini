@@ -1,13 +1,10 @@
 ﻿using fbognini.Core.Data;
-using fbognini.Core.Entities;
 using fbognini.Core.Utilities;
-using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using fbognini.Core.Data.Pagination;
 
 namespace fbognini.Infrastructure.Extensions
 {

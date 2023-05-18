@@ -1,5 +1,4 @@
 using fbognini.Application.Multitenancy;
-using fbognini.Application.Persistence;
 using fbognini.Core.Exceptions;
 using Finbuckle.MultiTenant;
 using Microsoft.Extensions.Options;

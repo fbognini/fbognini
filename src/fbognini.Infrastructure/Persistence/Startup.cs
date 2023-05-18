@@ -1,5 +1,4 @@
-﻿using fbognini.Application.Persistence;
-using fbognini.Infrastructure.Common;
+﻿using fbognini.Infrastructure.Common;
 using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Multitenancy;
 using fbognini.Infrastructure.Persistence.ConnectionString;

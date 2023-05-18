@@ -2,7 +2,6 @@
 using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -14,7 +13,7 @@ namespace fbognini.Infrastructure.Extensions
 {
     public static class DbContextExtensionMethods
     {
-        public static void OnCustomConfiguring(this DbContextOptionsBuilder optionsBuilder, IBaseDbContext context)
+        public static void ConfigureSqlServer(this DbContextOptionsBuilder optionsBuilder, IBaseDbContext context)
         {
             if (!string.IsNullOrWhiteSpace(context.ConnectionString))
             {
@@ -22,7 +21,7 @@ namespace fbognini.Infrastructure.Extensions
             }
         }
 
-        public static void OnCustomModelCreating(this ModelBuilder builder, IBaseDbContext context)
+        public static void ApplyConfigurationsAndFilters(this ModelBuilder builder, IBaseDbContext context)
         {
             builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
             builder.ApplyGlobalFilters<IHaveTenant>(b => EF.Property<string>(b, nameof(IHaveTenant.Tenant)) == context.Tenant);

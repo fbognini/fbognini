@@ -5,14 +5,11 @@ using fbognini.Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace fbognini.Application.Persistence
+namespace fbognini.Infrastructure.Repositorys
 {
     public interface IRepositoryAsync : IDisposable
     {

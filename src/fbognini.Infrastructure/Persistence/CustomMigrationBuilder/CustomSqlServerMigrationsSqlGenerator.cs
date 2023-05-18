@@ -1,13 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Microsoft.EntityFrameworkCore.Migrations.Operations.Builders;
 using Microsoft.EntityFrameworkCore.Update;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace fbognini.Persistence.CustomMigrationBuilder
 {
