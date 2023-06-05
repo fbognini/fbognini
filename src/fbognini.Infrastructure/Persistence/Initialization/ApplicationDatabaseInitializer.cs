@@ -28,9 +28,10 @@ namespace fbognini.Infrastructure.Persistence.Initialization
         {
             if (dbContext.Database.GetMigrations().Any())
             {
-                if ((await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).Any())
+                var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
+                if (pendingMigrations.Any())
                 {
-                    logger.LogInformation("Applying Migrations for '{tenantId}' tenant.", currentTenant.Id);
+                    logger.LogInformation("Applying migrations ({@Migrations}) for '{tenantId}' tenant.", pendingMigrations, currentTenant.Id);
                     await dbContext.Database.MigrateAsync(cancellationToken);
                 }
             }

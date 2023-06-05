@@ -1,10 +1,7 @@
-﻿using fbognini.Application.Persistence;
-using fbognini.Core.Interfaces;
+﻿using fbognini.Core.Interfaces;
 using fbognini.Infrastructure.Multitenancy;
 using fbognini.Infrastructure.Persistence;
-using fbognini.Infrastructure.Repositorys;
 using SberemPay.Checkout.Services;
-using WebApplication1.Application.Interfaces.Repositorys;
 using WebApplication1.Infrastructure.Persistance;
 using WebApplication1.Infrastructure.Repositorys;
 
@@ -27,7 +24,7 @@ namespace WebApplication1.Infrastructure.Extensions
         private static IServiceCollection AddRepositories(this IServiceCollection services)
         {
             return services
-                .AddScoped(typeof(IWebApplication1RepositoryAsync), typeof(WebApplication1RepositoryAsync))
+                .AddScoped(typeof(IWebApplication1Repository), typeof(WebApplication1Repository))
                 ;
         }
 

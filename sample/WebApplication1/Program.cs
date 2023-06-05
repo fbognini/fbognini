@@ -5,10 +5,10 @@ using fbognini.Infrastructure.Multitenancy;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.OutputCaching;
 using System.Text.Json.Serialization;
-using WebApplication1.Application.Interfaces.Repositorys;
 using WebApplication1.Application.SearchCriterias;
 using WebApplication1.Domain.Entities;
 using WebApplication1.Infrastructure.Extensions;
+using WebApplication1.Infrastructure.Repositorys;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,11 +38,11 @@ app.UseHttpsRedirection();
 
 app.UseMultiTenancy();
 
-app.MapGet("/books", async (string? title, IWebApplication1RepositoryAsync repository) =>
+app.MapGet("/books", async (string? title, IWebApplication1Repository repository) =>
 {
     var criteria = new BookSearchCriteria()
     {
-        Title = title,
+        Title = title
     };
     criteria.Includes.Add(x => x.Author);
 
@@ -52,7 +52,7 @@ app.MapGet("/books", async (string? title, IWebApplication1RepositoryAsync repos
 .WithName("GetBooks")
 .WithOpenApi();
 
-app.MapPost("/books", async (Book book, IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+app.MapPost("/books", async (Book book, IWebApplication1Repository repository, CancellationToken cancellationToken) =>
 {
     await repository.CreateAsync(book, cancellationToken);
     await repository.SaveAsync(cancellationToken);
@@ -61,7 +61,7 @@ app.MapPost("/books", async (Book book, IWebApplication1RepositoryAsync reposito
 .WithName("CreateBook")
 .WithOpenApi();
 
-app.MapGet("/authors", async (IWebApplication1RepositoryAsync repository) =>
+app.MapGet("/authors", async (IWebApplication1Repository repository) =>
 {
     var criteria = new AuthorSearchCriteria();
 
@@ -71,7 +71,7 @@ app.MapGet("/authors", async (IWebApplication1RepositoryAsync repository) =>
 .WithName("GetAuthors")
 .WithOpenApi();
 
-app.MapPost("/authors", async (Author author, IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+app.MapPost("/authors", async (Author author, IWebApplication1Repository repository, CancellationToken cancellationToken) =>
 {
     await repository.CreateAsync(author, cancellationToken);
     await repository.SaveAsync(cancellationToken);
@@ -80,9 +80,26 @@ app.MapPost("/authors", async (Author author, IWebApplication1RepositoryAsync re
 .WithName("CreateAuthor")
 .WithOpenApi();
 
-app.MapPut("/authors/{id}", async (int id, Author author, IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+app.MapGet("/authors/{id}", async (int id, IWebApplication1Repository repository, CancellationToken cancellationToken) =>
 {
-    var entity = await repository.GetByIdAsync<Author>(id, cancellationToken: cancellationToken);
+    var args = new SelectArgs<Author>()
+    {
+        ThrowExceptionIfNull = true
+    };
+    var entity = await repository.GetByIdAsync<Author>(id, args, cancellationToken: cancellationToken);
+    return entity;
+})
+.WithName("GetAuthor")
+.WithOpenApi();
+
+
+app.MapPut("/authors/{id}", async (int id, Author author, IWebApplication1Repository repository, CancellationToken cancellationToken) =>
+{
+    var args = new SelectArgs<Author>()
+    {
+        ThrowExceptionIfNull = true
+    };
+    var entity = await repository.GetByIdAsync<Author>(id, args, cancellationToken: cancellationToken);
     entity.FirstName = author.FirstName;
     entity.LastName = author.LastName;
 
@@ -93,7 +110,7 @@ app.MapPut("/authors/{id}", async (int id, Author author, IWebApplication1Reposi
 .WithName("UpdateAuthor")
 .WithOpenApi();
 
-app.MapDelete("/authors/{id}", async (int id, IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+app.MapDelete("/authors/{id}", async (int id, IWebApplication1Repository repository, CancellationToken cancellationToken) =>
 {
     var entity = await repository.GetByIdAsync<Author>(id, cancellationToken: cancellationToken);
     repository.Delete(entity);
@@ -103,7 +120,7 @@ app.MapDelete("/authors/{id}", async (int id, IWebApplication1RepositoryAsync re
 .WithName("DeleteAuthor")
 .WithOpenApi();
 
-app.MapPost("/authors/bulk", async (IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+app.MapPost("/authors/bulk", async (IWebApplication1Repository repository, CancellationToken cancellationToken) =>
 {
     var testUsers = new Faker<Author>()
         .RuleFor(u => u.FirstName, (f, u) => f.Name.FirstName())
@@ -116,7 +133,7 @@ app.MapPost("/authors/bulk", async (IWebApplication1RepositoryAsync repository, 
 .WithName("BulkAuthor")
 .WithOpenApi();
 
-app.MapPost("/authors/bulk-update", async (IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+app.MapPost("/authors/bulk-update", async (IWebApplication1Repository repository, CancellationToken cancellationToken) =>
 {
     var testUsers = new Faker<Author>()
         .RuleFor(u => u.FirstName, (f, u) => f.Name.FirstName())
@@ -141,7 +158,7 @@ app.MapPost("/authors/bulk-update", async (IWebApplication1RepositoryAsync repos
 .WithOpenApi();
 
 
-app.MapPost("/authors/batch-delete", async (string lastname, IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+app.MapPost("/authors/batch-delete", async (string lastname, IWebApplication1Repository repository, CancellationToken cancellationToken) =>
 {
     var criteria = new AuthorSearchCriteria()
     {
@@ -153,7 +170,7 @@ app.MapPost("/authors/batch-delete", async (string lastname, IWebApplication1Rep
 .WithName("BatchAuthorDelete")
 .WithOpenApi();
 
-app.MapPost("/authors/bulk-delete", async (string lastname, IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+app.MapPost("/authors/bulk-delete", async (string lastname, IWebApplication1Repository repository, CancellationToken cancellationToken) =>
 {
     var criteria = new AuthorSearchCriteria()
     {
@@ -169,7 +186,7 @@ app.MapPost("/authors/bulk-delete", async (string lastname, IWebApplication1Repo
 
 
 
-app.MapPost("/authors/bulk-upsert", async (IWebApplication1RepositoryAsync repository, CancellationToken cancellationToken) =>
+app.MapPost("/authors/bulk-upsert", async (IWebApplication1Repository repository, CancellationToken cancellationToken) =>
 {
     var testUsers = new Faker<Author>()
         .RuleFor(u => u.FirstName, (f, u) => f.Name.FirstName())

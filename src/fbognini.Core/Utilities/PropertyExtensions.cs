@@ -84,15 +84,20 @@ namespace fbognini.Core.Utilities
                     "propertyExpression");
             }
 
-            var attr = memberInfo.GetAttribute<DisplayNameAttribute>(false);
-            if (attr == null)
-            {
-                return memberInfo.Name;
-            }
-
-            return attr.DisplayName;
+            return GetDisplayName(memberInfo);
         }
 
+        public static string GetPropertyDisplayName(this Type type, string propertyName)
+        {
+            var memberInfo = type.GetProperty(propertyName);
+            if (memberInfo == null)
+            {
+                throw new ArgumentException(
+                    "No property reference expression was found.", nameof(propertyName));
+            }
+
+            return GetDisplayName(memberInfo);
+        }
 
         public static PropertyInfo GetNestedProperty(this Type type, string propertyName, BindingFlags bindingFlags = BindingFlags.Default)
         {
@@ -214,6 +219,17 @@ namespace fbognini.Core.Utilities
                             return false;
 
             return true;
+        }
+
+        private static string GetDisplayName(MemberInfo memberInfo)
+        {
+            var attr = memberInfo.GetAttribute<DisplayNameAttribute>(false);
+            if (attr == null)
+            {
+                return memberInfo.Name;
+            }
+
+            return attr.DisplayName;
         }
     }
 }

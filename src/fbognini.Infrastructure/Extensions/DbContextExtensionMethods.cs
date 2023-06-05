@@ -23,7 +23,7 @@ namespace fbognini.Infrastructure.Extensions
 
         public static void ApplyConfigurationsAndFilters(this ModelBuilder builder, IBaseDbContext context)
         {
-            builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+            builder.ApplyConfigurationsFromAssembly(context.GetType().GetTypeInfo().Assembly);
             builder.ApplyGlobalFilters<IHaveTenant>(b => EF.Property<string>(b, nameof(IHaveTenant.Tenant)) == context.Tenant);
             builder.ApplyGlobalFilters<ISoftDelete>(s => s.Deleted == null);
         }
