@@ -22,7 +22,7 @@ namespace fbognini.Infrastructure.Persistence
                 .Configure<DatabaseSettings>(configuration.GetSection(nameof(DatabaseSettings)))
                 .AddDbContext<T>(m => {
                     m.UseSqlServer(databaseSettings.ConnectionString);
-                    m.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+                    m.UseQueryTrackingBehavior(databaseSettings.TrackingBehavior);
                 })
                 .AddTransient<ApplicationDatabaseInitializer<T>>()
                 .AddImplementations(typeof(ICustomSeeder<T>), ServiceLifetime.Transient)
