@@ -10,9 +10,20 @@ namespace fbognini.Infrastructure.Extensions
 {
     public static class SearchCriteriaExtensionMethods
     {
-        public static IQueryable<T> QueryArgs<T>(this IQueryable<T> query, SelectArgs<T> criteria = null) 
-            where T : class 
-            => query.IncludeViews(criteria);
+        public static IQueryable<T> QueryArgs<T>(this IQueryable<T> query, SelectArgs<T> criteria)
+            where T : class
+        {
+            criteria ??= new SelectArgs<T>();
+
+            if (!criteria.Track)
+            {
+                query = query.AsNoTracking();
+            }
+
+            query = query.IncludeViews(criteria);
+
+            return query;
+        }
 
         public static IQueryable<T> IncludeViews<T>(this IQueryable<T> list, IHasViews<T> includes)
             where T : class

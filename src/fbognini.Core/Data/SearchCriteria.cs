@@ -2,29 +2,34 @@
 using fbognini.Core.Entities;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
 
 namespace fbognini.Core.Data
 {
 
-    public class BaseSelectArgs
+    public abstract class BaseSelectArgs
     {
+        public abstract bool Track { get; set; }
         public bool ThrowExceptionIfNull { get; set; } = false;
 
     }
 
     public class SelectArgs<TEntity> : BaseSelectArgs, IHasViews<TEntity>, IArgs
     {
+        public override bool Track { get; set; } = true;
         public List<Expression<Func<TEntity, object>>> Includes { get; } = new List<Expression<Func<TEntity, object>>>();
         public List<string> IncludeStrings { get; } = new List<string>();
     }
 
-    public abstract class SelectCriteria<TEntity> : SelectArgs<TEntity>, IHasFilter<TEntity>, IHasSearch<TEntity>, IHasSorting, IHasOffset
+    public class SelectCriteria<TEntity> : SelectArgs<TEntity>, IHasFilter<TEntity>, IHasSearch<TEntity>, IHasSorting, IHasOffset
     {
         public SelectCriteria()
         {
         }
+
+        public override bool Track { get; set; } = false;
 
         public int? PageNumber { get; protected set; }
         public int? PageSize { get; protected set; }
@@ -38,7 +43,7 @@ namespace fbognini.Core.Data
 
         protected LogicalOperator Operator { get; set; } = LogicalOperator.AND;
 
-        public abstract List<Expression<Func<TEntity, bool>>> ToWhereClause();
+        public virtual List<Expression<Func<TEntity, bool>>> ToWhereClause() => new List<Expression<Func<TEntity, bool>>>();
 
         public Expression<Func<TEntity, bool>> ResolveFilter()
         {
@@ -69,7 +74,7 @@ namespace fbognini.Core.Data
         }
     }
 
-    public abstract class SearchCriteria<TEntity> : SelectCriteria<TEntity>, IHasSinceOffset
+    public class SearchCriteria<TEntity> : SelectCriteria<TEntity>, IHasSinceOffset
         where TEntity : IAuditableEntity
     {
         public long? Since { get; private set; }

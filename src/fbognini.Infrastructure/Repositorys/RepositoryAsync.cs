@@ -318,20 +318,36 @@ namespace fbognini.Infrastructure.Repositorys
 
         public async Task<bool> AnyAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            return await GetQueryable(criteria).AnyAsync(cancellationToken);
+            return await GetNotTrackedQueryable(criteria).AnyAsync(cancellationToken);
         }
 
         public async Task<int> CountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            return await GetQueryable(criteria).CountAsync(cancellationToken);
+            return await GetNotTrackedQueryable(criteria).CountAsync(cancellationToken);
         }
 
         public async Task<long> LongCountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            return await GetQueryable(criteria).LongCountAsync(cancellationToken);
+            return await GetNotTrackedQueryable(criteria).LongCountAsync(cancellationToken);
         }
 
         private IQueryable<T> GetQueryable<T>(SelectCriteria<T> criteria = null) where T : class, IEntity => context.Set<T>().QuerySelect(criteria).QueryArgs(criteria);
+
+        private IQueryable<T> GetTrackedQueryable<T>(SelectCriteria<T> criteria = null) where T : class, IEntity
+        {
+            criteria ??= new SelectCriteria<T>();
+            criteria.Track = true;
+
+            return GetQueryable(criteria);
+        }
+
+        private IQueryable<T> GetNotTrackedQueryable<T>(SelectCriteria<T> criteria = null) where T : class, IEntity
+        {
+            criteria ??= new SelectCriteria<T>();
+            criteria.Track = false;
+
+            return GetQueryable(criteria);
+        }
 
 
         #endregion
@@ -368,7 +384,7 @@ namespace fbognini.Infrastructure.Repositorys
 
         public void DeleteRange<T>(SelectCriteria<T> criteria) where T : class, IEntity
         {
-            var entities = GetQueryable(criteria);
+            var entities = GetTrackedQueryable(criteria);
             DeleteRange(entities);
         }
 
@@ -379,7 +395,7 @@ namespace fbognini.Infrastructure.Repositorys
 
         public async Task BatchDeleteAsync<T>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            var entities = GetQueryable(criteria);
+            var entities = GetTrackedQueryable(criteria);
             await entities.BatchDeleteAsync(cancellationToken);
         }
 
