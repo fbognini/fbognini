@@ -1,4 +1,5 @@
 ﻿using fbognini.Core.Data;
+using fbognini.Core.Entities;
 using fbognini.Core.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,10 +11,13 @@ namespace fbognini.Infrastructure.Extensions
 {
     public static class SearchCriteriaExtensionMethods
     {
-        public static IQueryable<T> QueryArgs<T>(this IQueryable<T> query, SelectArgs<T> criteria)
+        public static IQueryable<T> QueryArgs<T>(this IQueryable<T> query, IRepositoryArgs<T> criteria)
             where T : class
         {
-            criteria ??= new SelectArgs<T>();
+            if (criteria == null)
+            {
+                return query;
+            }
 
             if (!criteria.Track)
             {
@@ -25,14 +29,9 @@ namespace fbognini.Infrastructure.Extensions
             return query;
         }
 
-        public static IQueryable<T> IncludeViews<T>(this IQueryable<T> list, IHasViews<T> includes)
+        private static IQueryable<T> IncludeViews<T>(this IQueryable<T> list, IHasViews<T> includes)
             where T : class
         {
-            if (includes == null)
-            {
-                return list;
-            }
-
             foreach (var view in includes.Includes)
             {
                 var path = view.GetPropertyPath(true); // it must works even with x.OrderLines.First().Product.Retailer.DisplayName

@@ -17,7 +17,7 @@ namespace fbognini.Core.Data
 {
     public static class SearchCriteriaExtensionMethods
     {
-        public static IQueryable<T> QuerySelect<T>(this IQueryable<T> query, SelectCriteria<T> criteria = null)
+        public static IQueryable<T> QuerySelect<T>(this IQueryable<T> query, InMemorySelectCriteria<T> criteria = null)
             where T : class
         {
             if (criteria == null)
@@ -38,12 +38,8 @@ namespace fbognini.Core.Data
             return query;
         }
 
-        public static IQueryable<T> QuerySearch<T>(this IQueryable<T> query, SelectCriteria<T> criteria, out PaginationResult pagination)
+        public static IQueryable<T> QuerySearch<T>(this IQueryable<T> query, InMemorySelectCriteria<T> criteria, out PaginationResult pagination)
             where T : class 
-            => query.QueryPagination(criteria, out pagination);
-
-        public static IQueryable<T> QuerySearch<T>(this IQueryable<T> query, SearchCriteria<T> criteria, out PaginationResult pagination)
-            where T : class, IAuditableEntity 
             => query.QueryPagination(criteria, out pagination);
 
         public static IOrderedQueryable<TEntity> OrderBy<TEntity>(
@@ -156,16 +152,10 @@ namespace fbognini.Core.Data
             return expression;
         }
 
-        public static string GetArgsKey<TEntity>(this IArgs args)
+        public static string GetInMemoryArgsKey<TEntity>(this IArgs args)
         {
             var builder = new StringBuilder();
             builder.Append(typeof(TEntity).Name);
-
-            if (args is IHasViews<TEntity> hasViews)
-            {
-                builder.Append($"|v:");
-                builder.Append(string.Join(',', hasViews.AllIncludes.OrderBy(x => x)));
-            }
 
             if (args is IHasFilter<TEntity> hasFilter)
             {
@@ -194,11 +184,6 @@ namespace fbognini.Core.Data
             {
                 builder.Append($"|p:");
                 builder.Append($"n={hasOffset.PageNumber}&s={hasOffset.PageSize}");
-
-                if (args is IHasSinceOffset hasSinceOffset && hasSinceOffset.Since.HasValue)
-                {
-                    builder.Append($"&since={hasSinceOffset.Since}&after={hasSinceOffset.AfterId}");
-                }
             }
 
             return builder.ToString();
@@ -223,56 +208,56 @@ namespace fbognini.Core.Data
 
             text = text.Replace(" ", string.Empty);
             return text;
-        }
 
-        private static void WalkExpression(Dictionary<string, string> replacements, Expression expression)
-        {
-            switch (expression.NodeType)
+            static void WalkExpression(Dictionary<string, string> replacements, Expression expression)
             {
-                case ExpressionType.MemberAccess:
-                    {
-                        string text = expression.ToString();
-                        if (text.Contains("value(") && !replacements.ContainsKey(text))
+                switch (expression.NodeType)
+                {
+                    case ExpressionType.MemberAccess:
                         {
-                            object obj = Expression.Lambda(expression).Compile().DynamicInvoke();
-                            if (obj != null)
+                            string text = expression.ToString();
+                            if (text.Contains("value(") && !replacements.ContainsKey(text))
                             {
-                                string text2 = obj.ToString();
-                                replacements.Add(text, text2.ToString());
+                                object obj = Expression.Lambda(expression).Compile().DynamicInvoke();
+                                if (obj != null)
+                                {
+                                    string text2 = obj.ToString();
+                                    replacements.Add(text, text2.ToString());
+                                }
                             }
-                        }
 
-                        break;
-                    }
-                case ExpressionType.AndAlso:
-                case ExpressionType.Equal:
-                case ExpressionType.GreaterThan:
-                case ExpressionType.GreaterThanOrEqual:
-                case ExpressionType.LessThan:
-                case ExpressionType.LessThanOrEqual:
-                case ExpressionType.OrElse:
-                    {
-                        BinaryExpression binaryExpression = expression as BinaryExpression;
-                        WalkExpression(replacements, binaryExpression.Left);
-                        WalkExpression(replacements, binaryExpression.Right);
-                        break;
-                    }
-                case ExpressionType.Call:
-                    {
-                        MethodCallExpression methodCallExpression = expression as MethodCallExpression;
-                        foreach (Expression argument in methodCallExpression.Arguments)
+                            break;
+                        }
+                    case ExpressionType.AndAlso:
+                    case ExpressionType.Equal:
+                    case ExpressionType.GreaterThan:
+                    case ExpressionType.GreaterThanOrEqual:
+                    case ExpressionType.LessThan:
+                    case ExpressionType.LessThanOrEqual:
+                    case ExpressionType.OrElse:
                         {
-                            WalkExpression(replacements, argument);
+                            BinaryExpression binaryExpression = expression as BinaryExpression;
+                            WalkExpression(replacements, binaryExpression.Left);
+                            WalkExpression(replacements, binaryExpression.Right);
+                            break;
                         }
+                    case ExpressionType.Call:
+                        {
+                            MethodCallExpression methodCallExpression = expression as MethodCallExpression;
+                            foreach (Expression argument in methodCallExpression.Arguments)
+                            {
+                                WalkExpression(replacements, argument);
+                            }
 
-                        break;
-                    }
-                case ExpressionType.Lambda:
-                    {
-                        LambdaExpression lambdaExpression = expression as LambdaExpression;
-                        WalkExpression(replacements, lambdaExpression.Body);
-                        break;
-                    }
+                            break;
+                        }
+                    case ExpressionType.Lambda:
+                        {
+                            LambdaExpression lambdaExpression = expression as LambdaExpression;
+                            WalkExpression(replacements, lambdaExpression.Body);
+                            break;
+                        }
+                }
             }
         }
 

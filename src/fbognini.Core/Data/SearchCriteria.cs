@@ -9,27 +9,21 @@ using System.Linq.Expressions;
 namespace fbognini.Core.Data
 {
 
-    public abstract class BaseSelectArgs
+    public abstract class BaseSelectArgs : IArgs
     {
-        public abstract bool Track { get; set; }
         public bool ThrowExceptionIfNull { get; set; } = false;
 
     }
 
-    public class SelectArgs<TEntity> : BaseSelectArgs, IHasViews<TEntity>, IArgs
+    public class InMemorySelectArgs<TEntity> : BaseSelectArgs
     {
-        public override bool Track { get; set; } = true;
-        public List<Expression<Func<TEntity, object>>> Includes { get; } = new List<Expression<Func<TEntity, object>>>();
-        public List<string> IncludeStrings { get; } = new List<string>();
     }
 
-    public class SelectCriteria<TEntity> : SelectArgs<TEntity>, IHasFilter<TEntity>, IHasSearch<TEntity>, IHasSorting, IHasOffset
+    public class InMemorySelectCriteria<TEntity> : BaseSelectArgs, IHasFilter<TEntity>, IHasSearch<TEntity>, IHasSorting, IHasOffset
     {
-        public SelectCriteria()
+        public InMemorySelectCriteria()
         {
         }
-
-        public override bool Track { get; set; } = false;
 
         public int? PageNumber { get; protected set; }
         public int? PageSize { get; protected set; }
@@ -71,44 +65,6 @@ namespace fbognini.Core.Data
         public void SetOperator(LogicalOperator logicalOperator)
         {
             Operator = logicalOperator;
-        }
-    }
-
-    public class SearchCriteria<TEntity> : SelectCriteria<TEntity>, IHasSinceOffset
-        where TEntity : IAuditableEntity
-    {
-        public long? Since { get; private set; }
-        public int? AfterId { get; private set; }
-
-        internal string ContinuationSince { get; set; }
-
-        public void LoadPaginationAdvancedSinceQuery(PaginationAdvancedSinceQuery query)
-        {
-            if (query == null)
-                throw new ArgumentNullException(nameof(query));
-
-            PageSize = query.PageSize;
-
-            if (query.Since != null)
-            {
-                var since = query.Since.Split("_");
-                Since = long.Parse(since[0]);
-                AfterId = since.Length > 1 ? int.Parse(since[1]) : default(int?);
-            }
-            else
-            {
-                Since = 0;
-                AfterId = null;
-            }
-        }
-
-        public void LoadPaginationSinceQuery(PaginationSinceQuery query)
-        {
-            if (query == null)
-                throw new ArgumentNullException(nameof(query));
-
-            PageSize = query.PageSize;
-            Since = query.Since ?? 0;
         }
     }
 }

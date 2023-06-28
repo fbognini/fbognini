@@ -12,23 +12,6 @@ namespace fbognini.Core.Data
     {
     }
 
-    public interface IHasViews<TEntity>
-    {
-        List<string> AllIncludes
-        {
-            get
-            {
-                var allViews = Includes.Select(x => PropertyExtensions.GetPropertyPath(x, true)).ToList();
-                allViews.AddRange(IncludeStrings);
-
-                return allViews;
-            }
-        }
-
-        List<Expression<Func<TEntity, object>>> Includes { get; }
-        List<string> IncludeStrings { get; }
-    }
-
     public interface IHasFilter<TEntity>
     {
         Expression<Func<TEntity, bool>> ResolveFilter();
@@ -49,11 +32,5 @@ namespace fbognini.Core.Data
     {
         int? PageNumber { get; }
         int? PageSize { get; }
-    }
-
-    public interface IHasSinceOffset : IHasOffset
-    {
-        long? Since { get; }
-        int? AfterId { get; }
     }
 }
