@@ -215,6 +215,12 @@ namespace fbognini.Core.Extensions
 
             foreach (var property in objectProperties)
             {
+                var value = property.GetValue(obj);
+                if (value == null)
+                {
+                    continue;
+                }
+
                 var attribute = property.GetCustomAttribute<T>();
                 if (attribute != null)
                 {
@@ -228,13 +234,11 @@ namespace fbognini.Core.Extensions
 
                 if (recursive)
                 {
-                    var value = property.GetValue(obj);
-
                     if (value is IEnumerable enumerable)
                     {
                         foreach (var item in enumerable)
                         {
-                            properties.AddRange(GetPropertiesWithAttribute<T>(item));
+                            properties.AddRange(GetPropertiesWithAttribute<T>(item, true));
                         }
 
                         continue;
@@ -242,7 +246,7 @@ namespace fbognini.Core.Extensions
 
                     if (property.PropertyType.IsClass)
                     {
-                        properties.AddRange(GetPropertiesWithAttribute<T>(value));
+                        properties.AddRange(GetPropertiesWithAttribute<T>(value, true));
                         continue;
                     }
                 }
