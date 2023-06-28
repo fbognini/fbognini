@@ -1,5 +1,5 @@
 ﻿using fbognini.Core.Data;
-using fbognini.Core.Utilities;
+using fbognini.Core.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

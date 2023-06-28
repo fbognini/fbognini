@@ -1,4 +1,5 @@
 ﻿using fbognini.Core.Data;
+using fbognini.Core.Extensions;
 using fbognini.Core.Utilities;
 using System;
 using System.Collections.Generic;
@@ -51,7 +52,7 @@ namespace fbognini.Core.Exceptions
         {
             key = FormatKey(key);
 
-            if (key.GetType().IsValueType)
+            if (key is string || key.GetType().IsValueType)
             {
                 return key.ToString();
             }
@@ -66,6 +67,7 @@ namespace fbognini.Core.Exceptions
 
         private static object FormatKey(object key)
         {
+
             if (key is IArgs)
             {
                 var names = key.GetType()

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageId>fbognini.Core</PackageId>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <Version>8.1.1</Version>
+    <Version>8.2.0</Version>
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
     <PackageReadmeFile>README.md</PackageReadmeFile>

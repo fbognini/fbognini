@@ -99,9 +99,11 @@ app.MapPut("/authors/{id}", async (int id, Author author, IWebApplication1Reposi
     {
         ThrowExceptionIfNull = true
     };
+    args.Includes.Add(x => x.Books);
     var entity = await repository.GetByIdAsync<Author>(id, args, cancellationToken: cancellationToken);
     entity.FirstName = author.FirstName;
     entity.LastName = author.LastName;
+    entity.Books = new List<Book>() { new Book() { Id = "lll", AuthorId = entity.Id, Title = "aaa" } };
 
     repository.Update(entity);
     await repository.SaveAsync(cancellationToken);

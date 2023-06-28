@@ -1,7 +1,7 @@
 ﻿
 using fbognini.Core.Data.Pagination;
 using fbognini.Core.Entities;
-using fbognini.Core.Utilities;
+using fbognini.Core.Extensions;
 using LinqKit;
 using System;
 using System.Collections;

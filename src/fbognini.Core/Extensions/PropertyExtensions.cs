@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -8,7 +9,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace fbognini.Core.Utilities
+namespace fbognini.Core.Extensions
 {
     public static class PropertyExtensions
     {
@@ -18,7 +19,7 @@ namespace fbognini.Core.Utilities
         /// </summary>
         public static string GetPropertyPath<T>(this Expression<Func<T, object>> expression, bool ignoreMethods = false)
         {
-            return string.Join(".", GetPropertyNames(expression, ignoreMethods));
+            return string.Join(".", expression.GetPropertyNames(ignoreMethods));
         }
 
         /// <summary>
@@ -110,7 +111,7 @@ namespace fbognini.Core.Utilities
             propertyNames = propertyNames.Skip(1);
             if (propertyNames.Any())
             {
-                return GetNestedProperty(property.GetType(), propertyNames, bindingFlags);
+                return property.GetType().GetNestedProperty(propertyNames, bindingFlags);
             }
 
             return property;
@@ -133,7 +134,7 @@ namespace fbognini.Core.Utilities
 
             return (T)attribute;
         }
-        
+
         public static MemberInfo GetPropertyInformation(Expression propertyExpression)
         {
             Debug.Assert(propertyExpression != null, "propertyExpression != null");
@@ -165,16 +166,16 @@ namespace fbognini.Core.Utilities
 
             var parameters = parent.GetGenericArguments();
             var isParameterLessGeneric = !(parameters != null && parameters.Length > 0 &&
-                ((parameters[0].Attributes & TypeAttributes.BeforeFieldInit) == TypeAttributes.BeforeFieldInit));
+                (parameters[0].Attributes & TypeAttributes.BeforeFieldInit) == TypeAttributes.BeforeFieldInit);
 
             while (child != null && child != typeof(object))
             {
                 var cur = GetFullTypeDefinition(child);
-                if (parent == cur || (isParameterLessGeneric && cur.GetInterfaces().Select(i => GetFullTypeDefinition(i)).Contains(GetFullTypeDefinition(parent))))
+                if (parent == cur || isParameterLessGeneric && cur.GetInterfaces().Select(i => GetFullTypeDefinition(i)).Contains(GetFullTypeDefinition(parent)))
                 {
                     return true;
                 }
-                
+
 
                 if (!isParameterLessGeneric)
                 {
@@ -197,6 +198,112 @@ namespace fbognini.Core.Utilities
 
             return false;
         }
+
+        public static List<(PropertyInfo Property, object Instance)> GetPropertiesWithAttribute<T>(object obj, bool recursive = false) where T : Attribute
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException(nameof(obj));
+            }
+
+            var properties = new List<(PropertyInfo Property, object Instance)>();
+            if (obj == null)
+                return properties;
+
+            var objectType = obj.GetType();
+            var objectProperties = objectType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+
+            foreach (var property in objectProperties)
+            {
+                var attribute = property.GetCustomAttribute<T>();
+                if (attribute != null)
+                {
+                    properties.Add((property, obj));
+                }
+
+                if (IsSimpleTypeOrEnumerableOfSimpleTypes(property.PropertyType))
+                {
+                    continue;
+                }
+
+                if (recursive)
+                {
+                    var value = property.GetValue(obj);
+
+                    if (value is IEnumerable enumerable)
+                    {
+                        foreach (var item in enumerable)
+                        {
+                            properties.AddRange(GetPropertiesWithAttribute<T>(item));
+                        }
+
+                        continue;
+                    }
+
+                    if (property.PropertyType.IsClass)
+                    {
+                        properties.AddRange(GetPropertiesWithAttribute<T>(value));
+                        continue;
+                    }
+                }
+            }
+
+            return properties;
+        }
+
+        public static bool IsSimpleTypeOrEnumerableOfSimpleTypes(Type type)
+        {
+            if (IsSimpleType(type))
+            {
+                return true;
+            }
+
+            if (IsEnumerableOfSimpleTypes(type))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsSimpleType(Type type)
+        {
+            return type.IsPrimitive || type == typeof(string) || type == typeof(decimal) || type == typeof(Guid);
+        }
+
+        public static bool IsEnumerableOfSimpleTypes(Type type)
+        {
+            if (typeof(IEnumerable).IsAssignableFrom(type))
+            {
+                Type enumerableType = GetEnumerableGenericType(type);
+
+                if (enumerableType != null && IsSimpleType(enumerableType))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static Type GetEnumerableGenericType(Type type)
+        {
+            if (type.IsGenericType)
+            {
+                Type[] genericArgs = type.GetGenericArguments();
+                if (genericArgs.Length == 1)
+                {
+                    Type enumerableType = typeof(IEnumerable<>).MakeGenericType(genericArgs);
+                    if (enumerableType.IsAssignableFrom(type))
+                    {
+                        return genericArgs[0];
+                    }
+                }
+            }
+
+            return null;
+        }
+
 
         public static object GetPropertyValue(this object src, string propName)
         {
