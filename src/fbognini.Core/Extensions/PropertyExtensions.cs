@@ -272,6 +272,12 @@ namespace fbognini.Core.Extensions
 
         public static bool IsSimpleType(Type type)
         {
+            var nullableType = Nullable.GetUnderlyingType(type);
+            if (nullableType != null)
+            {
+                return IsSimpleType(nullableType);
+            }
+
             return type.IsPrimitive || type == typeof(string) || type == typeof(decimal) || type == typeof(Guid);
         }
 
