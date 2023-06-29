@@ -73,6 +73,44 @@ namespace fbognini.Core.Utilities
         public double Ratio { get; set; } = 1;
         public double ExtraMarginPercentage { get; set; }
         public double ExtraMarginValue { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Ratio},{ExtraMarginPercentage},{ExtraMarginValue}";
+        }
+
+        public static bool TryParse(string? value, out AmountConversionRate? currencyConversion)
+        {
+            try
+            {
+                if (value == null)
+                {
+                    currencyConversion = null;
+                    return false;
+                }
+
+                var splitValue = value.Split(',').Select(double.Parse).ToArray();
+                if (splitValue.Length != 3)
+                {
+                    currencyConversion = null;
+                    return false;
+                }
+
+                currencyConversion = new AmountConversionRate()
+                {
+                    Ratio = splitValue[0],
+                    ExtraMarginPercentage = splitValue[1],
+                    ExtraMarginValue = splitValue[2]
+                };
+
+                return true;
+            }
+            catch (Exception)
+            {
+                currencyConversion = null;
+                return false;
+            }
+        }
     }
 
     [AttributeUsage(AttributeTargets.Property)]
