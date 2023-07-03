@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Reflection;
@@ -43,7 +44,7 @@ namespace fbognini.Core.Utilities
             }
         }
 
-        private static double ConvertAmount(object obj, AmountConversionRate rate)
+        public static double ConvertAmount(object obj, AmountConversionRate rate)
         {
             var amount = GetAmount(obj);
 
@@ -76,11 +77,13 @@ namespace fbognini.Core.Utilities
 
         public override string ToString()
         {
-            return $"{Ratio},{ExtraMarginPercentage},{ExtraMarginValue}";
+            return $"{Ratio.ToString(CultureInfo.InvariantCulture)},{ExtraMarginPercentage.ToString(CultureInfo.InvariantCulture)},{ExtraMarginValue.ToString(CultureInfo.InvariantCulture)}";
         }
 
         public static bool TryParse(string? value, out AmountConversionRate? currencyConversion)
         {
+            var currency = CultureInfo.InvariantCulture;
+
             try
             {
                 if (value == null)
@@ -89,7 +92,7 @@ namespace fbognini.Core.Utilities
                     return false;
                 }
 
-                var splitValue = value.Split(',').Select(double.Parse).ToArray();
+                var splitValue = value.Split(',').Select(x => double.Parse(x, CultureInfo.InvariantCulture)).ToArray();
                 if (splitValue.Length != 3)
                 {
                     currencyConversion = null;
