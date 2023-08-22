@@ -5,12 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using fbognini.Infrastructure.Persistence;
 using Finbuckle.MultiTenant;
 using fbognini.Infrastructure.Extensions;
 using fbognini.Infrastructure.Entities;
 
-namespace fbognini.Infrastructure.Identity.Persistence
+namespace fbognini.Infrastructure.Persistence
 {
     public class IdentityAuditableDbContext<TContext, TUser, TRole, TKey> : IdentityDbContext<TUser, TRole, TKey>, IBaseDbContext
         where TContext : DbContext
