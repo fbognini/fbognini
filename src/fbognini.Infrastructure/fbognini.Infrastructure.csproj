@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageId>fbognini.Infrastructure</PackageId>
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
-    <Version>8.3.0</Version>
+    <Version>8.4.0</Version>
     <Authors>Francesco Bognini</Authors>
     <Company>Francesco Bognini</Company>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -13,6 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+
+    <PackageReference Include="fbognini.Core" Version="8.3.0" />
 
     <PackageReference Include="Nager.PublicSuffix" Version="2.4.0" />
     <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="6.10.0" />
@@ -41,10 +43,6 @@
   <ItemGroup>
     <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
     <None Include="..\..\README.md" Pack="true" PackagePath="" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\fbognini.Core\fbognini.Core.csproj" />
   </ItemGroup>
 
 </Project>

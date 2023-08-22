@@ -7,7 +7,7 @@ using fbognini.Infrastructure.Persistence;
 
 namespace WebApplication1.Infrastructure.Persistance
 {
-    public class WebApplication1DbContext : BaseDbContext<WebApplication1DbContext>
+    public class WebApplication1DbContext : AuditableDbContext<WebApplication1DbContext>
     {
         public WebApplication1DbContext(
             DbContextOptions<WebApplication1DbContext> options,

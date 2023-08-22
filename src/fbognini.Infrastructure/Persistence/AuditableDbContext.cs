@@ -1,44 +1,34 @@
-﻿using fbognini.Core.Interfaces;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Threading;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using fbognini.Infrastructure.Persistence;
+using System.Threading;
+using fbognini.Core.Interfaces;
 using Finbuckle.MultiTenant;
-using fbognini.Infrastructure.Extensions;
 using fbognini.Infrastructure.Entities;
+using System;
+using fbognini.Infrastructure.Extensions;
 
-namespace fbognini.Infrastructure.Identity.Persistence
+namespace fbognini.Infrastructure.Persistence
 {
-    public class AuditableContext<TContext, TUser, TRole, TKey> : IdentityDbContext<TUser, TRole, TKey>, IBaseDbContext
-        where TContext : DbContext
-        where TUser : IdentityUser<TKey>
-        where TRole : IdentityRole<TKey>
-        where TKey : IEquatable<TKey>
+    public class AuditableDbContext<T> : DbContext, IBaseDbContext
+        where T : DbContext
     {
         private readonly ICurrentUserService currentUserService;
         private readonly ITenantInfo currentTenant;
 
-        protected readonly string authschema;
-
-        public AuditableContext(
-            DbContextOptions<TContext> options,
+        public AuditableDbContext(
+            DbContextOptions<T> options,
             ICurrentUserService currentUserService,
-            ITenantInfo currentTenant,
-            string authschema = "auth")
+            ITenantInfo currentTenant)
             : base(options)
         {
             this.currentUserService = currentUserService;
             this.currentTenant = currentTenant;
-            this.authschema = authschema;
         }
 
         public DbSet<Audit> AuditTrails { get; set; }
         public string UserId => currentUserService.UserId;
         public DateTime Timestamp => DateTime.Now;
-        public string Tenant => currentTenant.Name;
+        public string Tenant => currentTenant.Id;
         public string ConnectionString => currentTenant?.ConnectionString;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -51,7 +41,6 @@ namespace fbognini.Infrastructure.Identity.Persistence
             base.OnModelCreating(builder);
 
             builder.ApplyConfigurationsAndFilters(this);
-            builder.ApplyIdentityConfiguration<TUser, TRole, TKey>(authschema);
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
