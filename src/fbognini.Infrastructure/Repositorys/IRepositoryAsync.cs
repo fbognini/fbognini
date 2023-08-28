@@ -2,6 +2,7 @@
 using fbognini.Core.Data;
 using fbognini.Core.Data.Pagination;
 using fbognini.Core.Entities;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Repositorys
 {
-    public interface IRepositoryAsync : IDisposable
+    public interface IRepositoryAsync
     {
         #region Create
         T Create<T>(T entity) where T : class, IEntity;
@@ -20,7 +21,7 @@ namespace fbognini.Infrastructure.Repositorys
         IEnumerable<T> CreateRange<T>(IEnumerable<T> entitys) where T : class, IEntity;
         Task<IEnumerable<T>> CreateRangeAsync<T>(IEnumerable<T> entitys, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task MassiveInsertAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-        
+
         Task MassiveUpsertAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
         Task MassiveMergeAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
@@ -34,19 +35,19 @@ namespace fbognini.Infrastructure.Repositorys
         where T : class, IHasIdentity<TPK>
         where TPK : notnull;
 
-    Task<bool> ExistsAsync<T>(int id, CancellationToken cancellationToken = default)
-        where T : class, IHasIdentity<int>;
+        Task<bool> ExistsAsync<T>(int id, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<int>;
 
-    Task<bool> ExistsAsync<T>(long id, CancellationToken cancellationToken = default)
-        where T : class, IHasIdentity<long>;
+        Task<bool> ExistsAsync<T>(long id, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<long>;
 
-    Task<bool> ExistsAsync<T>(string id, CancellationToken cancellationToken = default)
-        where T : class, IHasIdentity<string>;
+        Task<bool> ExistsAsync<T>(string id, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<string>;
 
-    Task<bool> ExistsAsync<T>(Guid id, CancellationToken cancellationToken = default)
-        where T : class, IHasIdentity<Guid>;
+        Task<bool> ExistsAsync<T>(Guid id, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<Guid>;
 
-    #endregion
+        #endregion
 
         #region GetById
 
@@ -61,7 +62,7 @@ namespace fbognini.Infrastructure.Repositorys
         Task<T> GetByIdAsync<T>(int id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<int>;
 
-        Task<TResult> GetByIdAsync<T, TResult>(int id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default) 
+        Task<TResult> GetByIdAsync<T, TResult>(int id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<int>;
 
         Task<T> GetByIdAsync<T>(long id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
@@ -73,7 +74,7 @@ namespace fbognini.Infrastructure.Repositorys
         Task<T> GetByIdAsync<T>(string id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<string>;
 
-        Task<TResult> GetByIdAsync<T, TResult>(string id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default) 
+        Task<TResult> GetByIdAsync<T, TResult>(string id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<string>;
 
         Task<T> GetByIdAsync<T>(Guid id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
@@ -128,10 +129,10 @@ namespace fbognini.Infrastructure.Repositorys
         #region Update
 
         void Update<T>(T entity) where T : class, IEntity;
-        
+
         Task MassiveUpdateAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
-        
+
         #endregion
 
         #region Delete
@@ -167,17 +168,22 @@ namespace fbognini.Infrastructure.Repositorys
 
         bool HasTransaction { get; }
 
-        void CreateTransaction();
-        Task CreateTransactionAsync(CancellationToken cancellationToken);
+        RepositoryTransaction CreateTransaction();
+        Task<RepositoryTransaction> CreateTransactionAsync(CancellationToken cancellationToken);
 
         int Save();
         Task<int> SaveAsync(CancellationToken cancellationToken);
 
+        [Obsolete("Use RepositoryTransaction.Commit instead")]
         void Commit();
+        [Obsolete("Use RepositoryTransaction.CommitAsync instead")]
         Task CommitAsync(CancellationToken cancellationToken);
 
+        [Obsolete("Use RepositoryTransaction.Rollback instead")]
         void Rollback();
+        [Obsolete("Use RepositoryTransaction.RollbackAsync instead")]
         Task RollbackAsync(CancellationToken cancellationToken);
+
         void Reload(IEntity entity);
         Task ReloadAsync(IEntity entity, CancellationToken cancellationToken);
         void Attach<T>(T entity)

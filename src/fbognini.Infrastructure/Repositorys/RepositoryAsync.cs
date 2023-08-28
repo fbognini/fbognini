@@ -23,8 +23,6 @@ namespace fbognini.Infrastructure.Repositorys
     public class RepositoryAsync<TContext> : IRepositoryAsync
         where TContext : DbContext, IBaseDbContext
     {
-        private bool disposed;
-
         private readonly TContext context;
 
         protected readonly Hashtable repositorys = new();
@@ -43,6 +41,7 @@ namespace fbognini.Infrastructure.Repositorys
             context.Set<T>().Add(entity);
             return entity;
         }
+
         public async Task<T> CreateAsync<T>(T entity, CancellationToken cancellationToken = default) where T : class, IEntity
         {
             await context.Set<T>().AddAsync(entity, cancellationToken);
@@ -470,14 +469,16 @@ namespace fbognini.Infrastructure.Repositorys
 
         public bool HasTransaction => Transaction != null;
 
-        public void CreateTransaction()
+        public RepositoryTransaction CreateTransaction()
         {
-            context.Database.BeginTransaction();
+            var transaction = context.Database.BeginTransaction();
+            return new RepositoryTransaction(transaction);
         }
 
-        public async Task CreateTransactionAsync(CancellationToken cancellationToken)
+        public async Task<RepositoryTransaction> CreateTransactionAsync(CancellationToken cancellationToken)
         {
-            await context.Database.BeginTransactionAsync(cancellationToken);
+            var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+            return new RepositoryTransaction(transaction);
         }
 
         public int Save()
@@ -502,15 +503,11 @@ namespace fbognini.Infrastructure.Repositorys
 
         public void Rollback()
         {
-            context.ChangeTracker.Entries().ToList().ForEach(x => x.Reload());
-
             Transaction.Rollback();
         }
 
         public async Task RollbackAsync(CancellationToken cancellationToken)
         {
-            context.ChangeTracker.Entries().ToList().ForEach(async x => await x.ReloadAsync(cancellationToken));
-
             await Transaction.RollbackAsync(cancellationToken);
         }
 
@@ -569,32 +566,7 @@ namespace fbognini.Infrastructure.Repositorys
             return context.LoadStoredProc(name, prependDefaultSchema, commandTimeout);
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                if (disposing)
-                {
-                    //dispose managed resources
-
-                    if (Transaction != null)
-                    {
-                        Transaction.Dispose();
-                    }
-
-                    context.Dispose();
-                }
-            }
-
-            //dispose unmanaged resources
-            disposed = true;
-        }
+        
 
         private static T PostProcessing<T>(T result, object key, BaseSelectArgs args = null)
         {
