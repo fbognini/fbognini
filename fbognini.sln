@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "sample\Conso
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{198BA095-8C79-4052-8944-D7F9BE749C10}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fbognini.Infrastructure.Tests.Integration", "tests\fbognini.Infrastructure.Tests.Integration\fbognini.Infrastructure.Tests.Integration.csproj", "{AEB405BB-8501-4E83-A54C-1B50FA6F68A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{E2DE4817-341B-4A6E-9C5A-CC4B023BDD08}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2DE4817-341B-4A6E-9C5A-CC4B023BDD08}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2DE4817-341B-4A6E-9C5A-CC4B023BDD08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEB405BB-8501-4E83-A54C-1B50FA6F68A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEB405BB-8501-4E83-A54C-1B50FA6F68A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEB405BB-8501-4E83-A54C-1B50FA6F68A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEB405BB-8501-4E83-A54C-1B50FA6F68A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -48,6 +54,7 @@ Global
 		{BAF22D07-1900-4E18-9327-EA2606A4C924} = {733BB65A-DA6E-43FE-9BF1-C755B5B754F5}
 		{C39FCF81-3A86-4435-ACA8-F24BECD345F6} = {FE8A88E4-E9AE-4073-B86D-A6025A58D7EC}
 		{E2DE4817-341B-4A6E-9C5A-CC4B023BDD08} = {FE8A88E4-E9AE-4073-B86D-A6025A58D7EC}
+		{AEB405BB-8501-4E83-A54C-1B50FA6F68A0} = {198BA095-8C79-4052-8944-D7F9BE749C10}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41EE3389-718A-4480-AE29-8602630B1182}
