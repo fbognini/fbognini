@@ -14,9 +14,9 @@ namespace fbognini.Infrastructure.Persistence.ConnectionString
         public ConnectionStringSecurer(IOptions<DatabaseSettings> dbSettings) =>
             this.dbSettings = dbSettings.Value;
 
-        public string? MakeSecure(string? connectionString, string? dbProvider)
+        public string MakeSecure(string connectionString, string? dbProvider = null)
         {
-            if (connectionString == null || string.IsNullOrEmpty(connectionString))
+            if (string.IsNullOrEmpty(connectionString))
             {
                 return connectionString;
             }

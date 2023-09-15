@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,16 +15,18 @@ namespace fbognini.Infrastructure.Repositorys
 {
     public interface IRepositoryAsync
     {
+        IQueryable<T> GetQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity;
+
         #region Create
         T Create<T>(T entity) where T : class, IEntity;
         Task<T> CreateAsync<T>(T entity, CancellationToken cancellationToken = default) where T : class, IEntity;
 
         IEnumerable<T> CreateRange<T>(IEnumerable<T> entitys) where T : class, IEntity;
         Task<IEnumerable<T>> CreateRangeAsync<T>(IEnumerable<T> entitys, CancellationToken cancellationToken = default) where T : class, IEntity;
-        Task MassiveInsertAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task MassiveInsertAsync<T>(IList<T> entities, BulkConfig? bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
-        Task MassiveUpsertAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-        Task MassiveMergeAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task MassiveUpsertAsync<T>(IList<T> entities, BulkConfig? bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task MassiveMergeAsync<T>(IList<T> entities, BulkConfig? bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
         #endregion
 
@@ -51,68 +54,68 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region GetById
 
-        Task<T> GetByIdAsync<T, TPK>(TPK id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<T?> GetByIdAsync<T, TPK>(TPK id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<TPK>
             where TPK : notnull;
 
-        Task<TResult> GetByIdAsync<T, TPK, TResult>(TPK id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<TResult?> GetByIdAsync<T, TPK, TResult>(TPK id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<TPK>
             where TPK : notnull;
 
-        Task<T> GetByIdAsync<T>(int id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<T?> GetByIdAsync<T>(int id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<int>;
 
-        Task<TResult> GetByIdAsync<T, TResult>(int id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<TResult?> GetByIdAsync<T, TResult>(int id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<int>;
 
-        Task<T> GetByIdAsync<T>(long id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<T?> GetByIdAsync<T>(long id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<long>;
 
-        Task<TResult> GetByIdAsync<T, TResult>(long id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<TResult?> GetByIdAsync<T, TResult>(long id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<long>;
 
-        Task<T> GetByIdAsync<T>(string id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<T?> GetByIdAsync<T>(string id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<string>;
 
-        Task<TResult> GetByIdAsync<T, TResult>(string id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<TResult?> GetByIdAsync<T, TResult>(string id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<string>;
 
-        Task<T> GetByIdAsync<T>(Guid id, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<T?> GetByIdAsync<T>(Guid id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<Guid>;
 
-        Task<TResult> GetByIdAsync<T, TResult>(Guid id, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<TResult?> GetByIdAsync<T, TResult>(Guid id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<Guid>;
 
         #endregion
 
         #region GetByName
 
-        Task<T> GetByNameAsync<T>(string slug, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<T?> GetByNameAsync<T>(string slug, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IEntity, IHaveName;
 
-        Task<TResult> GetByNameAsync<T, TResult>(string name, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<TResult?> GetByNameAsync<T, TResult>(string name, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IEntity, IHaveName;
 
         #endregion
 
         #region GetBySlug
 
-        Task<T> GetBySlugAsync<T>(string slug, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<T?> GetBySlugAsync<T>(string slug, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IEntity, IHaveSlug;
 
-        Task<TResult> GetBySlugAsync<T, TResult>(string slug, Expression<Func<T, TResult>> select, SelectArgs<T> args = null, CancellationToken cancellationToken = default)
+        Task<TResult?> GetBySlugAsync<T, TResult>(string slug, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IEntity, IHaveSlug;
 
         #endregion
 
-        Task<T> GetSingleAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-        Task<TResult> GetSingleAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-        Task<T> GetFirstAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-        Task<TResult> GetFirstAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-        Task<T> GetLastAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-        Task<TResult> GetLastAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-        Task<List<T>> GetAllAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-        Task<List<TResult>> GetAllAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<T?> GetSingleAsync<T>(SelectCriteria<T>? criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<TResult?> GetSingleAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T>? criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<T?> GetFirstAsync<T>(SelectCriteria<T>? criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<TResult?> GetFirstAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T>? criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<T?> GetLastAsync<T>(SelectCriteria<T>? criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<TResult?> GetLastAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T>? criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<List<T>> GetAllAsync<T>(SelectCriteria<T>? criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<List<TResult>> GetAllAsync<T, TResult>(Expression<Func<T, TResult>> select, SelectCriteria<T>? criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
         Task<PaginationResponse<T>> GetSearchResultsAsync<T>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default)
             where T : class, IEntity;
@@ -120,9 +123,9 @@ namespace fbognini.Infrastructure.Repositorys
         Task<PaginationResponse<T>> GetSearchResultsAsync<T>(SearchCriteria<T> criteria, CancellationToken cancellationToken = default)
             where T : AuditableEntity;
 
-        Task<bool> AnyAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-        Task<int> CountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
-        Task<long> LongCountAsync<T>(SelectCriteria<T> criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<bool> AnyAsync<T>(SelectCriteria<T>? criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<int> CountAsync<T>(SelectCriteria<T>? criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<long> LongCountAsync<T>(SelectCriteria<T>? criteria = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
         #endregion
 
@@ -130,7 +133,7 @@ namespace fbognini.Infrastructure.Repositorys
 
         void Update<T>(T entity) where T : class, IEntity;
 
-        Task MassiveUpdateAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task MassiveUpdateAsync<T>(IList<T> entities, BulkConfig? bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
 
         #endregion
@@ -143,24 +146,23 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region DeleteById
 
-        Task<T> DeleteByIdAsync<T, TPK>(TPK id, CancellationToken cancellationToken = default)
+        Task DeleteByIdAsync<T, TPK>(TPK id, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<TPK>
-            where TPK : notnull
-            ;
+            where TPK : notnull;
 
-        Task<T> DeleteByIdAsync<T>(int id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>;
+        Task DeleteByIdAsync<T>(int id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>;
 
-        Task<T> DeleteByIdAsync<T>(long id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>;
+        Task DeleteByIdAsync<T>(long id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>;
 
-        Task<T> DeleteByIdAsync<T>(string id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>;
+        Task DeleteByIdAsync<T>(string id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>;
 
-        Task<T> DeleteByIdAsync<T>(Guid id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>;
+        Task DeleteByIdAsync<T>(Guid id, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>;
 
         #endregion
 
         Task BatchDeleteAsync<T>(SelectCriteria<T> criteria, CancellationToken cancellationToken = default) where T : class, IEntity;
 
-        Task MassiveDeleteAsync<T>(IList<T> entities, BulkConfig bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task MassiveDeleteAsync<T>(IList<T> entities, BulkConfig? bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 
         #endregion
 

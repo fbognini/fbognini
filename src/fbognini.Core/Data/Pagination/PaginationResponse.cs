@@ -10,6 +10,6 @@ namespace fbognini.Core.Data.Pagination
         }
 
         public List<TClass> Items { get; set; } = new List<TClass>();
-        public PaginationResult Pagination { get; set; } = new PaginationResult();
+        public PaginationResult? Pagination { get; set; }
     }
 }

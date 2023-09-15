@@ -10,7 +10,7 @@ namespace fbognini.Infrastructure.Entities
         {
         }
 
-        public Tenant(string identifier, string name, string connectionString, string adminEmail, string issuer = null)
+        public Tenant(string identifier, string name, string connectionString, string adminEmail, string? issuer = null)
         {
             Identifier = identifier;
             Name = name;
@@ -40,14 +40,14 @@ namespace fbognini.Infrastructure.Entities
         public bool IsActive { get; set; }
         public DateTime ValidUpto { get; set; }
 
-        public string OpenIdConnectAuthority { get; set; }
-        public string OpenIdConnectClientId { get; set; }
-        public string OpenIdConnectClientSecret { get; set; }
+        public string? OpenIdConnectAuthority { get; set; }
+        public string? OpenIdConnectClientId { get; set; }
+        public string? OpenIdConnectClientSecret { get; set; }
 
         /// <summary>
         /// Used by AzureAd Authorization to store the AzureAd Tenant Issuer to map against.
         /// </summary>
-        public string Issuer { get; set; }
+        public string? Issuer { get; set; }
 
         public void AddValidity(int months) =>
             ValidUpto = ValidUpto.AddMonths(months);
@@ -77,9 +77,9 @@ namespace fbognini.Infrastructure.Entities
             IsActive = false;
         }
 
-        string ITenantInfo.Id { get => Id.ToString(); set => Id = value ?? throw new InvalidOperationException("Id can't be null."); }
-        string ITenantInfo.Identifier { get => Identifier; set => Identifier = value ?? throw new InvalidOperationException("Identifier can't be null."); }
-        string ITenantInfo.Name { get => Name; set => Name = value ?? throw new InvalidOperationException("Name can't be null."); }
-        string ITenantInfo.ConnectionString { get => ConnectionString; set => ConnectionString = value ?? throw new InvalidOperationException("ConnectionString can't be null."); }
+        string? ITenantInfo.Id { get => Id.ToString(); set => Id = value ?? throw new InvalidOperationException("Id can't be null."); }
+        string? ITenantInfo.Identifier { get => Identifier; set => Identifier = value ?? throw new InvalidOperationException("Identifier can't be null."); }
+        string? ITenantInfo.Name { get => Name; set => Name = value ?? throw new InvalidOperationException("Name can't be null."); }
+        string? ITenantInfo.ConnectionString { get => ConnectionString; set => ConnectionString = value ?? throw new InvalidOperationException("ConnectionString can't be null."); }
     }
 }

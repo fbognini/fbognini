@@ -103,7 +103,7 @@ app.MapPut("/authors/{id}", async (int id, Author author, IWebApplication1Reposi
     };
     args.Includes.Add(x => x.Books);
     var entity = await repository.GetByIdAsync<Author>(id, args, cancellationToken: cancellationToken);
-    entity.FirstName = author.FirstName;
+    entity!.FirstName = author.FirstName;
     entity.LastName = author.LastName;
     entity.Books = new List<Book>();
 
@@ -117,8 +117,11 @@ app.MapPut("/authors/{id}", async (int id, Author author, IWebApplication1Reposi
 app.MapDelete("/authors/{id}", async (int id, IWebApplication1Repository repository, CancellationToken cancellationToken) =>
 {
     var entity = await repository.GetByIdAsync<Author>(id, cancellationToken: cancellationToken);
-    repository.Delete(entity);
-    await repository.SaveAsync(cancellationToken);
+    if (entity != null)
+    {
+        repository.Delete(entity);
+        await repository.SaveAsync(cancellationToken);
+    }
     return entity;
 })
 .WithName("DeleteAuthor")

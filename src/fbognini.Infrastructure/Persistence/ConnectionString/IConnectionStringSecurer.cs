@@ -2,7 +2,7 @@
 {
     public interface IConnectionStringSecurer
     {
-        string MakeSecure(string connectionString, string dbProvider = null);
+        string MakeSecure(string connectionString, string? dbProvider = null);
     }
 
 }

@@ -2,6 +2,7 @@
 using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -28,12 +29,20 @@ namespace fbognini.Infrastructure.Extensions
             builder.ApplyGlobalFilters<ISoftDelete>(s => s.Deleted == null);
         }
 
-        public static void SetNewProperty(this IAuditableEntity entity, string name, string value)
+        public static void SetNewProperty(this IAuditableEntity entity, string name, string? value)
         {
             var newProperty = entity.GetType().GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
             if (newProperty != null)
             {
-                newProperty.SetValue(entity, TypeDescriptor.GetConverter(newProperty.PropertyType).ConvertFromString(value));
+                if (string.IsNullOrEmpty(value))
+                {
+                    newProperty.SetValue(entity, null);
+                }
+                else
+                {
+                    newProperty.SetValue(entity, TypeDescriptor.GetConverter(newProperty.PropertyType).ConvertFromString(value));
+                }
+
             }
         }
 
@@ -124,7 +133,6 @@ namespace fbognini.Infrastructure.Extensions
 
                 var auditEntry = new AuditEntry(entry)
                 {
-                    TableName = entry.Entity.GetType().Name,
                     UserId = context.UserId,
                     DateTime = context.Timestamp
                 };

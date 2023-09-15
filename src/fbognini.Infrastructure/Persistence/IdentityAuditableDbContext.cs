@@ -38,7 +38,7 @@ namespace fbognini.Infrastructure.Persistence
         public string UserId => currentUserService.UserId;
         public DateTime Timestamp => DateTime.Now;
         public string Tenant => currentTenant.Name;
-        public string ConnectionString => currentTenant?.ConnectionString;
+        public string? ConnectionString => currentTenant?.ConnectionString;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

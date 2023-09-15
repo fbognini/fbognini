@@ -10,7 +10,7 @@ namespace fbognini.Infrastructure.Extensions
 {
     public static class SearchCriteriaExtensionMethods
     {
-        public static IQueryable<T> QueryArgs<T>(this IQueryable<T> query, SelectArgs<T> criteria)
+        public static IQueryable<T> QueryArgs<T>(this IQueryable<T> query, SelectArgs<T>? criteria)
             where T : class
         {
             criteria ??= new SelectArgs<T>();

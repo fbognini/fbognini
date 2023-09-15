@@ -47,6 +47,22 @@ namespace fbognini.Infrastructure.Extensions
             return true;
         }
 
+        public static async Task<T?> GetOrSet<T>(this IDistributedCache cache, string key, Func<CancellationToken, Task<T>> get, DistributedCacheEntryOptions distributedCacheEntryOptions, CancellationToken cancellationToken)
+        {
+            if (!cache.TryGetValue<T>(key, out var entity))
+            {
+                entity = await get(cancellationToken);
+                if (entity == null)
+                {
+                    return default;
+                }
+
+                await cache.SetAsync(key, entity, distributedCacheEntryOptions, cancellationToken: cancellationToken);
+            }
+
+            return entity;
+        }
+
         private static JsonSerializerOptions GetJsonSerializerOptions()
         {
             return new JsonSerializerOptions()
