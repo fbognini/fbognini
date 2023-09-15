@@ -7,9 +7,7 @@
         {
         }
 
-        public PaginationAdvancedSinceQuery(
-            int pageSize
-            , string since = null)
+        public PaginationAdvancedSinceQuery(int pageSize, string? since = null)
         {
             PageSize = pageSize;
             Since = since;
@@ -19,7 +17,7 @@
         /// [Pagination] - milliseconds from epoch
         /// </summary>
         /// <example>1588725310636_id</example>
-        public string Since { get; set; }
+        public string? Since { get; set; }
     }
 
 
@@ -30,9 +28,7 @@
         {
         }
 
-        public PaginationSinceQuery(
-            int pageSize
-            , long? since = null)
+        public PaginationSinceQuery(int pageSize, long? since = null)
         {
             PageSize = pageSize;
             Since = since;

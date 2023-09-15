@@ -22,6 +22,6 @@ namespace fbognini.Core.Data
         }
         public List<Expression<Func<TEntity, object>>> Fields { get; } = new List<Expression<Func<TEntity, object>>>();
         public List<string> FieldStrings { get; set; } = new List<string>();
-        public string Keyword { get; set; }
+        public string? Keyword { get; set; }
     }
 }

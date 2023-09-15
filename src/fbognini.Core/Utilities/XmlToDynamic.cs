@@ -56,11 +56,11 @@ namespace fbognini.Core.Utilities
         {
             if (parent is List<dynamic>)
             {
-                (parent as List<dynamic>).Add(value);
+                (parent as List<dynamic>)!.Add(value);
             }
             else
             {
-                (parent as IDictionary<String, object>)[name] = value;
+                (parent as IDictionary<String, object>)![name] = value;
             }
         }
     }

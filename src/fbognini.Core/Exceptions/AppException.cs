@@ -5,10 +5,10 @@ namespace fbognini.Core.Exceptions
 {
     public abstract class AppException: Exception
     {
-        public string Title { get; set; }
-        public string Type { get; set; }
+        public string? Title { get; set; }
+        public string? Type { get; set; }
         public HttpStatusCode HttpStatusCode { get; set; }
-        public object AdditionalData { get; set; }
+        public object? AdditionalData { get; set; }
 
         public AppException()
             : this(HttpStatusCode.InternalServerError)
@@ -22,23 +22,23 @@ namespace fbognini.Core.Exceptions
         }
 
         public AppException(
-            string message,
-            string title = null)
+            string? message,
+            string? title = null)
             : this(HttpStatusCode.InternalServerError, message, title)
         {
         }
 
         public AppException(
             HttpStatusCode httpStatusCode,
-            string message,
-            string title = null)
+            string? message,
+            string? title = null)
             : this(httpStatusCode, message, title, null)
         {
         }
 
         public AppException(
-            HttpStatusCode httpStatusCode
-            , object additionalData)
+            HttpStatusCode httpStatusCode, 
+            object additionalData)
             : this(httpStatusCode, null, null, additionalData)
         {
         }
@@ -85,20 +85,20 @@ namespace fbognini.Core.Exceptions
 
         public AppException(
             HttpStatusCode httpStatusCode,
-            string message,
-            string title, 
-            object additionalData)
+            string? message,
+            string? title, 
+            object? additionalData)
             : this(httpStatusCode, message, title, null, additionalData)
         {
         }
 
         public AppException(
             HttpStatusCode httpStatusCode,
-            string message,
-            string title,
-            Exception exception,
-            object additionalData)
-            : base(message, exception)
+            string? message,
+            string? title,
+            Exception? exception,
+            object? additionalData)
+            : base(message ?? $"Generic {httpStatusCode}", exception)
         {
             HttpStatusCode = httpStatusCode;
             Title = title;

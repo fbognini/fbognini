@@ -27,23 +27,23 @@ namespace fbognini.Core.Exceptions
         }
 
         public ServiceUnavailableException(
-            string message
-            , object additionalData)
+            string message, 
+            object additionalData)
             : base(HttpStatusCode.ServiceUnavailable, message, additionalData)
         {
         }
 
         public ServiceUnavailableException(
-            string message
-            , Exception exception)
+            string message, 
+            Exception exception)
             : base(HttpStatusCode.ServiceUnavailable, message, exception)
         {
         }
 
         public ServiceUnavailableException(
-            string message
-            , Exception exception
-            , object additionalData)
+            string message,
+            Exception exception,
+            object additionalData)
             : base(HttpStatusCode.ServiceUnavailable, null, message, exception, additionalData)
         {
         }

@@ -31,7 +31,7 @@ namespace fbognini.Core.Exceptions
         }
 
         public NotFoundException(
-            string message, string title = null)
+            string message, string? title = null)
             : base(HttpStatusCode.NotFound, message, title)
         {
 

@@ -17,7 +17,7 @@ namespace fbognini.Core.Data.Pagination
             return list.QueryPagination(searchCriteria, out var _);
         }
 
-        public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, SelectCriteria<T> selectCriteria, out PaginationResult pagination)
+        public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, SelectCriteria<T> selectCriteria, out PaginationResult? pagination)
         {
             if (!selectCriteria.PageSize.HasValue)
             {
@@ -48,7 +48,7 @@ namespace fbognini.Core.Data.Pagination
             return list;
         }
 
-        public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, SearchCriteria<T> searchCriteria, out PaginationResult pagination)
+        public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, SearchCriteria<T> searchCriteria, out PaginationResult? pagination)
             where T : AuditableEntity
         {
             if (!searchCriteria.PageSize.HasValue)

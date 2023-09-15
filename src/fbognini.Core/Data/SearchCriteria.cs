@@ -36,7 +36,7 @@ namespace fbognini.Core.Data
 
         internal int? Total { get; set; }
 
-        public Func<IQueryable<TEntity>, IQueryable<TEntity>> QueryProcessing { get; set; }
+        public Func<IQueryable<TEntity>, IQueryable<TEntity>>? QueryProcessing { get; set; }
 
         public List<KeyValuePair<string, SortingDirection>> Sorting { get; } = new List<KeyValuePair<string, SortingDirection>>();
         public Search<TEntity> Search { get; } = new Search<TEntity>();
@@ -80,7 +80,7 @@ namespace fbognini.Core.Data
         public long? Since { get; private set; }
         public int? AfterId { get; private set; }
 
-        internal string ContinuationSince { get; set; }
+        internal string? ContinuationSince { get; set; }
 
         public void LoadPaginationAdvancedSinceQuery(PaginationAdvancedSinceQuery query)
         {

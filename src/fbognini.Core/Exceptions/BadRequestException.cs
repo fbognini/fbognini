@@ -27,23 +27,23 @@ namespace fbognini.Core.Exceptions
         }
 
         public BadRequestException(
-            string message
-            , object additionalData)
+            string message, 
+            object additionalData)
             : base(HttpStatusCode.BadRequest, message, additionalData)
         {
         }
 
         public BadRequestException(
-            string message
-            , Exception exception)
+            string message,
+            Exception exception)
             : base(HttpStatusCode.BadRequest, message, exception)
         {
         }
 
         public BadRequestException(
-            string message
-            , Exception exception
-            , object additionalData)
+            string message,
+            Exception exception,
+            object additionalData)
             : base(HttpStatusCode.BadRequest, null, message, exception, additionalData)
         {
         }

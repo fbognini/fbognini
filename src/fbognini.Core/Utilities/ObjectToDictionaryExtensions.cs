@@ -15,11 +15,16 @@ namespace fbognini.Core.Utilities
         public static IDictionary<string, T> ToDictionary<T>(this object source)
         {
             if (source == null)
-                ThrowExceptionWhenSourceArgumentIsNull();
+            {
+                throw new ArgumentNullException("source", "Unable to convert object to a dictionary. The source object is null.");
+            }
 
             var dictionary = new Dictionary<string, T>();
             foreach (PropertyDescriptor property in TypeDescriptor.GetProperties(source))
+            {
                 AddPropertyToDictionary<T>(property, source, dictionary);
+            }
+
             return dictionary;
         }
 
@@ -27,17 +32,14 @@ namespace fbognini.Core.Utilities
         {
             object value = property.GetValue(source);
             if (IsOfType<T>(value))
+            {
                 dictionary.Add(property.Name, (T)value);
+            }
         }
 
         private static bool IsOfType<T>(object value)
         {
             return value is T;
-        }
-
-        private static void ThrowExceptionWhenSourceArgumentIsNull()
-        {
-            throw new ArgumentNullException("source", "Unable to convert object to a dictionary. The source object is null.");
         }
     }
 }

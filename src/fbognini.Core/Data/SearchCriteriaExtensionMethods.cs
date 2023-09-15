@@ -17,7 +17,7 @@ namespace fbognini.Core.Data
 {
     public static class SearchCriteriaExtensionMethods
     {
-        public static IQueryable<T> QuerySelect<T>(this IQueryable<T> query, SelectCriteria<T> criteria = null)
+        public static IQueryable<T> QuerySelect<T>(this IQueryable<T> query, SelectCriteria<T>? criteria = null)
             where T : class
         {
             if (criteria == null)
@@ -38,11 +38,11 @@ namespace fbognini.Core.Data
             return query;
         }
 
-        public static IQueryable<T> QuerySearch<T>(this IQueryable<T> query, SelectCriteria<T> criteria, out PaginationResult pagination)
+        public static IQueryable<T> QuerySearch<T>(this IQueryable<T> query, SelectCriteria<T> criteria, out PaginationResult? pagination)
             where T : class 
             => query.QueryPagination(criteria, out pagination);
 
-        public static IQueryable<T> QuerySearch<T>(this IQueryable<T> query, SearchCriteria<T> criteria, out PaginationResult pagination)
+        public static IQueryable<T> QuerySearch<T>(this IQueryable<T> query, SearchCriteria<T> criteria, out PaginationResult? pagination)
             where T : class, IAuditableEntity 
             => query.QueryPagination(criteria, out pagination);
 
@@ -127,7 +127,9 @@ namespace fbognini.Core.Data
         {
             var predicate = GetSearchPredicate(searchCriteria);
             if (predicate == null)
+            {
                 return query;
+            }
 
             return query.Where(predicate);
         }
@@ -252,14 +254,14 @@ namespace fbognini.Core.Data
                 case ExpressionType.LessThanOrEqual:
                 case ExpressionType.OrElse:
                     {
-                        BinaryExpression binaryExpression = expression as BinaryExpression;
+                        BinaryExpression binaryExpression = (expression as BinaryExpression)!;
                         WalkExpression(replacements, binaryExpression.Left);
                         WalkExpression(replacements, binaryExpression.Right);
                         break;
                     }
                 case ExpressionType.Call:
                     {
-                        MethodCallExpression methodCallExpression = expression as MethodCallExpression;
+                        MethodCallExpression methodCallExpression = (expression as MethodCallExpression)!;
                         foreach (Expression argument in methodCallExpression.Arguments)
                         {
                             WalkExpression(replacements, argument);
@@ -269,17 +271,19 @@ namespace fbognini.Core.Data
                     }
                 case ExpressionType.Lambda:
                     {
-                        LambdaExpression lambdaExpression = expression as LambdaExpression;
+                        LambdaExpression lambdaExpression = (expression as LambdaExpression)!;
                         WalkExpression(replacements, lambdaExpression.Body);
                         break;
                     }
             }
         }
 
-        private static Expression<Func<T, bool>> GetSearchPredicate<T>(IHasSearch<T> searchCriteria)
+        private static Expression<Func<T, bool>>? GetSearchPredicate<T>(IHasSearch<T> searchCriteria)
         {
             if (searchCriteria.Search == null || searchCriteria.Search.Keyword == null)
+            {
                 return null;
+            }
 
             var predicate = PredicateBuilder.New<T>(false);
 
@@ -299,7 +303,7 @@ namespace fbognini.Core.Data
 
             return predicate;
 
-            static LambdaExpression InnerSearch(Type type, string[] names, string keyword, int i = 0, ParameterExpression parameter = null, Expression property = null)
+            static LambdaExpression InnerSearch(Type type, string[] names, string keyword, int i = 0, ParameterExpression? parameter = null, Expression? property = null)
             {
                 if (parameter == null)
                 {

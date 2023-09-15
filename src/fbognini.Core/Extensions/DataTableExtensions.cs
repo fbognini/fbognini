@@ -48,7 +48,7 @@ namespace fbognini.Core.Extensions
                 else
                 {
                     // iterate through inner items
-                    foreach (object innerItem in innerList)
+                    foreach (var innerItem in innerList)
                     {
                         DataRow row = table.NewRow();
                         foreach (PropertyInfo pi in outerProperties)
@@ -64,6 +64,7 @@ namespace fbognini.Core.Extensions
         }
 
         public static DataTable ToDataTable<T>(this IEnumerable<T> list)
+            where T: notnull
         {
             DataTable dataTable = new DataTable();
 
@@ -75,7 +76,7 @@ namespace fbognini.Core.Extensions
                 dataTable.Columns.Add(new DataColumn(info.Name, Nullable.GetUnderlyingType(info.PropertyType) ?? info.PropertyType));
             }
 
-            foreach (T entity in list)
+            foreach (var entity in list)
             {
                 object[] values = new object[properties.Length];
 

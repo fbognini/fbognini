@@ -46,7 +46,7 @@ namespace fbognini.Core.Extensions
             return value.ToString("C0");
         }
 
-        public static string NullIfEmpty(this string str)
+        public static string? NullIfEmpty(this string? str)
         {
             return str?.Length == 0 ? null : str;
         }

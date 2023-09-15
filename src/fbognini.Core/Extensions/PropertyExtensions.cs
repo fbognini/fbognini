@@ -28,7 +28,6 @@ namespace fbognini.Core.Extensions
         public static IEnumerable<string> GetPropertyNames<T>(this Expression<Func<T, object>> expression, bool ignoreMethods = false)
         {
             var body = expression.Body as MemberExpression;
-
             if (body == null)
             {
                 body = ((UnaryExpression)expression.Body).Operand as MemberExpression;
@@ -38,7 +37,7 @@ namespace fbognini.Core.Extensions
         }
 
 
-        public static IEnumerable<string> GetPropertyNames(MemberExpression body, bool ignoreMethods)
+        public static IEnumerable<string> GetPropertyNames(MemberExpression? body, bool ignoreMethods)
         {
             var names = new List<string>();
 
@@ -54,7 +53,7 @@ namespace fbognini.Core.Extensions
                     case ExpressionType.Call:
                         if (ignoreMethods)
                         {
-                            var call = inner as MethodCallExpression;
+                            var call = (inner as MethodCallExpression)!;
                             body = call.Arguments[0] as MemberExpression;
                         }
                         else
@@ -117,11 +116,10 @@ namespace fbognini.Core.Extensions
             return property;
         }
 
-        public static T GetAttribute<T>(this MemberInfo member, bool isRequired)
+        public static T? GetAttribute<T>(this MemberInfo member, bool isRequired)
             where T : Attribute
         {
             var attribute = member.GetCustomAttributes(typeof(T), false).SingleOrDefault();
-
             if (attribute == null && isRequired)
             {
                 throw new ArgumentException(
@@ -132,16 +130,16 @@ namespace fbognini.Core.Extensions
                         member.Name));
             }
 
-            return (T)attribute;
+            return attribute as T;
         }
 
-        public static MemberInfo GetPropertyInformation(Expression propertyExpression)
+        public static MemberInfo? GetPropertyInformation(Expression propertyExpression)
         {
             Debug.Assert(propertyExpression != null, "propertyExpression != null");
-            MemberExpression memberExpr = propertyExpression as MemberExpression;
+            var memberExpr = propertyExpression as MemberExpression;
             if (memberExpr == null)
             {
-                UnaryExpression unaryExpr = propertyExpression as UnaryExpression;
+                var unaryExpr = propertyExpression as UnaryExpression;
                 if (unaryExpr != null && unaryExpr.NodeType == ExpressionType.Convert)
                 {
                     memberExpr = unaryExpr.Operand as MemberExpression;
@@ -199,7 +197,7 @@ namespace fbognini.Core.Extensions
             return false;
         }
 
-        public static List<(PropertyInfo Property, object Instance)> GetPropertiesWithAttribute<T>(object obj, bool recursive = false) where T : Attribute
+        public static List<(PropertyInfo Property, object Instance)> GetPropertiesWithAttribute<T>(object? obj, bool recursive = false) where T : Attribute
         {
             if (obj == null)
             {
@@ -285,8 +283,7 @@ namespace fbognini.Core.Extensions
         {
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
-                Type enumerableType = GetEnumerableGenericType(type);
-
+                var enumerableType = GetEnumerableGenericType(type);
                 if (enumerableType != null && IsSimpleType(enumerableType))
                 {
                     return true;
@@ -296,7 +293,7 @@ namespace fbognini.Core.Extensions
             return false;
         }
 
-        private static Type GetEnumerableGenericType(Type type)
+        private static Type? GetEnumerableGenericType(Type type)
         {
             if (type.IsGenericType)
             {

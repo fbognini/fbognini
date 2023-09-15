@@ -29,7 +29,7 @@ namespace fbognini.Core.Utilities
                 {
                     IList list = (IList)Activator.CreateInstance(property.PropertyType);
 
-                    foreach (var item in propertyValue as IEnumerable)
+                    foreach (var item in (propertyValue as IEnumerable)!)
                     {
                         var amount = ConvertAmount(item, rate);
                         list.Add(amount);

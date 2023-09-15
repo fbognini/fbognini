@@ -26,23 +26,23 @@ namespace fbognini.Core.Exceptions
         }
 
         public ConflictException(
-            string message
-            , object additionalData)
+            string message,
+            object additionalData)
             : base(HttpStatusCode.Conflict, message, additionalData)
         {
         }
 
         public ConflictException(
-            string message
-            , Exception exception)
+            string message, 
+            Exception exception)
             : base(HttpStatusCode.Conflict, message, exception)
         {
         }
 
         public ConflictException(
-            string message
-            , Exception exception
-            , object additionalData)
+            string message,
+            Exception exception,
+            object additionalData)
             : base(HttpStatusCode.Conflict, null, message, exception, additionalData)
         {
         }

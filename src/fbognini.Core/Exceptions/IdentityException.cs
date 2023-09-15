@@ -12,7 +12,7 @@ namespace fbognini.Core.Exceptions
         }
 
         public IdentityException(
-            string message, string title = null)
+            string message, string? title = null)
             : base(HttpStatusCode.Unauthorized, message, title ?? "You're not authorized.")
         {
 

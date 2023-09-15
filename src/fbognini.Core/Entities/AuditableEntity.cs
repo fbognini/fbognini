@@ -16,30 +16,30 @@ namespace fbognini.Core.Entities
 
     public interface IAuditableEntity: IEntity
     {
-        string CreatedBy { get; set; }
+        string? CreatedBy { get; set; }
 
         DateTime Created { get; set; }
 
-        string LastModifiedBy { get; set; }
+        string? LastModifiedBy { get; set; }
 
         DateTime? LastModified { get; set; }
 
-        string LastUpdatedBy { get; set; }
+        string? LastUpdatedBy { get; set; }
 
         DateTime LastUpdated { get; set; }
     }
 
     public abstract class AuditableEntity : IAuditableEntity
     {
-        public string CreatedBy { get; set; }
+        public string? CreatedBy { get; set; }
 
         public DateTime Created { get; set; }
 
-        public string LastModifiedBy { get; set; }
+        public string? LastModifiedBy { get; set; }
 
         public DateTime? LastModified { get; set; }
 
-        public string LastUpdatedBy { get; set; }
+        public string? LastUpdatedBy { get; set; }
 
         public DateTime LastUpdated { get; set; }
     }
@@ -47,7 +47,7 @@ namespace fbognini.Core.Entities
     public abstract class AuditableEntityWithIdentity<T> : AuditableEntity, IHasIdentity<T>
         where T : notnull
     {
-        public T Id { get; set; }
+        public T Id { get; set; } = default(T)!;
     }
 
     public abstract class AuditableEntityWithIdentity : AuditableEntityWithIdentity<int>
