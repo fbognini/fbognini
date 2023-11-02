@@ -17,7 +17,7 @@ namespace fbognini.Core.Extensions
         /// <summary>
         /// x => x.OrderLines.First().Product.RetailerId returns Product.RetailerId if ignoreMethods = false, otherwise OrderLines.Product.RetailerId
         /// </summary>
-        public static string GetPropertyPath<T>(this Expression<Func<T, object>> expression, bool ignoreMethods = false)
+        public static string GetPropertyPath<T>(this Expression<Func<T, object?>> expression, bool ignoreMethods = false)
         {
             return string.Join(".", expression.GetPropertyNames(ignoreMethods));
         }
@@ -25,7 +25,7 @@ namespace fbognini.Core.Extensions
         /// <summary>
         /// x => x.OrderLines.First().Product.RetailerId returns Product.RetailerId if ignoreMethods = false, otherwise OrderLines.Product.RetailerId
         /// </summary>
-        public static IEnumerable<string> GetPropertyNames<T>(this Expression<Func<T, object>> expression, bool ignoreMethods = false)
+        public static IEnumerable<string> GetPropertyNames<T>(this Expression<Func<T, object?>> expression, bool ignoreMethods = false)
         {
             var body = expression.Body as MemberExpression;
             if (body == null)

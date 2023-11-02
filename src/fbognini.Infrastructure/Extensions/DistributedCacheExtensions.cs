@@ -47,7 +47,12 @@ namespace fbognini.Infrastructure.Extensions
             return true;
         }
 
-        public static async Task<T?> GetOrSet<T>(this IDistributedCache cache, string key, Func<CancellationToken, Task<T>> get, DistributedCacheEntryOptions distributedCacheEntryOptions, CancellationToken cancellationToken)
+        public static Task<T?> GetOrSetAsync<T>(this IDistributedCache cache, string key, Func<CancellationToken, Task<T>> get, CancellationToken cancellationToken = default)
+        {
+            return cache.GetOrSetAsync(key, get, new DistributedCacheEntryOptions(), cancellationToken);
+        }
+
+        public static async Task<T?> GetOrSetAsync<T>(this IDistributedCache cache, string key, Func<CancellationToken, Task<T>> get, DistributedCacheEntryOptions distributedCacheEntryOptions, CancellationToken cancellationToken = default)
         {
             if (!cache.TryGetValue<T>(key, out var entity))
             {
@@ -68,7 +73,7 @@ namespace fbognini.Infrastructure.Extensions
             return new JsonSerializerOptions()
             {
                 PropertyNamingPolicy = null,
-                WriteIndented = true,
+                WriteIndented = false,
                 AllowTrailingCommas = true,
                 ReferenceHandler = ReferenceHandler.IgnoreCycles
             };

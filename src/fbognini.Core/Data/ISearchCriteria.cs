@@ -25,7 +25,7 @@ namespace fbognini.Core.Data
             }
         }
 
-        List<Expression<Func<TEntity, object>>> Includes { get; }
+        List<Expression<Func<TEntity, object?>>> Includes { get; }
         List<string> IncludeStrings { get; }
     }
 
