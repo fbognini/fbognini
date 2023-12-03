@@ -15,7 +15,18 @@ namespace fbognini.Infrastructure.Repositorys
 {
     public interface IRepositoryAsync
     {
-        IQueryable<T> GetQueryable<T>(SelectArgs<T>? criteria = null) where T : class, IEntity;
+
+        IQueryable<T> GetQueryable<T, TPK>(SelectArgs<T, TPK>? criteria = null)
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull;
+
+        IQueryable<T> GetQueryableById<T, TPK>(TPK key, SelectArgs<T>? args = null)
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull;
+        IQueryable<T> GetQueryableByName<T>(string name, SelectArgs<T>? args = null) where T : class, IEntity, IHaveName;
+        IQueryable<T> GetQueryableBySlug<T>(string slug, SelectArgs<T>? args = null) where T : class, IEntity, IHaveSlug;
+
+        IQueryable<T> GetQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity;
 
         #region Create
         T Create<T>(T entity) where T : class, IEntity;
@@ -54,36 +65,24 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region GetById
 
-        Task<T?> GetByIdAsync<T, TPK>(TPK id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
+        Task<T?> GetByIdAsync<T, TPK>(SelectArgs<T, TPK> args, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<TPK>
             where TPK : notnull;
 
-        Task<TResult?> GetByIdAsync<T, TPK, TResult>(TPK id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
+        Task<T?> GetByIdAsync<T, TPK>(TPK id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<TPK>
             where TPK : notnull;
 
         Task<T?> GetByIdAsync<T>(int id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<int>;
 
-        Task<TResult?> GetByIdAsync<T, TResult>(int id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
-            where T : class, IHasIdentity<int>;
-
         Task<T?> GetByIdAsync<T>(long id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
-            where T : class, IHasIdentity<long>;
-
-        Task<TResult?> GetByIdAsync<T, TResult>(long id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<long>;
 
         Task<T?> GetByIdAsync<T>(string id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<string>;
 
-        Task<TResult?> GetByIdAsync<T, TResult>(string id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
-            where T : class, IHasIdentity<string>;
-
         Task<T?> GetByIdAsync<T>(Guid id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
-            where T : class, IHasIdentity<Guid>;
-
-        Task<TResult?> GetByIdAsync<T, TResult>(Guid id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<Guid>;
 
         #endregion
@@ -93,17 +92,11 @@ namespace fbognini.Infrastructure.Repositorys
         Task<T?> GetByNameAsync<T>(string slug, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IEntity, IHaveName;
 
-        Task<TResult?> GetByNameAsync<T, TResult>(string name, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
-            where T : class, IEntity, IHaveName;
-
         #endregion
 
         #region GetBySlug
 
         Task<T?> GetBySlugAsync<T>(string slug, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
-            where T : class, IEntity, IHaveSlug;
-
-        Task<TResult?> GetBySlugAsync<T, TResult>(string slug, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IEntity, IHaveSlug;
 
         #endregion

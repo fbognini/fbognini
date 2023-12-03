@@ -34,9 +34,35 @@ namespace fbognini.Infrastructure.Repositorys
             this.logger = logger;
         }
 
-        public IQueryable<T> GetQueryable<T>(SelectArgs<T>? criteria = null) where T : class, IEntity
+        public IQueryable<T> GetQueryable<T, TPK>(SelectArgs<T, TPK>? args = null)
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull
         {
-            return GetPrivateQueryable<T>(criteria);
+            return GetPrivateQueryable(args);
+        }
+
+        public IQueryable<T> GetQueryableById<T, TPK>(TPK key, SelectArgs<T>? args = null)
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull
+        {
+            return GetPrivateQueryableById(key, args);
+        }
+
+        public IQueryable<T> GetQueryableByName<T>(string name, SelectArgs<T>? args = null)
+            where T : class, IEntity, IHaveName
+        {
+            return GetPrivateQueryableByName(name, args);
+        }
+
+        public IQueryable<T> GetQueryableBySlug<T>(string slug, SelectArgs<T>? args = null)
+            where T : class, IEntity, IHaveSlug
+        {
+            return GetPrivateQueryableBySlug(slug, args);
+        }
+
+        public IQueryable<T> GetQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity
+        {
+            return GetPrivateQueryable(criteria);
         }
 
         #region Create
@@ -156,19 +182,23 @@ namespace fbognini.Infrastructure.Repositorys
 
         #region GetById
 
+        public async Task<T?> GetByIdAsync<T, TPK>(SelectArgs<T, TPK> args, CancellationToken cancellationToken = default)
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull
+        {
+            return PostProcessing(await GetPrivateQueryable(args).FirstOrDefaultAsync(cancellationToken: cancellationToken), args.Id!, args);
+        }
+
         public async Task<T?> GetByIdAsync<T, TPK>(TPK id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IHasIdentity<TPK>
             where TPK : notnull
         {
-            return await GetByIdAsync(id, x => x, args, cancellationToken);
-        }
+            var argsWithId = new SelectArgs<T, TPK>(args)
+            {
+                Id = id
+            };
 
-        public async Task<TResult?> GetByIdAsync<T, TPK, TResult>(TPK id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
-            where T : class, IHasIdentity<TPK>
-            where TPK : notnull
-        {
-            var query = context.Set<T>().QueryArgs(args).Where(x => x.Id.Equals(id)).Take(1).Select(select);
-            return PostProcessing(await query.FirstOrDefaultAsync(cancellationToken: cancellationToken), id, args);
+            return await GetByIdAsync(argsWithId, cancellationToken);
         }
 
         public async Task<T?> GetByIdAsync<T>(int id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>
@@ -176,19 +206,9 @@ namespace fbognini.Infrastructure.Repositorys
             return await GetByIdAsync<T, int>(id, args, cancellationToken);
         }
 
-        public async Task<TResult?> GetByIdAsync<T, TResult>(int id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<int>
-        {
-            return await GetByIdAsync<T, int, TResult>(id, select, args, cancellationToken);
-        }
-
         public async Task<T?> GetByIdAsync<T>(long id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>
         {
             return await GetByIdAsync<T, long>(id, args, cancellationToken);
-        }
-
-        public async Task<TResult?> GetByIdAsync<T, TResult>(long id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<long>
-        {
-            return await GetByIdAsync<T, long, TResult>(id, select, args, cancellationToken);
         }
 
         public async Task<T?> GetByIdAsync<T>(string id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>
@@ -196,19 +216,9 @@ namespace fbognini.Infrastructure.Repositorys
             return await GetByIdAsync<T, string>(id, args, cancellationToken);
         }
 
-        public async Task<TResult?> GetByIdAsync<T, TResult>(string id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<string>
-        {
-            return await GetByIdAsync<T, string, TResult>(id, select, args, cancellationToken);
-        }
-
         public async Task<T?> GetByIdAsync<T>(Guid id, SelectArgs<T>? args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>
         {
             return await GetByIdAsync<T, Guid>(id, args, cancellationToken);
-        }
-
-        public async Task<TResult?> GetByIdAsync<T, TResult>(Guid id, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default) where T : class, IHasIdentity<Guid>
-        {
-            return await GetByIdAsync<T, Guid, TResult>(id, select, args, cancellationToken);
         }
 
         #endregion
@@ -218,14 +228,7 @@ namespace fbognini.Infrastructure.Repositorys
         public async Task<T?> GetBySlugAsync<T>(string slug, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IEntity, IHaveSlug
         {
-            return await GetBySlugAsync(slug, x => x, args, cancellationToken);
-        }
-
-        public async Task<TResult?> GetBySlugAsync<T, TResult>(string slug, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
-            where T : class, IEntity, IHaveSlug
-        {
-            var query = context.Set<T>().QueryArgs(args).Where(x => x.Slug.Equals(slug)).Take(1).Select(select);
-            return PostProcessing(await query.FirstOrDefaultAsync(cancellationToken: cancellationToken), slug, args);
+            return PostProcessing(await GetPrivateQueryableBySlug(slug, args).FirstOrDefaultAsync(cancellationToken: cancellationToken), slug, args);
         }
 
         #endregion
@@ -235,14 +238,7 @@ namespace fbognini.Infrastructure.Repositorys
         public async Task<T?> GetByNameAsync<T>(string name, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
             where T : class, IEntity, IHaveName
         {
-            return await GetByNameAsync(name, x => x, args, cancellationToken);
-        }
-
-        public async Task<TResult?> GetByNameAsync<T, TResult>(string name, Expression<Func<T, TResult>> select, SelectArgs<T>? args = null, CancellationToken cancellationToken = default)
-            where T : class, IEntity, IHaveName
-        {
-            var query = context.Set<T>().QueryArgs(args).Where(x => x.Name.Equals(name)).Take(1).Select(select);
-            return PostProcessing(await query.FirstOrDefaultAsync(cancellationToken: cancellationToken), name, args);
+            return PostProcessing(await GetPrivateQueryableByName(name, args).FirstOrDefaultAsync(cancellationToken: cancellationToken), name, args);
         }
 
         #endregion
@@ -335,18 +331,30 @@ namespace fbognini.Infrastructure.Repositorys
             return await GetNotTrackedQueryable(criteria).LongCountAsync(cancellationToken);
         }
 
-        private IQueryable<T> GetPrivateQueryable<T>(SelectArgs<T>? args = null)
-            where T : class, IEntity
-        {
-            var query = context.Set<T>().QueryArgs(args);
 
-            if (args is SelectCriteria<T> criteria)
-            {
-                query = query.QuerySelect(criteria);
-            }
+        private IQueryable<T> GetPrivateQueryable<T>(SelectArgs<T>? args = null) where T : class
+            => context.Set<T>().QueryArgs(args);
 
-            return query;
-        } 
+        private IQueryable<T> GetPrivateQueryableById<T, TPK>(TPK? id, SelectArgs<T>? args = null)
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull
+            => id is null
+            ? GetPrivateQueryable(args).Take(1)
+            : GetPrivateQueryable(args).Where(x => x.Id.Equals(id)).Take(1);
+
+        private IQueryable<T> GetPrivateQueryable<T, TPK>(SelectArgs<T, TPK>? args = null) 
+            where T : class, IHasIdentity<TPK>
+            where TPK : notnull
+            => GetPrivateQueryableById(args is null ? default : args.Id, args);
+
+        private IQueryable<T> GetPrivateQueryableByName<T>(string name, SelectArgs<T>? args = null) where T : class, IHaveName
+            => GetPrivateQueryable(args).Where(x => x.Name.Equals(name)).Take(1);
+
+        private IQueryable<T> GetPrivateQueryableBySlug<T>(string slug, SelectArgs<T>? args = null) where T : class, IHaveSlug
+            => GetPrivateQueryable(args).Where(x => x.Slug.Equals(slug)).Take(1);
+
+        private IQueryable<T> GetPrivateQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity 
+            => GetPrivateQueryable(criteria).QuerySelect(criteria);
 
         private IQueryable<T> GetTrackedQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity
         {

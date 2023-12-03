@@ -17,25 +17,6 @@ namespace fbognini.Core.Data
 {
     public static class SearchCriteriaExtensionMethods
     {
-        public static IQueryable<T> QueryId<T, TKey>(this IQueryable<T> query, SelectArgs<T, TKey>? args = null)
-            where T : IHaveId<TKey>
-            where TKey: notnull
-        {
-            if (args == null)
-            {
-                return query;
-            }
-
-            if (args.Id is null)
-            {
-                return query;
-            }
-
-            query = query.Where(x => x.Id.Equals(args.Id));
-
-            return query;
-        }
-
         public static IQueryable<T> QuerySelect<T>(this IQueryable<T> query, SelectCriteria<T>? criteria = null)
             where T : class
         {

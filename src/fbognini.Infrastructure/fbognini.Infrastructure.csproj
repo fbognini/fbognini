@@ -2,8 +2,8 @@
 
 	<PropertyGroup>
 		<PackageId>fbognini.Infrastructure</PackageId>
-		<TargetFrameworks>net7.0;net6.0</TargetFrameworks>
-		<Version>9.0.2</Version>
+		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+		<Version>9.1.0</Version>
 		<Authors>Francesco Bognini</Authors>
 		<Company>Francesco Bognini</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -15,7 +15,7 @@
 
 	<ItemGroup>
 
-		<PackageReference Include="fbognini.Core" Version="9.0.1" />
+		<PackageReference Include="fbognini.Core" Version="9.1.0" />
 
 		<PackageReference Include="Nager.PublicSuffix" Version="2.4.0" />
 		<PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="6.11.0" />
