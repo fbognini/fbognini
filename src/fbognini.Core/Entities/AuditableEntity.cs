@@ -8,10 +8,9 @@ namespace fbognini.Core.Entities
 
     }
 
-    public interface IHasIdentity<T> : IEntity
+    public interface IHasIdentity<T> : IHaveId<T>, IEntity
         where T : notnull
     {
-        public T Id { get; set; }
     }
 
     public interface IAuditableEntity: IEntity

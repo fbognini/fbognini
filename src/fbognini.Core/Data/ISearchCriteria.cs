@@ -8,10 +8,6 @@ using System.Text;
 
 namespace fbognini.Core.Data
 {
-    public interface IArgs
-    {
-    }
-
     public interface IHasViews<TEntity>
     {
         List<string> AllIncludes

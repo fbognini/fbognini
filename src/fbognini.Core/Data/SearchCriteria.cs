@@ -8,21 +8,6 @@ using System.Linq.Expressions;
 
 namespace fbognini.Core.Data
 {
-
-    public abstract class BaseSelectArgs
-    {
-        public abstract bool Track { get; set; }
-        public bool ThrowExceptionIfNull { get; set; } = false;
-
-    }
-
-    public class SelectArgs<TEntity> : BaseSelectArgs, IHasViews<TEntity>, IArgs
-    {
-        public override bool Track { get; set; } = true;
-        public List<Expression<Func<TEntity, object?>>> Includes { get; } = new List<Expression<Func<TEntity, object?>>>();
-        public List<string> IncludeStrings { get; } = new List<string>();
-    }
-
     public class SelectCriteria<TEntity> : SelectArgs<TEntity>, IHasFilter<TEntity>, IHasSearch<TEntity>, IHasSorting, IHasOffset
     {
         public SelectCriteria()
