@@ -15,7 +15,7 @@ namespace fbognini.Infrastructure.Repositorys
 {
     public interface IRepositoryAsync
     {
-        IQueryable<T> GetQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity;
+        IQueryable<T> GetQueryable<T>(SelectArgs<T>? criteria = null) where T : class, IEntity;
 
         #region Create
         T Create<T>(T entity) where T : class, IEntity;

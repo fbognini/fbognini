@@ -34,7 +34,7 @@ namespace fbognini.Infrastructure.Repositorys
             this.logger = logger;
         }
 
-        public IQueryable<T> GetQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity
+        public IQueryable<T> GetQueryable<T>(SelectArgs<T>? criteria = null) where T : class, IEntity
         {
             return GetPrivateQueryable<T>(criteria);
         }
@@ -335,7 +335,18 @@ namespace fbognini.Infrastructure.Repositorys
             return await GetNotTrackedQueryable(criteria).LongCountAsync(cancellationToken);
         }
 
-        private IQueryable<T> GetPrivateQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity => context.Set<T>().QuerySelect(criteria).QueryArgs(criteria);
+        private IQueryable<T> GetPrivateQueryable<T>(SelectArgs<T>? args = null)
+            where T : class, IEntity
+        {
+            var query = context.Set<T>().QueryArgs(args);
+
+            if (args is SelectCriteria<T> criteria)
+            {
+                query = query.QuerySelect(criteria);
+            }
+
+            return query;
+        } 
 
         private IQueryable<T> GetTrackedQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity
         {
