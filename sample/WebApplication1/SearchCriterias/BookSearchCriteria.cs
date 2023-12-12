@@ -7,9 +7,9 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebApplication1.Application.SearchCriterias
+namespace WebApplication1.SearchCriterias
 {
-    public class BookSearchCriteria: SearchCriteria<Book>
+    public class BookSearchCriteria : SearchCriteria<Book>
     {
         public string? Title { get; set; }
 

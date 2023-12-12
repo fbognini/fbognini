@@ -3,12 +3,11 @@ using EFCore.BulkExtensions;
 using fbognini.Core.Data;
 using fbognini.Infrastructure.Multitenancy;
 using Microsoft.AspNetCore.Http.Json;
-using Microsoft.AspNetCore.OutputCaching;
 using System.Text.Json.Serialization;
-using WebApplication1.Application.SearchCriterias;
 using WebApplication1.Domain.Entities;
 using WebApplication1.Infrastructure.Extensions;
 using WebApplication1.Infrastructure.Repositorys;
+using WebApplication1.SearchCriterias;
 
 var builder = WebApplication.CreateBuilder(args);
 

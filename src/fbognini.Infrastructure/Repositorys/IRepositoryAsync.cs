@@ -23,6 +23,11 @@ namespace fbognini.Infrastructure.Repositorys
         IQueryable<T> GetQueryableById<T, TPK>(TPK key, SelectArgs<T>? args = null)
             where T : class, IHasIdentity<TPK>
             where TPK : notnull;
+        IQueryable<T> GetQueryableById<T>(int id, SelectArgs<T>? args = null) where T : class, IHasIdentity<int>;
+        IQueryable<T> GetQueryableById<T>(long id, SelectArgs<T>? args = null) where T : class, IHasIdentity<long>;
+        IQueryable<T> GetQueryableById<T>(string id, SelectArgs<T>? args = null) where T : class, IHasIdentity<string>;
+        IQueryable<T> GetQueryableById<T>(Guid id, SelectArgs<T>? args = null) where T : class, IHasIdentity<Guid>;
+
         IQueryable<T> GetQueryableByName<T>(string name, SelectArgs<T>? args = null) where T : class, IEntity, IHaveName;
         IQueryable<T> GetQueryableBySlug<T>(string slug, SelectArgs<T>? args = null) where T : class, IEntity, IHaveSlug;
 

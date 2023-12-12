@@ -7,9 +7,9 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebApplication1.Application.SearchCriterias
+namespace WebApplication1.SearchCriterias
 {
-    public class AuthorSearchCriteria: SearchCriteria<Author>
+    public class AuthorSearchCriteria : SearchCriteria<Author>
     {
         public string? LastName { get; set; }
 

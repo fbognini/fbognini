@@ -41,11 +41,35 @@ namespace fbognini.Infrastructure.Repositorys
             return GetPrivateQueryable(args);
         }
 
-        public IQueryable<T> GetQueryableById<T, TPK>(TPK key, SelectArgs<T>? args = null)
+        public IQueryable<T> GetQueryableById<T, TPK>(TPK id, SelectArgs<T>? args = null)
             where T : class, IHasIdentity<TPK>
             where TPK : notnull
         {
-            return GetPrivateQueryableById(key, args);
+            return GetPrivateQueryableById(id, args);
+        }
+
+        public IQueryable<T> GetQueryableById<T>(int id, SelectArgs<T>? args = null)
+            where T : class, IHasIdentity<int>
+        {
+            return GetPrivateQueryableById(id, args);
+        }
+
+        public IQueryable<T> GetQueryableById<T>(long id, SelectArgs<T>? args = null)
+            where T : class, IHasIdentity<long>
+        {
+            return GetPrivateQueryableById(id, args);
+        }
+
+        public IQueryable<T> GetQueryableById<T>(string id, SelectArgs<T>? args = null)
+            where T : class, IHasIdentity<string>
+        {
+            return GetPrivateQueryableById(id, args);
+        }
+
+        public IQueryable<T> GetQueryableById<T>(Guid id, SelectArgs<T>? args = null)
+            where T : class, IHasIdentity<Guid>
+        {
+            return GetPrivateQueryableById(id, args);
         }
 
         public IQueryable<T> GetQueryableByName<T>(string name, SelectArgs<T>? args = null)
@@ -354,7 +378,7 @@ namespace fbognini.Infrastructure.Repositorys
             => GetPrivateQueryable(args).Where(x => x.Slug.Equals(slug)).Take(1);
 
         private IQueryable<T> GetPrivateQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity 
-            => GetPrivateQueryable(criteria).QuerySelect(criteria);
+            => GetPrivateQueryable(criteria as SelectArgs<T>).QuerySelect(criteria);
 
         private IQueryable<T> GetTrackedQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity
         {
