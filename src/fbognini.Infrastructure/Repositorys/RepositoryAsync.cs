@@ -119,7 +119,7 @@ namespace fbognini.Infrastructure.Repositorys
         {
             if (entities.First() is IAuditableEntity)
             {
-                foreach (var entry in entities.Cast<AuditableEntity>())
+                foreach (var entry in entities.Cast<IAuditableEntity>())
                 {
                     entry.FillAuditablePropertysAdded(context);
                 }
@@ -132,7 +132,7 @@ namespace fbognini.Infrastructure.Repositorys
         {
             if (entities.First() is IAuditableEntity)
             {
-                foreach (var entry in entities.Cast<AuditableEntity>())
+                foreach (var entry in entities.Cast<IAuditableEntity>())
                 {
                     entry.FillAuditablePropertysAdded(context);
                     entry.FillAuditablePropertysModified(context);
@@ -152,7 +152,7 @@ namespace fbognini.Infrastructure.Repositorys
         {
             if (entities.First() is IAuditableEntity)
             {
-                foreach (var entry in entities.Cast<AuditableEntity>())
+                foreach (var entry in entities.Cast<IAuditableEntity>())
                 {
                     entry.FillAuditablePropertysAdded(context);
                     entry.FillAuditablePropertysModified(context);
@@ -410,7 +410,7 @@ namespace fbognini.Infrastructure.Repositorys
         {
             if (entities.First() is IAuditableEntity)
             {
-                foreach (var entry in entities.Cast<AuditableEntity>())
+                foreach (var entry in entities.Cast<IAuditableEntity>())
                 {
                     entry.FillAuditablePropertysModified(context);
                 }
