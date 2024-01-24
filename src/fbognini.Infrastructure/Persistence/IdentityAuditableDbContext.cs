@@ -18,14 +18,14 @@ namespace fbognini.Infrastructure.Persistence
         where TKey : IEquatable<TKey>
     {
         private readonly ICurrentUserService currentUserService;
-        private readonly ITenantInfo currentTenant;
+        private readonly ITenantInfo? currentTenant;
 
         protected readonly string authschema;
 
         public IdentityAuditableDbContext(
             DbContextOptions<TContext> options,
             ICurrentUserService currentUserService,
-            ITenantInfo currentTenant,
+            ITenantInfo? currentTenant = null,
             string authschema = "auth")
             : base(options)
         {
@@ -35,9 +35,10 @@ namespace fbognini.Infrastructure.Persistence
         }
 
         public DbSet<Audit> AuditTrails { get; set; }
-        public string UserId => currentUserService.UserId;
+
+        public string? UserId => currentUserService.UserId;
         public DateTime Timestamp => DateTime.Now;
-        public string Tenant => currentTenant.Name;
+        public string? Tenant => currentTenant?.Id;
         public string? ConnectionString => currentTenant?.ConnectionString;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

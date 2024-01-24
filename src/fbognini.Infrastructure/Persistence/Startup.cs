@@ -20,15 +20,21 @@ namespace fbognini.Infrastructure.Persistence
 
             return services
                 .Configure<DatabaseSettings>(configuration.GetSection(nameof(DatabaseSettings)))
-                .AddDbContext<T>(m => {
-                    m.UseSqlServer(databaseSettings.ConnectionString);
-                    m.UseQueryTrackingBehavior(databaseSettings.TrackingBehavior);
-                })
+                .AddDbContextFactory<T>(GetContextOptionBuilder, lifetime: ServiceLifetime.Scoped)
                 .AddTransient<ApplicationDatabaseInitializer<T>>()
                 .AddImplementations(typeof(ICustomSeeder<T>), ServiceLifetime.Transient)
                 .AddTransient<ApplicationSeederRunner<T>>()
                 .AddTransient<IConnectionStringSecurer, ConnectionStringSecurer>()
                 .AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
+
+            void GetContextOptionBuilder(DbContextOptionsBuilder contextOptions)
+            {
+                contextOptions.UseSqlServer(databaseSettings.ConnectionString, providerOptions =>
+                {
+
+                });
+                contextOptions.UseQueryTrackingBehavior(databaseSettings.TrackingBehavior);
+            }
         }
 
         public static IServiceCollection AddPersistence<T, TTenantContext, TTenant>(this IServiceCollection services, IConfiguration configuration)

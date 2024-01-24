@@ -13,12 +13,12 @@ namespace fbognini.Infrastructure.Persistence
         where T : DbContext
     {
         private readonly ICurrentUserService currentUserService;
-        private readonly ITenantInfo currentTenant;
+        private readonly ITenantInfo? currentTenant;
 
         public AuditableDbContext(
             DbContextOptions<T> options,
             ICurrentUserService currentUserService,
-            ITenantInfo currentTenant)
+            ITenantInfo? currentTenant = null)
             : base(options)
         {
             this.currentUserService = currentUserService;
@@ -26,9 +26,10 @@ namespace fbognini.Infrastructure.Persistence
         }
 
         public DbSet<Audit> AuditTrails { get; set; }
-        public string UserId => currentUserService.UserId;
+
+        public string? UserId => currentUserService.UserId;
         public DateTime Timestamp => DateTime.Now;
-        public string Tenant => currentTenant.Id;
+        public string? Tenant => currentTenant?.Id;
         public string? ConnectionString => currentTenant?.ConnectionString;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -3,6 +3,7 @@ using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -25,7 +26,8 @@ namespace fbognini.Infrastructure.Extensions
         public static void ApplyConfigurationsAndFilters(this ModelBuilder builder, IBaseDbContext context)
         {
             builder.ApplyConfigurationsFromAssembly(context.GetType().GetTypeInfo().Assembly);
-            builder.ApplyGlobalFilters<IHaveTenant>(b => EF.Property<string>(b, nameof(IHaveTenant.Tenant)) == context.Tenant);
+
+            builder.ApplyGlobalFilters<IHaveTenant>(b => string.IsNullOrWhiteSpace(context.Tenant) || EF.Property<string>(b, nameof(IHaveTenant.Tenant)) == context.Tenant);
             builder.ApplyGlobalFilters<ISoftDelete>(s => s.Deleted == null);
         }
 
@@ -74,6 +76,24 @@ namespace fbognini.Infrastructure.Extensions
             }
         }
 
+        private static void FillTenantProperty<TContext>(this TContext context)
+            where TContext : DbContext, IBaseDbContext
+        {
+            if (string.IsNullOrWhiteSpace(context.Tenant))
+            {
+                return;
+            }
+
+            foreach (var entry in context.ChangeTracker.Entries<IHaveTenant>())
+            {
+                if ((entry.State == EntityState.Added || entry.State == EntityState.Modified) && 
+                    string.IsNullOrWhiteSpace(entry.Entity.Tenant))
+                {
+                    entry.Entity.Tenant = context.Tenant;
+                }
+            }
+        }
+
 
         public static void FillAuditablePropertysAdded(this IAuditableEntity entity, IBaseDbContext context)
         {
@@ -99,6 +119,7 @@ namespace fbognini.Infrastructure.Extensions
             where TContext : DbContext, IBaseDbContext
         {
             context.FillAuditablePropertys();
+            context.FillTenantProperty();
 
             if (context.UserId == null)
             {

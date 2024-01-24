@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Repositorys
 {
-    public class RepositoryAsync<TContext> : IRepositoryAsync
+    public class RepositoryAsync<TContext> : IRepositoryAsync, IDisposable
         where TContext : DbContext, IBaseDbContext
     {
         private readonly TContext context;
@@ -28,9 +28,9 @@ namespace fbognini.Infrastructure.Repositorys
         protected readonly Hashtable repositorys = new();
         protected ILogger<RepositoryAsync<TContext>> logger;
 
-        public RepositoryAsync(TContext context, ILogger<RepositoryAsync<TContext>> logger)
+        public RepositoryAsync(IDbContextFactory<TContext> context, ILogger<RepositoryAsync<TContext>> logger)
         {
-            this.context = context;
+            this.context = context.CreateDbContext();
             this.logger = logger;
         }
 
@@ -621,7 +621,8 @@ namespace fbognini.Infrastructure.Repositorys
             return context.LoadStoredProc(name, prependDefaultSchema, commandTimeout);
         }
 
-        
+        public void Dispose() => context.Dispose();
+
 
         private static T PostProcessing<T>(T result, object key, BaseSelectArgs? args = null)
         {

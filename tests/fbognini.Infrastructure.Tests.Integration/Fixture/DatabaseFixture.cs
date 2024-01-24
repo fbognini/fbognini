@@ -19,12 +19,17 @@ namespace fbognini.Infrastructure.Tests.Integration.Fixture;
 
 public class DatabaseFixture : IDisposable
 {
+    private readonly ICurrentUserService currentUserService = new IntegrationTestsCurrentUserService();
+    private readonly ITenantInfo tenantInfo = new TenantInfo();
+
     public DbContextOptions<IntegrationTestsDbContext> DbContextOptions { get; }
     public string ConnectionString { get; }
 
-    public IntegrationTestsDbContext DbContext => new (DbContextOptions, new IntegrationTestsCurrentUserService(), new TenantInfo());
+    public IDbContextFactory<IntegrationTestsDbContext> DbContextFactory => new IntegrationTestsDbContextFactory(DbContextOptions, currentUserService, tenantInfo);
 
-    public RepositoryAsync<IntegrationTestsDbContext> Repository => new(DbContext, Substitute.For<ILogger<RepositoryAsync<IntegrationTestsDbContext>>>());
+    public IntegrationTestsDbContext DbContext => new (DbContextOptions, currentUserService, tenantInfo);
+
+    public RepositoryAsync<IntegrationTestsDbContext> Repository => new(DbContextFactory, Substitute.For<ILogger<RepositoryAsync<IntegrationTestsDbContext>>>());
 
     public DatabaseFixture()
     {
