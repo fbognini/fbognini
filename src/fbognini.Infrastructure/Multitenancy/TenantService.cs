@@ -18,19 +18,19 @@ namespace fbognini.Infrastructure.Multitenancy
     {
         private readonly IMultiTenantStore<TTenant> tenantStore;
         private readonly IConnectionStringSecurer csSecurer;
-        private readonly IMultiTenantDatabaseInitializer dbInitializer;
         private readonly DatabaseSettings dbSettings;
+        private readonly IMultiTenantDatabaseInitializer<TTenant>? dbInitializer;
 
         public TenantService(
             IMultiTenantStore<TTenant> tenantStore,
             IConnectionStringSecurer csSecurer,
-            IMultiTenantDatabaseInitializer dbInitializer,
-            IOptions<DatabaseSettings> dbSettings)
+            IOptions<DatabaseSettings> dbSettings,
+            IMultiTenantDatabaseInitializer<TTenant>? dbInitializer = null)
         {
             this.tenantStore = tenantStore;
             this.csSecurer = csSecurer;
-            this.dbInitializer = dbInitializer;
             this.dbSettings = dbSettings.Value;
+            this.dbInitializer = dbInitializer;
         }
 
         public async Task<List<TTenant>> GetAllAsync()
@@ -72,15 +72,19 @@ namespace fbognini.Infrastructure.Multitenancy
 
             await tenantStore.TryAddAsync(tenant);
 
-            // TODO: run this in a hangfire job? will then have to send mail when it's ready or not
-            try
+
+            if (dbInitializer is not null)
             {
-                await dbInitializer.InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
-            }
-            catch
-            {
-                await tenantStore.TryRemoveAsync(request.Identifier);
-                throw;
+                // TODO: run this in a hangfire job? will then have to send mail when it's ready or not
+                try
+                {
+                    await dbInitializer.InitializeApplicationDbForTenantAsync(tenant, cancellationToken);
+                }
+                catch
+                {
+                    await tenantStore.TryRemoveAsync(request.Identifier);
+                    throw;
+                }
             }
 
             return tenant.Id.ToString();

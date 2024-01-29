@@ -4,9 +4,8 @@ namespace fbognini.Infrastructure.Multitenancy
 {
     public class DatabaseSettings
     {
-        public string DBProvider { get; set; }
-        public string ConnectionString { get; set; }
+        public string? DBProvider { get; set; }
+        public string? ConnectionString { get; set; }
         public QueryTrackingBehavior TrackingBehavior { get; set; }
-        public bool UseFakeMultitenancy { get; set; }
     }
 }

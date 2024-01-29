@@ -12,14 +12,27 @@ namespace fbognini.Infrastructure.Persistence
 {
     public static class Startup
     {
-        private static IServiceCollection AddBasePersistence<T, TTenant>(this IServiceCollection services, IConfiguration configuration)
+        private static IServiceCollection AddBasePersistence<T>(this IServiceCollection services, IConfiguration configuration)
             where T : DbContext
-            where TTenant : Tenant, new()
         {
-            var databaseSettings = configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
+            // TODO: We should probably add specific dbprovider/connectionstring setting for the tenantDb with a fallback to the main databasesettings
+            var databaseSection = configuration.GetSection(nameof(DatabaseSettings));
+            var databaseSettings = databaseSection.Get<DatabaseSettings>();
+
+            var connectionString = databaseSettings.ConnectionString;
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("DB ConnectionString is not configured.");
+            }
+            
+            var dbProvider = databaseSettings.DBProvider;
+            if (string.IsNullOrEmpty(dbProvider))
+            {
+                throw new InvalidOperationException("DB Provider is not configured.");
+            }
 
             return services
-                .Configure<DatabaseSettings>(configuration.GetSection(nameof(DatabaseSettings)))
+                .Configure<DatabaseSettings>(databaseSection)
                 .AddDbContextFactory<T>(GetContextOptionBuilder, lifetime: ServiceLifetime.Scoped)
                 .AddTransient<ApplicationDatabaseInitializer<T>>()
                 .AddImplementations(typeof(ICustomSeeder<T>), ServiceLifetime.Transient)
@@ -29,7 +42,7 @@ namespace fbognini.Infrastructure.Persistence
 
             void GetContextOptionBuilder(DbContextOptionsBuilder contextOptions)
             {
-                contextOptions.UseSqlServer(databaseSettings.ConnectionString, providerOptions =>
+                contextOptions.UseSqlServer(connectionString, providerOptions =>
                 {
 
                 });
@@ -42,36 +55,22 @@ namespace fbognini.Infrastructure.Persistence
             where TTenantContext : TenantDbContext<TTenant>
             where TTenant : Tenant, new()
         {
-            var databaseSettings = configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
-            if (databaseSettings.UseFakeMultitenancy)
+            services.AddDbContext<TTenantContext>(m => 
             {
-                throw new ArgumentException($"Cannot use {typeof(TTenantContext).Name} as TenantDbContext if UseFakeMultitenancy is enabled");
-            }
+                m.UseSqlServer(configuration["DatabaseSettings:ConnectionString"]);
+            });
+
 
             return services
-                .AddBasePersistence<T, TTenant>(configuration)
-                .AddTransient<IMultiTenantDatabaseInitializer, EFCoreMultiTenantDatabaseInitializer<T, TTenantContext, TTenant>>();
-        }
-
-        public static IServiceCollection AddPersistence<T, TTenant>(this IServiceCollection services, IConfiguration configuration)
-            where T : DbContext
-            where TTenant : Tenant, new()
-        {
-            var databaseSettings = configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
-            if (databaseSettings.UseFakeMultitenancy)
-            {
-                return services
-                    .AddBasePersistence<T, TTenant>(configuration)
-                    .AddTransient<IMultiTenantDatabaseInitializer, InMemoryMultiTenantDatabaseInitializer<T, TTenant>>();   
-            }
-
-            return services.AddPersistence<T, TenantDbContext<TTenant>, TTenant>(configuration);
+                .AddBasePersistence<T>(configuration)
+                .AddTransient<IMultiTenantDatabaseInitializer, EFCoreMultiTenantDatabaseInitializer<T, TTenantContext, TTenant>>()
+                .AddTransient<IMultiTenantDatabaseInitializer<TTenant>, EFCoreMultiTenantDatabaseInitializer<T, TTenantContext, TTenant>>();
         }
 
         public static IServiceCollection AddPersistence<T>(this IServiceCollection services, IConfiguration configuration)
            where T : DbContext
         {
-            return services.AddPersistence<T, Tenant>(configuration);
+            return services.AddBasePersistence<T>(configuration);
         }
     }
 }

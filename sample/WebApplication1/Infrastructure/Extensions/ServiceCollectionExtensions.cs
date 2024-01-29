@@ -13,7 +13,8 @@ namespace WebApplication1.Infrastructure.Extensions
         {
             services
                 .AddPersistence(configuration)
-                .AddMultitenancy(configuration).WithFakeStrategy();
+                .AddMultitenancy(configuration)
+                .WithFakeMultitenancy();
 
             services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUserService, CurrentUserService>();

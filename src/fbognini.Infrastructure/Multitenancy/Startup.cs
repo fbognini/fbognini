@@ -19,38 +19,19 @@ namespace fbognini.Infrastructure.Multitenancy
         private static FinbuckleMultiTenantBuilder<TTenant> AddBaseMultitenancy<TTenant>(this IServiceCollection services, IConfiguration configuration)
             where TTenant : Tenant, new()
         {
-            // TODO: We should probably add specific dbprovider/connectionstring setting for the tenantDb with a fallback to the main databasesettings
-            var databaseSettings = configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
-            string rootConnectionString = databaseSettings.ConnectionString;
-            if (string.IsNullOrEmpty(rootConnectionString)) throw new InvalidOperationException("DB ConnectionString is not configured.");
-            string dbProvider = databaseSettings.DBProvider;
-            if (string.IsNullOrEmpty(dbProvider)) throw new InvalidOperationException("DB Provider is not configured.");
-
             return services
                 .Configure<MultitenancySettings>(configuration.GetSection(nameof(MultitenancySettings)))
                 .AddScoped<ITenantService<TTenant>, TenantService<TTenant>>()
-                .AddTenantMiddleware()
                 .AddMultiTenant<TTenant>();
         }
 
         public static FinbuckleMultiTenantBuilder<TTenant> AddMultitenancy<TTenantContext, TTenant>(this IServiceCollection services, IConfiguration configuration)
             where TTenantContext: TenantDbContext<TTenant>
             where TTenant : Tenant, new()
-
         {
-            var databaseSettings = configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
-            if (databaseSettings.UseFakeMultitenancy)
-            {
-                throw new ArgumentException($"Cannot use {typeof(TTenantContext).Name} as TenantDbContext if UseFakeMultitenancy is enabled");
-            }
-
             var builder = services
                     .AddBaseMultitenancy<TTenant>(configuration)
-                    .WithEFCoreStore<TenantDbContext<TTenant>, TTenant>();
-
-            services.AddDbContext<TTenantContext>(m => {
-                m.UseSqlServer(databaseSettings.ConnectionString);
-            });
+                    .WithEFCoreStore<TTenantContext, TTenant>();
 
             return builder;
         }
@@ -58,28 +39,8 @@ namespace fbognini.Infrastructure.Multitenancy
         public static FinbuckleMultiTenantBuilder<TTenant> AddMultitenancy<TTenant>(this IServiceCollection services, IConfiguration configuration)
             where TTenant : Tenant, new()
         {
-            var databaseSettings = configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
-            if (databaseSettings.UseFakeMultitenancy)
-            {
-                return services
-                    .AddBaseMultitenancy<TTenant>(configuration)
-                    .WithInMemoryStore(options =>
-                    {
-                        options.IsCaseSensitive = true;
-                        options.Tenants.Add(new TTenant
-                        {
-                            Identifier = MultitenancyConstants.Root.Key,
-                            Name = MultitenancyConstants.Root.Name,
-                            ConnectionString = databaseSettings.ConnectionString,
-                            AdminEmail = MultitenancyConstants.Root.EmailAddress,
-                            IsActive = true,
-                            Issuer = null,
-                            ValidUpto = DateTime.UtcNow.AddYears(1)
-                        });
-                    });
-            }
-
-            return services.AddMultitenancy<TenantDbContext<TTenant>, TTenant>(configuration);
+            return services
+                    .AddBaseMultitenancy<TTenant>(configuration);
         }
 
         public static FinbuckleMultiTenantBuilder<Tenant> AddMultitenancy(this IServiceCollection services, IConfiguration configuration)
@@ -87,24 +48,31 @@ namespace fbognini.Infrastructure.Multitenancy
             return services.AddMultitenancy<Tenant>(configuration);
         }
 
-        public static IApplicationBuilder UseMultiTenancy(this IApplicationBuilder app)
+        public static FinbuckleMultiTenantBuilder<TTenant> WithFakeMultitenancy<TTenant>(this FinbuckleMultiTenantBuilder<TTenant> builder)
+            where TTenant : Tenant, new()
         {
-            using var serviceScope = app.ApplicationServices.CreateScope();
-
-            var initializers = serviceScope.ServiceProvider.GetServices<IMultiTenantDatabaseInitializer>();
-            foreach (var initializer in initializers)
-            {
-                initializer.InitializeDatabasesAsync(CancellationToken.None).GetAwaiter().GetResult();
-            }
-
-            app.UseMultiTenant();
-            app.UseTenantMiddleware();
-
-            return app;
+            return builder
+                .WithInMemoryStore(options =>
+                {
+                    options.IsCaseSensitive = true;
+                    options.Tenants.Add(new TTenant
+                    {
+                        Identifier = MultitenancyConstants.Root.Key,
+                        Name = MultitenancyConstants.Root.Name,
+                        ConnectionString = string.Empty,
+                        AdminEmail = MultitenancyConstants.Root.EmailAddress,
+                        IsActive = true,
+                        Issuer = null,
+                        ValidUpto = DateTime.UtcNow.AddYears(1)
+                    });
+                })
+                .WithStaticStrategy(MultitenancyConstants.Root.Key);
         }
 
-        public static FinbuckleMultiTenantBuilder<Tenant> WithFakeStrategy(this FinbuckleMultiTenantBuilder<Tenant> builder) =>
-            builder.WithStaticStrategy(MultitenancyConstants.Root.Key);
+        public static FinbuckleMultiTenantBuilder<Tenant> WithFakeMultitenancy(this FinbuckleMultiTenantBuilder<Tenant> builder)
+        {
+            return builder.WithFakeMultitenancy<Tenant>();
+        }
 
         public static FinbuckleMultiTenantBuilder<Tenant> WithQueryStringStrategy(this FinbuckleMultiTenantBuilder<Tenant> builder, string queryStringKey) =>
             builder.WithDelegateStrategy(context =>
@@ -119,7 +87,7 @@ namespace fbognini.Infrastructure.Multitenancy
                 return Task.FromResult((string?)null);
             });
 
-        public static FinbuckleMultiTenantBuilder<Tenant> WithOriginOrRefererStrategy(this FinbuckleMultiTenantBuilder<Tenant> builder, string queryStringKey) =>
+        public static FinbuckleMultiTenantBuilder<Tenant> WithOriginOrRefererStrategy(this FinbuckleMultiTenantBuilder<Tenant> builder) =>
             builder.WithDelegateStrategy(context =>
             {
                 if (context is HttpContext httpContext)
@@ -131,7 +99,36 @@ namespace fbognini.Infrastructure.Multitenancy
             });
 
 
-        private static string ResolveFromOriginOrReferer(HttpContext context)
+
+        public static async Task InitializeMultiTenancy(this IApplicationBuilder app, CancellationToken cancellationToken = default)
+        {
+            using var serviceScope = app.ApplicationServices.CreateScope();
+
+            var initializers = serviceScope.ServiceProvider.GetServices<IMultiTenantDatabaseInitializer>();
+            foreach (var initializer in initializers)
+            {
+                await initializer.InitializeDatabasesAsync(cancellationToken);
+            }
+        }
+
+        [Obsolete("Please use app.InitializeMultiTenancy, app.UseMultiTenant and app.UseMiddleware<TenantGuardMiddleware> as needed")]
+        public static IApplicationBuilder UseMultiTenancy(this IApplicationBuilder app)
+        {
+            using var serviceScope = app.ApplicationServices.CreateScope();
+
+            var initializers = serviceScope.ServiceProvider.GetServices<IMultiTenantDatabaseInitializer>();
+            foreach (var initializer in initializers)
+            {
+                initializer.InitializeDatabasesAsync(CancellationToken.None).GetAwaiter().GetResult();
+            }
+
+            app.UseMultiTenant();
+
+            return app;
+        }
+
+
+        private static string? ResolveFromOriginOrReferer(HttpContext context)
         {
             var origins = context.Request.Headers["origin"];
             if (origins.Count > 0 && origins[0] != "null")
@@ -144,7 +141,7 @@ namespace fbognini.Infrastructure.Multitenancy
             return null;
         }
 
-        static string ExtractTenantFromUrl(string origin)
+        static string? ExtractTenantFromUrl(string origin)
         {
             if (origin.Contains("http://"))
                 origin = origin.Replace("http://", "");

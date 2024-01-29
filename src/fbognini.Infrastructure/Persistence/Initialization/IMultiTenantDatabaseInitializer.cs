@@ -7,6 +7,11 @@ namespace fbognini.Infrastructure.Persistence.Initialization
     public interface IMultiTenantDatabaseInitializer
     {
         Task InitializeDatabasesAsync(CancellationToken cancellationToken);
-        Task InitializeApplicationDbForTenantAsync(Tenant tenant, CancellationToken cancellationToken);
+    }
+
+    public interface IMultiTenantDatabaseInitializer<TTenant>: IMultiTenantDatabaseInitializer
+        where TTenant: Tenant
+    {
+        Task InitializeApplicationDbForTenantAsync(TTenant tenant, CancellationToken cancellationToken);
     }
 }

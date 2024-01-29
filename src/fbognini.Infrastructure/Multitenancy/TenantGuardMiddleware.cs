@@ -2,6 +2,7 @@ using fbognini.Core.Exceptions;
 using fbognini.Infrastructure.Entities;
 using Finbuckle.MultiTenant;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -9,13 +10,12 @@ using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Multitenancy
 {
-
-    public class TenantMiddleware : IMiddleware
+    public class TenantGuardMiddleware : IMiddleware
     {
-        private readonly Tenant tenant;
+        private readonly Tenant? tenant;
         private readonly MultitenancySettings multitenancySettings;
 
-        public TenantMiddleware(ITenantInfo tenant, IOptions<MultitenancySettings> options)
+        public TenantGuardMiddleware(ITenantInfo tenant, IOptions<MultitenancySettings> options)
         {
             this.tenant = tenant as Tenant;
             this.multitenancySettings = options.Value;
@@ -23,7 +23,7 @@ namespace fbognini.Infrastructure.Multitenancy
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            if ((multitenancySettings.IncludeAll && (StartWithPaths(context, multitenancySettings.IncludePaths) || !TenantMiddleware.StartWithPaths(context, multitenancySettings.ExcludePaths)))
+            if ((multitenancySettings.IncludeAll && (StartWithPaths(context, multitenancySettings.IncludePaths) || !TenantGuardMiddleware.StartWithPaths(context, multitenancySettings.ExcludePaths)))
                 || StartWithPaths(context, multitenancySettings.IncludePaths))
             {
                 if (tenant == null)
