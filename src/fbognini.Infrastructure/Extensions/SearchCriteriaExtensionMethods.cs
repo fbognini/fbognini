@@ -20,6 +20,16 @@ namespace fbognini.Infrastructure.Extensions
                 query = query.AsNoTracking();
             }
 
+            if (criteria.IgnoreQueryFilters)
+            {
+                query = query.IgnoreQueryFilters();
+            }
+
+            if (criteria.IgnoreAutoIncludes)
+            {
+                query = query.IgnoreAutoIncludes();
+            }
+
             query = query.IncludeViews(criteria);
 
             return query;

@@ -14,6 +14,8 @@ namespace fbognini.Core.Data
     {
         public abstract bool Track { get; set; }
         public bool ThrowExceptionIfNull { get; set; } = false;
+        public bool IgnoreQueryFilters { get; set; } = false;
+        public bool IgnoreAutoIncludes { get; set; } = false;
 
     }
 
@@ -44,6 +46,8 @@ namespace fbognini.Core.Data
             Includes = args.Includes;
             IncludeStrings = args.IncludeStrings;
             ThrowExceptionIfNull = args.ThrowExceptionIfNull;
+            IgnoreQueryFilters = args.IgnoreQueryFilters;
+            IgnoreAutoIncludes = args.IgnoreAutoIncludes;
         }
 
         public TKey? Id { get; set; }
