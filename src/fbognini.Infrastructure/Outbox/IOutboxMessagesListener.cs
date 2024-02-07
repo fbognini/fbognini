@@ -1,4 +1,5 @@
-﻿using fbognini.Infrastructure.Persistence;
+﻿using fbognini.Core.Domain;
+using fbognini.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,8 @@ namespace fbognini.Infrastructure.Outbox;
 
 public interface IOutboxMessagesListener
 {
+    Task PublishDomainMemoryEventAsync(IReadOnlyList<IDomainMemoryEvent> domainMemoryEvents, CancellationToken cancellationToken);
+
     void Notify();
 }
 
@@ -29,6 +32,22 @@ public class OutboxMessagesListenerService : BackgroundService, IOutboxMessagesL
     {
         _scopeFactory = scopeFactory;
         this.logger = logger;
+    }
+
+    public async Task PublishDomainMemoryEventAsync(IReadOnlyList<IDomainMemoryEvent> domainMemoryEvents, CancellationToken cancellationToken)
+    {
+        if (domainMemoryEvents is null || domainMemoryEvents.Count == 0)
+        {
+            return;
+        }
+
+        using var scope = _scopeFactory.CreateScope();
+        var processor = scope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
+
+        foreach (var domainMemoryEvent in domainMemoryEvents)
+        {
+            await processor.Process(domainMemoryEvent, cancellationToken);
+        }
     }
 
     public void Notify()
@@ -57,6 +76,8 @@ public class OutboxMessagesListenerService : BackgroundService, IOutboxMessagesL
             catch (Exception ex)
             {
                 logger.LogError(ex, "An error occurred during domain events publishing");
+
+                await Task.Delay(5000, stoppingToken);
             }
         }
     }

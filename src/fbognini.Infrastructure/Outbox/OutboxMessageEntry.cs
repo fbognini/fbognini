@@ -9,17 +9,37 @@ namespace fbognini.Infrastructure.Outbox;
 
 public class OutboxMessageEntry
 {
-    public OutboxMessageEntry(IDomainEvent? domainEvent)
+    internal static OutboxMessageEntry FromDomainEvent(IDomainEvent domainEvent)
     {
-        DomainEvent = domainEvent;
+        var entry = new OutboxMessageEntry()
+        {
+            DomainEvent = domainEvent
+        };
+
+        return entry;
     }
 
-    public OutboxMessageEntry(IDomainPreEvent? domainPreEvent)
+    internal static OutboxMessageEntry FromDomainPreEvent(IDomainPreEvent domainPreEvent)
     {
-        DomainPreEvent = domainPreEvent;
+        var entry = new OutboxMessageEntry()
+        {
+            DomainPreEvent = domainPreEvent
+        };
+
+        return entry;
+    }
+
+    internal static OutboxMessageEntry FromDomainMemoryEvent(IDomainMemoryEvent domainMemoryEvent)
+    {
+        var entry = new OutboxMessageEntry()
+        {
+            DomainMemoryEvent = domainMemoryEvent
+        };
+
+        return entry;
     }
 
     public IDomainEvent? DomainEvent { get; init; }
-
     public IDomainPreEvent? DomainPreEvent { get; init; }
+    public IDomainMemoryEvent? DomainMemoryEvent { get; init; }
 }

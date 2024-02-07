@@ -135,6 +135,7 @@ namespace fbognini.Infrastructure.Persistence
             public bool HasDomainEvents { get; set; }
             public List<AuditEntry> MissingAuditEntrys { get; set; } = new();
             public List<IDomainPreEvent> DomainPreEvents { get; set; } = new();
+            public List<IDomainMemoryEvent> DomainMemoryEvents { get; set; } = new();
         }
 
 
@@ -152,6 +153,7 @@ namespace fbognini.Infrastructure.Persistence
             var outboxMessages = context.AddDomainEventsAsOutboxMessages();
             response.HasDomainEvents = outboxMessages.Any(_ => _.DomainEvent is not null);
             response.DomainPreEvents = outboxMessages.Where(x => x.DomainPreEvent is not null).Select(x => x.DomainPreEvent!).ToList();
+            response.DomainMemoryEvents = outboxMessages.Where(x => x.DomainMemoryEvent is not null).Select(x => x.DomainMemoryEvent!).ToList();
 
             return response;
         }
@@ -165,12 +167,15 @@ namespace fbognini.Infrastructure.Persistence
             }
 
             var hasDomainPreEvents = await context.AddDomainPreEventsAsOutboxMessages(beforeResponse.DomainPreEvents, cancellationToken);
+
+            await context.BaseSaveChangesAsync(cancellationToken);
+
             if (hasDomainPreEvents || beforeResponse.HasDomainEvents)
             {
                 outboxMessagesListener.Notify();
             }
 
-            await context.BaseSaveChangesAsync(cancellationToken);
+            await outboxMessagesListener.PublishDomainMemoryEventAsync(beforeResponse.DomainMemoryEvents, cancellationToken);
         }
 
 
@@ -273,13 +278,16 @@ namespace fbognini.Infrastructure.Persistence
                 {
                     IReadOnlyList<IDomainEvent> domainEvents = entity.GetDomainEvents();
                     IReadOnlyList<IDomainPreEvent> domainPreEvents = entity.GetDomainPreEvents();
+                    IReadOnlyList<IDomainMemoryEvent> domainMemoryEvents = entity.GetDomainMemoryEvents();
 
                     entity.ClearDomainEvents();
                     entity.ClearDomainPreEvents();
+                    entity.ClearDomainMemoryEvents();
 
                     var outboxMessageEntrys = new List<OutboxMessageEntry>();
-                    outboxMessageEntrys.AddRange(domainEvents.Select(domainEvent => new OutboxMessageEntry(domainEvent)));
-                    outboxMessageEntrys.AddRange(domainPreEvents.Select(domainPreEvent => new OutboxMessageEntry(domainPreEvent)));
+                    outboxMessageEntrys.AddRange(domainEvents.Select(domainEvent => OutboxMessageEntry.FromDomainEvent(domainEvent)));
+                    outboxMessageEntrys.AddRange(domainPreEvents.Select(domainPreEvent => OutboxMessageEntry.FromDomainPreEvent(domainPreEvent)));
+                    outboxMessageEntrys.AddRange(domainMemoryEvents.Select(domainMemoryEvent => OutboxMessageEntry.FromDomainMemoryEvent(domainMemoryEvent)));
 
                     return outboxMessageEntrys;
                 })
