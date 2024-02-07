@@ -1,17 +1,8 @@
-﻿using Bogus;
-using EFCore.BulkExtensions;
-using fbognini.Core.Data;
-using fbognini.Infrastructure.Repositorys;
+﻿using EFCore.BulkExtensions;
+using fbognini.Infrastructure.Repository;
 using fbognini.Infrastructure.Tests.Integration.Fixture;
-using fbognini.Infrastructure.Tests.Integration.Fixture.Entities;
 using fbognini.Infrastructure.Tests.Integration.Fixture.Entities.Seeds;
-using fbognini.Infrastructure.Tests.Integration.Fixture.SearchCriterias;
 using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Tests.Integration;
 

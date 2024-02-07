@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<PackageId>fbognini.Core.Domain</PackageId>
+		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+		<Version>10.0.2</Version>
+		<Authors>Francesco Bognini</Authors>
+		<Company>Francesco Bognini</Company>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageProjectUrl>https://github.com/fbognini/fbognini</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/fbognini/fbognini</RepositoryUrl>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="fbognini.Core" Version="10.0.1" />
+		<PackageReference Include="MediatR.Contracts" Version="2.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+		<None Include="..\..\README.md" Pack="true" PackagePath="" />
+	</ItemGroup>
+</Project>

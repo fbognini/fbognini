@@ -1,13 +1,17 @@
 using Bogus;
 using EFCore.BulkExtensions;
-using fbognini.Core.Data;
 using fbognini.Infrastructure.Multitenancy;
+using fbognini.Infrastructure.Persistence;
+using fbognini.Infrastructure.Repository;
 using Microsoft.AspNetCore.Http.Json;
 using System.Text.Json.Serialization;
 using WebApplication1.Domain.Entities;
 using WebApplication1.Infrastructure.Extensions;
 using WebApplication1.Infrastructure.Repositorys;
 using WebApplication1.SearchCriterias;
+using fbognini.Infrastructure.Outbox;
+using fbognini.Core.Domain;
+using fbognini.Core.Domain.Query;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +21,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddMediatROutboxMessagesProcessor(builder.Configuration);
 
 builder.Services.Configure<JsonOptions>(options =>
 {
@@ -43,7 +49,7 @@ app.MapGet("/books", async (string? title, IWebApplication1Repository repository
     {
         Title = title
     };
-    criteria.Includes.Add(x => x.Author);
+    criteria.Args.Includes.Add(x => x.Author);
 
     var books = await repository.GetAllAsync<Book>(criteria);
     return books;
@@ -70,8 +76,10 @@ app.MapGet("/authors", async (IWebApplication1Repository repository) =>
 .WithName("GetAuthors")
 .WithOpenApi();
 
-app.MapPost("/authors", async (Author author, IWebApplication1Repository repository, CancellationToken cancellationToken) =>
+app.MapPost("/authors", async (Author postAuthor, IWebApplication1Repository repository, CancellationToken cancellationToken) =>
 {
+    var author = Author.Create(postAuthor.FirstName, postAuthor.LastName);
+
     await repository.CreateAsync(author, cancellationToken);
     await repository.SaveAsync(cancellationToken);
     return author;

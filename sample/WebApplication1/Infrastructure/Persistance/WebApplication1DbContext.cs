@@ -4,6 +4,7 @@ using System.Reflection;
 using WebApplication1.Domain.Entities;
 using Finbuckle.MultiTenant;
 using fbognini.Infrastructure.Persistence;
+using fbognini.Infrastructure.Outbox;
 
 namespace WebApplication1.Infrastructure.Persistance
 {
@@ -12,8 +13,9 @@ namespace WebApplication1.Infrastructure.Persistance
         public WebApplication1DbContext(
             DbContextOptions<WebApplication1DbContext> options,
             ICurrentUserService currentUserService,
-            ITenantInfo currentTenant)
-            : base(options, currentUserService, currentTenant)
+            IOutboxMessagesListener outboxMessagesListener,
+            ITenantInfo? currentTenant = null)
+            : base(options, currentUserService, outboxMessagesListener, currentTenant)
         {
         }
 

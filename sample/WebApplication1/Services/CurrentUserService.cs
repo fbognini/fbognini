@@ -1,10 +1,4 @@
 ﻿using fbognini.Core.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
 
 namespace SberemPay.Checkout.Services
 {

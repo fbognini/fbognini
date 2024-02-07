@@ -1,16 +1,12 @@
-﻿using Bogus;
-using fbognini.Core.Data;
-using fbognini.Infrastructure.Repositorys;
+﻿using fbognini.Core.Domain;
+using fbognini.Core.Domain.Query;
+using fbognini.Core.Domain.Query.Pagination;
+using fbognini.Infrastructure.Repository;
 using fbognini.Infrastructure.Tests.Integration.Fixture;
 using fbognini.Infrastructure.Tests.Integration.Fixture.Entities;
 using fbognini.Infrastructure.Tests.Integration.Fixture.Entities.Seeds;
 using fbognini.Infrastructure.Tests.Integration.Fixture.SearchCriterias;
 using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Tests.Integration;
 
@@ -31,7 +27,7 @@ public class RepositoryReadTests : IClassFixture<FullDatabaseFixture>
         var pageSize = 8;
 
         var criteria = new AuthorSearchCriteria();
-        criteria.LoadPaginationOffsetQuery(new Core.Data.Pagination.PaginationOffsetQuery(pageSize, 1));
+        criteria.LoadPaginationOffsetQuery(new PaginationOffsetQuery(pageSize, 1));
         var paginatedAuthors = await repository.GetSearchResultsAsync<Author>(criteria);
 
         paginatedAuthors.Pagination.Total.Should().Be(AuthorSeed.Total);
@@ -49,7 +45,7 @@ public class RepositoryReadTests : IClassFixture<FullDatabaseFixture>
         var pageNumber = (int)Math.Ceiling((double)AuthorSeed.Total / pageSize);
 
         var criteria = new AuthorSearchCriteria();
-        criteria.LoadPaginationOffsetQuery(new Core.Data.Pagination.PaginationOffsetQuery(pageSize, pageNumber));
+        criteria.LoadPaginationOffsetQuery(new PaginationOffsetQuery(pageSize, pageNumber));
         var paginatedAuthors = await repository.GetSearchResultsAsync<Author>(criteria);
 
         paginatedAuthors.Pagination.Total.Should().Be(AuthorSeed.Total);
@@ -67,7 +63,7 @@ public class RepositoryReadTests : IClassFixture<FullDatabaseFixture>
         var pageNumber = (int)Math.Ceiling((double)AuthorSeed.Total / pageSize) + 1;
 
         var criteria = new AuthorSearchCriteria();
-        criteria.LoadPaginationOffsetQuery(new Core.Data.Pagination.PaginationOffsetQuery(pageSize, pageNumber));
+        criteria.LoadPaginationOffsetQuery(new PaginationOffsetQuery(pageSize, pageNumber));
         var paginatedAuthors = await repository.GetSearchResultsAsync<Author>(criteria);
 
         paginatedAuthors.Pagination.Total.Should().Be(AuthorSeed.Total);
@@ -87,7 +83,7 @@ public class RepositoryReadTests : IClassFixture<FullDatabaseFixture>
         {
             LastName = AuthorSeed.FirstLastName
         };
-        criteria.LoadPaginationOffsetQuery(new Core.Data.Pagination.PaginationOffsetQuery(pageSize, pageNumber));
+        criteria.LoadPaginationOffsetQuery(new PaginationOffsetQuery(pageSize, pageNumber));
         var paginatedAuthors = await repository.GetSearchResultsAsync<Author>(criteria);
 
         paginatedAuthors.Pagination.Total.Should().Be(1);
@@ -105,7 +101,7 @@ public class RepositoryReadTests : IClassFixture<FullDatabaseFixture>
         {
             LastName = AuthorSeed.FirstLastName
         };
-        criteria.LoadSortingQuery(new SortingQuery(nameof(Author.LastName), SortingDirection.ASCENDING));
+        criteria.AddSorting(s => s.LastName, SortingDirection.ASCENDING);
         var authors = await repository.GetAllAsync<Author>(criteria);
 
         authors.Count.Should().Be(1);

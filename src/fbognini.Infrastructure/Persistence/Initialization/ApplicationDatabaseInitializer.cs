@@ -28,17 +28,17 @@ namespace fbognini.Infrastructure.Persistence.Initialization
         {
             if (dbContext.Database.GetMigrations().Any())
             {
-                var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
+                var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync(cancellationToken);
                 if (pendingMigrations.Any())
                 {
-                    logger.LogInformation("Applying migrations ({@Migrations}) for '{tenantId}' tenant.", pendingMigrations, currentTenant.Id);
+                    logger.LogInformation("Applying migrations ({@Migrations}) for '{TenantIdentifier}' tenant.", pendingMigrations, currentTenant.Identifier);
                     await dbContext.Database.MigrateAsync(cancellationToken);
                 }
             }
 
             if (await dbContext.Database.CanConnectAsync(cancellationToken))
             {
-                logger.LogInformation("Connection to {tenantId}'s Database Succeeded.", currentTenant.Id);
+                logger.LogInformation("Connection to {TenantIdentifier}'s Database Succeeded.", currentTenant.Identifier);
 
                 await dbSeeder.RunSeedersAsync(dbContext, cancellationToken);
             }

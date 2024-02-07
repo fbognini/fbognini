@@ -1,4 +1,4 @@
-﻿using fbognini.Core.Data;
+﻿using fbognini.Core.Domain.Query;
 using fbognini.Core.Extensions;
 using fbognini.Core.Utilities;
 using System;

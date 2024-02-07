@@ -1,4 +1,4 @@
-﻿using fbognini.Core.Entities;
+﻿using fbognini.Core.Domain;
 
 namespace WebApplication1.Domain.Entities
 {

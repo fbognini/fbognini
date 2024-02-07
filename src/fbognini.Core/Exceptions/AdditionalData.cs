@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace fbognini.Core.Exceptions
+﻿namespace fbognini.Core.Exceptions
 {
     public abstract class AdditionalData
     {

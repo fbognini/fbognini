@@ -1,33 +1,28 @@
-﻿using Castle.Core.Logging;
-using fbognini.Core.Interfaces;
-using fbognini.Infrastructure.Repositorys;
+﻿using fbognini.Core.Interfaces;
+using fbognini.Infrastructure.Outbox;
+using fbognini.Infrastructure.Repository;
 using fbognini.Infrastructure.Tests.Integration.Fixture.Entities.Seeds;
 using Finbuckle.MultiTenant;
 using MartinCostello.SqlLocalDb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.JSInterop;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit.Sdk;
 
 namespace fbognini.Infrastructure.Tests.Integration.Fixture;
 
 public class DatabaseFixture : IDisposable
 {
     private readonly ICurrentUserService currentUserService = new IntegrationTestsCurrentUserService();
+    private readonly IOutboxMessagesListener outboxMessagesListener = Substitute.For<IOutboxMessagesListener>();
     private readonly ITenantInfo tenantInfo = new TenantInfo();
 
     public DbContextOptions<IntegrationTestsDbContext> DbContextOptions { get; }
     public string ConnectionString { get; }
 
-    public IDbContextFactory<IntegrationTestsDbContext> DbContextFactory => new IntegrationTestsDbContextFactory(DbContextOptions, currentUserService, tenantInfo);
+    public IDbContextFactory<IntegrationTestsDbContext> DbContextFactory => 
+        new IntegrationTestsDbContextFactory(DbContextOptions, currentUserService, outboxMessagesListener, tenantInfo);
 
-    public IntegrationTestsDbContext DbContext => new (DbContextOptions, currentUserService, tenantInfo);
+    public IntegrationTestsDbContext DbContext => new (DbContextOptions, currentUserService, outboxMessagesListener, tenantInfo);
 
     public RepositoryAsync<IntegrationTestsDbContext> Repository => new(DbContextFactory, Substitute.For<ILogger<RepositoryAsync<IntegrationTestsDbContext>>>());
 

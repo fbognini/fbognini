@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<PackageId>fbognini.Infrastructure</PackageId>
 		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
-		<Version>9.3.1</Version>
+		<Version>10.0.2</Version>
 		<Authors>Francesco Bognini</Authors>
 		<Company>Francesco Bognini</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -15,25 +15,28 @@
 
 	<ItemGroup>
 
-		<PackageReference Include="fbognini.Core" Version="9.1.2" />
+		<PackageReference Include="fbognini.Core.Domain" Version="10.0.2" />
 
 		<PackageReference Include="Nager.PublicSuffix" Version="2.4.0" />
 		<PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="6.13.1" />
 		<PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="6.13.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 
 		<PackageReference Include="Snickler.EFCore" Version="3.0.0" />
 
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
-		<PackageReference Include="EFCore.BulkExtensions" Version="7.1.5" />
-		<PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="7.0.9" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.9" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.9" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.9" />
+		<PackageReference Include="MediatR" Version="12.1.1" />
+		<PackageReference Include="EFCore.BulkExtensions" Version="7.8.1" />
+		<PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="7.0.15" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.15" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.15" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.15" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+		<PackageReference Include="MediatR" Version="12.1.1" />
 		<PackageReference Include="EFCore.BulkExtensions" Version="6.7.15" />
 		<PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.19" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.19" />

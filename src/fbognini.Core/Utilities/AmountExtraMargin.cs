@@ -1,13 +1,8 @@
 ﻿using fbognini.Core.Extensions;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Text;
-using System.Xml.Linq;
 
 namespace fbognini.Core.Utilities
 {

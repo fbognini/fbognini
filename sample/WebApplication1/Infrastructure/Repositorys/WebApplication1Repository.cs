@@ -1,4 +1,4 @@
-﻿using fbognini.Infrastructure.Repositorys;
+﻿using fbognini.Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Infrastructure.Persistance;
 

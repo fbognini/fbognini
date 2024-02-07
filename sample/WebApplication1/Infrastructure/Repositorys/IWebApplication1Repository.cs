@@ -1,4 +1,4 @@
-﻿using fbognini.Infrastructure.Repositorys;
+﻿using fbognini.Infrastructure.Repository;
 
 namespace WebApplication1.Infrastructure.Repositorys
 {

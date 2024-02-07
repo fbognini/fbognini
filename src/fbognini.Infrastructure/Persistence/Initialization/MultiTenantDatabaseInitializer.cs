@@ -11,33 +11,26 @@ using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Persistence.Initialization
 {
-
-    internal class EFCoreMultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo> : IMultiTenantDatabaseInitializer<TTenantInfo>
+    internal class EFCoreMultiTenantDatabaseInitializer<TContext, TTenantInfo> : IMultiTenantDatabaseInitializer<TTenantInfo>
         where TContext : DbContext
-        where TTenantContext: TenantDbContext<TTenantInfo>
         where TTenantInfo : Tenant, new()
     {
-        private readonly IServiceProvider serviceProvider;
-        private readonly IMultiTenantStore<TTenantInfo> store;
-        private readonly TTenantContext tenantDbContext;
-        private readonly ILogger<EFCoreMultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo>> logger;
+        protected readonly IServiceProvider serviceProvider;
+        protected readonly IMultiTenantStore<TTenantInfo> store;
+        protected readonly ILogger<EFCoreMultiTenantDatabaseInitializer<TContext, TTenantInfo>> logger;
 
         public EFCoreMultiTenantDatabaseInitializer(
             IServiceProvider serviceProvider,
             IMultiTenantStore<TTenantInfo> store,
-            TTenantContext tenantDbContext,
-            ILogger<EFCoreMultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo>> logger)
+            ILogger<EFCoreMultiTenantDatabaseInitializer<TContext, TTenantInfo>> logger)
         {
             this.serviceProvider = serviceProvider;
             this.store = store;
-            this.tenantDbContext = tenantDbContext;
             this.logger = logger;
         }
 
-        public async Task InitializeDatabasesAsync(CancellationToken cancellationToken)
+        public virtual async Task InitializeDatabasesAsync(CancellationToken cancellationToken)
         {
-            await InitializeTenantDbAsync(cancellationToken);
-
             var tenants = await store.GetAllAsync();
             foreach (var tenant in tenants.Where(x => x.IsActive))
             {
@@ -62,6 +55,32 @@ namespace fbognini.Infrastructure.Persistence.Initialization
             await scope.ServiceProvider
                 .GetRequiredService<ApplicationDatabaseInitializer<TContext>>()
                 .InitializeAsync(cancellationToken);
+        }
+    }
+
+
+    internal class EFCoreMultiTenantDatabaseInitializer<TContext, TTenantContext, TTenantInfo> : EFCoreMultiTenantDatabaseInitializer<TContext, TTenantInfo>, IMultiTenantDatabaseInitializer<TTenantInfo>
+        where TContext : DbContext
+        where TTenantContext: TenantDbContext<TTenantInfo>
+        where TTenantInfo : Tenant, new()
+    {
+        private readonly TTenantContext tenantDbContext;
+
+        public EFCoreMultiTenantDatabaseInitializer(
+            IServiceProvider serviceProvider,
+            IMultiTenantStore<TTenantInfo> store,
+            TTenantContext tenantDbContext,
+            ILogger<EFCoreMultiTenantDatabaseInitializer<TContext, TTenantInfo>> logger)
+            : base(serviceProvider, store, logger)
+        {
+            this.tenantDbContext = tenantDbContext;
+        }
+
+        public override async Task InitializeDatabasesAsync(CancellationToken cancellationToken)
+        {
+            await InitializeTenantDbAsync(cancellationToken);
+
+            await base.InitializeDatabasesAsync(cancellationToken);
         }
 
         private async Task InitializeTenantDbAsync(CancellationToken cancellationToken)

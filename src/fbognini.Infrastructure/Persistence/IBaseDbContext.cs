@@ -1,4 +1,5 @@
 ﻿using fbognini.Infrastructure.Entities;
+using fbognini.Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
@@ -9,6 +10,8 @@ namespace fbognini.Infrastructure.Persistence
     public interface IBaseDbContext
     {
         DbSet<Audit> AuditTrails { get; set; }
+        DbSet<OutboxMessage> OutboxMessages { get; set; }
+
         public string? UserId { get; }
         public DateTime Timestamp { get; }
         public string? Tenant { get; }

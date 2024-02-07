@@ -5,7 +5,7 @@ using fbognini.Core.Interfaces;
 using Finbuckle.MultiTenant;
 using fbognini.Infrastructure.Entities;
 using System;
-using fbognini.Infrastructure.Extensions;
+using fbognini.Infrastructure.Outbox;
 
 namespace fbognini.Infrastructure.Persistence
 {
@@ -13,19 +13,23 @@ namespace fbognini.Infrastructure.Persistence
         where T : DbContext
     {
         private readonly ICurrentUserService currentUserService;
+        private readonly IOutboxMessagesListener outboxListenerService;
         private readonly ITenantInfo? currentTenant;
 
         public AuditableDbContext(
             DbContextOptions<T> options,
             ICurrentUserService currentUserService,
+            IOutboxMessagesListener outboxListenerService,
             ITenantInfo? currentTenant = null)
             : base(options)
         {
             this.currentUserService = currentUserService;
+            this.outboxListenerService = outboxListenerService;
             this.currentTenant = currentTenant;
         }
 
-        public DbSet<Audit> AuditTrails { get; set; }
+        public DbSet<Audit> AuditTrails { get; set; } = default!;
+        public DbSet<OutboxMessage> OutboxMessages { get; set; } = default!;
 
         public string? UserId => currentUserService.UserId;
         public DateTime Timestamp => DateTime.Now;
@@ -46,7 +50,7 @@ namespace fbognini.Infrastructure.Persistence
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
-            return this.AuditableSaveChangesAsync(cancellationToken);
+            return this.AuditableSaveChangesAsync(outboxListenerService, cancellationToken);
         }
 
         public Task<int> BaseSaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())

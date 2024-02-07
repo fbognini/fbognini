@@ -1,15 +1,10 @@
-﻿using fbognini.Core.Data;
-using WebApplication1.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using WebApplication1.Domain.Entities;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+using fbognini.Core.Domain.Query;
 
 namespace WebApplication1.SearchCriterias
 {
-    public class BookSearchCriteria : SearchCriteria<Book>
+    public class BookSearchCriteria : SelectCriteria<Book>
     {
         public string? Title { get; set; }
 

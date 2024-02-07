@@ -1,4 +1,4 @@
-﻿using fbognini.Core.Entities;
+﻿using fbognini.Core.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -30,7 +30,7 @@ namespace fbognini.Infrastructure.Persistence
                 if (entity is IHaveTenant)
                 {
                     entity.Metadata.RemoveIndex(new[] { entity.Property(r => r.NormalizedName).Metadata });
-                    entity.HasIndex(r => new { r.NormalizedName, (r as IHaveTenant).Tenant }).HasDatabaseName("RoleNameIndex").IsUnique();
+                    entity.HasIndex(r => new { r.NormalizedName, (r as IHaveTenant)!.Tenant }).HasDatabaseName("RoleNameIndex").IsUnique();
                 }
             });
 

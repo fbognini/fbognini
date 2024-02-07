@@ -1,16 +1,7 @@
-﻿using Bogus;
-using fbognini.Core.Data;
-using fbognini.Infrastructure.Repositorys;
+﻿using fbognini.Infrastructure.Repository;
 using fbognini.Infrastructure.Tests.Integration.Fixture;
 using fbognini.Infrastructure.Tests.Integration.Fixture.Entities.Seeds;
-using fbognini.Infrastructure.Tests.Integration.Fixture.SearchCriterias;
 using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Tests.Integration;
 

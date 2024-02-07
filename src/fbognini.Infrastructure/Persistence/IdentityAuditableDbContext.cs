@@ -6,8 +6,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Finbuckle.MultiTenant;
-using fbognini.Infrastructure.Extensions;
 using fbognini.Infrastructure.Entities;
+using fbognini.Infrastructure.Outbox;
+using fbognini.Infrastructure.Persistence;
 
 namespace fbognini.Infrastructure.Persistence
 {
@@ -18,6 +19,7 @@ namespace fbognini.Infrastructure.Persistence
         where TKey : IEquatable<TKey>
     {
         private readonly ICurrentUserService currentUserService;
+        private readonly IOutboxMessagesListener outboxListenerService;
         private readonly ITenantInfo? currentTenant;
 
         protected readonly string authschema;
@@ -25,16 +27,19 @@ namespace fbognini.Infrastructure.Persistence
         public IdentityAuditableDbContext(
             DbContextOptions<TContext> options,
             ICurrentUserService currentUserService,
+            IOutboxMessagesListener outboxListenerService,
             ITenantInfo? currentTenant = null,
             string authschema = "auth")
             : base(options)
         {
             this.currentUserService = currentUserService;
+            this.outboxListenerService = outboxListenerService;
             this.currentTenant = currentTenant;
             this.authschema = authschema;
         }
 
-        public DbSet<Audit> AuditTrails { get; set; }
+        public DbSet<Audit> AuditTrails { get; set; } = default!;
+        public DbSet<OutboxMessage> OutboxMessages { get; set; } = default!;
 
         public string? UserId => currentUserService.UserId;
         public DateTime Timestamp => DateTime.Now;
@@ -56,7 +61,7 @@ namespace fbognini.Infrastructure.Persistence
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
-            return this.AuditableSaveChangesAsync(cancellationToken);
+            return this.AuditableSaveChangesAsync(outboxListenerService, cancellationToken);
         }
 
         public Task<int> BaseSaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())

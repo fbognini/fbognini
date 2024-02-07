@@ -1,22 +1,15 @@
 ﻿using fbognini.Core.Interfaces;
+using fbognini.Infrastructure.Outbox;
 using fbognini.Infrastructure.Persistence;
 using fbognini.Infrastructure.Tests.Integration.Fixture.Entities;
 using Finbuckle.MultiTenant;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics.Metrics;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Tests.Integration.Fixture;
 
 public class IntegrationTestsDbContext : AuditableDbContext<IntegrationTestsDbContext>
 {
-    public IntegrationTestsDbContext(DbContextOptions<IntegrationTestsDbContext> options, ICurrentUserService currentUserService, ITenantInfo currentTenant) : base(options, currentUserService, currentTenant)
+    public IntegrationTestsDbContext(DbContextOptions<IntegrationTestsDbContext> options, ICurrentUserService currentUserService, IOutboxMessagesListener outboxMessagesListener, ITenantInfo currentTenant) : base(options, currentUserService, outboxMessagesListener, currentTenant)
     {
     }
 

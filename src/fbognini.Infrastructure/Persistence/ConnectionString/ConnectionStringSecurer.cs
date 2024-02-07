@@ -1,6 +1,5 @@
 using System.Data.SqlClient;
 using fbognini.Infrastructure.Common;
-using fbognini.Infrastructure.Multitenancy;
 using Microsoft.Extensions.Options;
 
 namespace fbognini.Infrastructure.Persistence.ConnectionString

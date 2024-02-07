@@ -2,7 +2,6 @@ using fbognini.Core.Exceptions;
 using fbognini.Infrastructure.Entities;
 using Finbuckle.MultiTenant;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
