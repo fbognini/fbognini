@@ -2,8 +2,8 @@
 
 	<PropertyGroup>
 		<PackageId>fbognini.Core</PackageId>
-		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
-		<Version>10.0.1</Version>
+		<TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+		<Version>10.0.2</Version>
 		<Authors>Francesco Bognini</Authors>
 		<Company>Francesco Bognini</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -14,7 +14,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="LinqKit" Version="1.2.2" />
+		<PackageReference Include="LinqKit" Version="1.2.5" />
 	</ItemGroup>
 
 	<ItemGroup>

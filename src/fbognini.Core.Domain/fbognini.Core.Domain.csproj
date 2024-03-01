@@ -2,8 +2,8 @@
 
 	<PropertyGroup>
 		<PackageId>fbognini.Core.Domain</PackageId>
-		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
-		<Version>10.0.3</Version>
+		<TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+		<Version>10.0.4</Version>
 		<Authors>Francesco Bognini</Authors>
 		<Company>Francesco Bognini</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -14,7 +14,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="fbognini.Core" Version="10.0.1" />
+		<PackageReference Include="fbognini.Core" Version="10.0.2" />
 		<PackageReference Include="MediatR.Contracts" Version="2.0.1" />
 	</ItemGroup>
 

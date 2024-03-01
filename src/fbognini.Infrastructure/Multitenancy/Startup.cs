@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
-using Nager.PublicSuffix;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -151,10 +151,14 @@ namespace fbognini.Infrastructure.Multitenancy
             if (origin.StartsWith("localhost"))
                 return null;
 
-            var domainParser = new DomainParser(new WebTldRuleProvider());
-            var domainInfo = domainParser.Parse(origin);
-            var tenantId = domainInfo.SubDomain ?? domainInfo.Domain;
-            return tenantId;
+
+            var splits = origin.Split('.');
+            if (splits.Length != 0)
+            {
+                return splits[0];
+            }
+
+            return origin;
         }
     }
 }
