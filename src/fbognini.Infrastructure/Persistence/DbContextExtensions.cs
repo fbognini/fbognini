@@ -119,10 +119,11 @@ namespace fbognini.Infrastructure.Persistence
         public static async Task<int> AuditableSaveChangesAsync<TContext>(this TContext context, IOutboxMessagesListener outboxMessagesListener, CancellationToken cancellationToken = new CancellationToken())
             where TContext : DbContext, IBaseDbContext
         {
+            var beforeResponse = await context.OnBeforeSaveChanges(cancellationToken);
+
             context.FillAuditablePropertys();
             context.FillTenantProperty();
 
-            var beforeResponse = await context.OnBeforeSaveChanges(cancellationToken);
             var result = await context.BaseSaveChangesAsync(cancellationToken);
             await context.OnAfterSaveChanges(beforeResponse, outboxMessagesListener, cancellationToken);
 

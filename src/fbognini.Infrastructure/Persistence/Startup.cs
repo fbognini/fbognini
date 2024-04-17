@@ -32,8 +32,6 @@ namespace fbognini.Infrastructure.Persistence
                 throw new InvalidOperationException("DB Provider is not configured.");
             }
 
-            services.AddOutboxListener();
-
             return services
                 .Configure<DatabaseSettings>(databaseSection)
                 .AddScoped<IBaseDbContext, T>()

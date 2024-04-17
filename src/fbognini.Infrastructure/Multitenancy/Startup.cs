@@ -1,5 +1,6 @@
 ﻿using fbognini.Application.Multitenancy;
 using fbognini.Infrastructure.Entities;
+using fbognini.Infrastructure.Outbox;
 using fbognini.Infrastructure.Persistence.Initialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -21,6 +22,7 @@ namespace fbognini.Infrastructure.Multitenancy
             return services
                 .Configure<MultitenancySettings>(configuration.GetSection(nameof(MultitenancySettings)))
                 .AddScoped<ITenantService<TTenant>, TenantService<TTenant>>()
+                .AddOutboxListener<TTenant>()
                 .AddMultiTenant<TTenant>();
         }
 

@@ -1,5 +1,9 @@
-﻿using fbognini.Core.Domain;
+﻿using fbognini.Application.Multitenancy;
+using fbognini.Core.Domain;
+using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Persistence;
+using Finbuckle.MultiTenant;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -20,15 +24,16 @@ public interface IOutboxMessagesListener
     void Notify();
 }
 
-public class OutboxMessagesListenerService : BackgroundService, IOutboxMessagesListener
+internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutboxMessagesListener
+    where TTenant : Tenant, new()
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<OutboxMessagesListenerService> logger;
+    private readonly ILogger<OutboxMessagesListenerService<TTenant>> logger;
 
     private CancellationTokenSource _wakeupCancelationTokenSource = new();
     private readonly string _applicationName = Assembly.GetEntryAssembly()!.GetName().Name!;
 
-    public OutboxMessagesListenerService(IServiceScopeFactory scopeFactory, ILogger<OutboxMessagesListenerService> logger)
+    public OutboxMessagesListenerService(IServiceScopeFactory scopeFactory, ILogger<OutboxMessagesListenerService<TTenant>> logger)
     {
         _scopeFactory = scopeFactory;
         this.logger = logger;
@@ -42,7 +47,12 @@ public class OutboxMessagesListenerService : BackgroundService, IOutboxMessagesL
         }
 
         using var scope = _scopeFactory.CreateScope();
-        var processor = scope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
+        var processor = scope.ServiceProvider.GetService<IOutboxMessageProcessor>();
+        if (processor is null)
+        {
+            logger.LogWarning("No IOutboxMessageProcessor has been registered, memory events can't be processed");
+            return;
+        }
 
         foreach (var domainMemoryEvent in domainMemoryEvents)
         {
@@ -63,6 +73,13 @@ public class OutboxMessagesListenerService : BackgroundService, IOutboxMessagesL
             if (outboxSettings.ApplicationFilter == OutboxProcessorApplicationFilter.None)
             {
                 logger.LogInformation("Outbox messages won't be processed by {ApplicationName}", _applicationName);
+                return;
+            }
+
+            var processor = scope.ServiceProvider.GetService<IOutboxMessageProcessor>();
+            if (processor is null)
+            {
+                logger.LogWarning("No IOutboxMessageProcessor has been registered, outbox messages won't be processed by {ApplicationName}", _applicationName);
                 return;
             }
         }
@@ -91,7 +108,7 @@ public class OutboxMessagesListenerService : BackgroundService, IOutboxMessagesL
             using (var scope = _scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<IBaseDbContext>();
-                var processor = scope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
+                var tenantService = scope.ServiceProvider.GetRequiredService<ITenantService<TTenant>>();
                 var outboxSettings = scope.ServiceProvider.GetRequiredService<IOptions<OutboxSettings>>().Value;
                 if (outboxSettings.IntervalInSeconds > 0)
                 {
@@ -104,7 +121,22 @@ public class OutboxMessagesListenerService : BackgroundService, IOutboxMessagesL
                 {
                     try
                     {
-                        await processor.Process(outboxMessage, stoppingToken);
+                        var tenant = !string.IsNullOrWhiteSpace(outboxMessage.Tenant)
+                            ? await tenantService.GetByIdAsync(outboxMessage.Tenant)
+                            : null;
+
+                        scope.ServiceProvider.GetRequiredService<IMultiTenantContextAccessor>().MultiTenantContext = new MultiTenantContext<TTenant>()
+                        {
+                            TenantInfo = tenant,
+                            StrategyInfo = null,
+                            StoreInfo = null
+                        };
+
+                        using (var outboxScope = _scopeFactory.CreateScope())
+                        {
+                            var processor = outboxScope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
+                            await processor.Process(outboxMessage, stoppingToken);
+                        }
 
                         outboxMessage.SetAsProcessed(DateTime.UtcNow);
                     }

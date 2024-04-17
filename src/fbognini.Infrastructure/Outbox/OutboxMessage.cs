@@ -1,4 +1,5 @@
-﻿using System;
+﻿using fbognini.Core.Domain;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Outbox;
 
-public sealed class OutboxMessage
+public sealed class OutboxMessage: IHaveTenant
 {
     public OutboxMessage(Guid id, DateTime occurredOnUtc, string application, string type, string content)
     {
@@ -30,6 +31,8 @@ public sealed class OutboxMessage
     public DateTime? ProcessedOnUtc { get; private set; }
 
     public string? Error { get; private set; }
+
+    public string Tenant { get; set; } = string.Empty;
 
     public void SetAsProcessed(DateTime processedOnUtc)
     {
