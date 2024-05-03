@@ -95,7 +95,7 @@ namespace fbognini.Infrastructure.Repository
 
             if (args is IHasSearch<TEntity> hasSearch)
             {
-                if (hasSearch.Search != null && hasSearch.Search.AllFields.Any())
+                if (hasSearch.Search != null && hasSearch.Search.AllFields.Count != 0)
                 {
                     builder.Append($"|q:");
                     builder.Append($"q={hasSearch.Search.Keyword}&t=");

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -62,6 +63,8 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
 
     public void Notify()
     {
+        logger.LogDebug("Listener has been notified");
+
         _wakeupCancelationTokenSource.Cancel();
     }
 
@@ -117,53 +120,80 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
 
                 var outboxMessages = GetOutboxMessages(dbContext, outboxSettings);
 
+                logger.LogInformation("{NoOfOutboxMessages} outbox message(s) found", outboxMessages.Count);
+
                 foreach (var outboxMessage in outboxMessages)
                 {
-                    try
+                    var outboxMessageId = outboxMessage.Id;
+                    var outboxTenant = outboxMessage.Tenant;
+
+                    var propertys = new Dictionary<string, object?>()
                     {
-                        var tenant = !string.IsNullOrWhiteSpace(outboxMessage.Tenant)
-                            ? await tenantService.GetByIdAsync(outboxMessage.Tenant)
-                            : null;
+                        ["OutboxMessageId"] = outboxMessageId,
+                        ["Tenant"] = outboxTenant,
+                    };
 
-                        scope.ServiceProvider.GetRequiredService<IMultiTenantContextAccessor>().MultiTenantContext = new MultiTenantContext<TTenant>()
-                        {
-                            TenantInfo = tenant,
-                            StrategyInfo = null,
-                            StoreInfo = null
-                        };
+                    using (logger.BeginScope(propertys))
+                    {
 
-                        using (var outboxScope = _scopeFactory.CreateScope())
+                        try
                         {
-                            var processor = outboxScope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
-                            await processor.Process(outboxMessage, stoppingToken);
+                            var tenant = await GetTenant(tenantService, outboxMessageId, outboxTenant);
+
+                            scope.ServiceProvider.GetRequiredService<IMultiTenantContextAccessor>().MultiTenantContext = new MultiTenantContext<TTenant>()
+                            {
+                                TenantInfo = tenant,
+                                StrategyInfo = null,
+                                StoreInfo = null
+                            };
+
+                            using (var outboxScope = _scopeFactory.CreateScope())
+                            {
+                                var processor = outboxScope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
+
+                                logger.LogDebug("Start processing outbox message {OutboxMessageId} as {OutboxMessageType}", outboxMessage.Id, outboxMessage.Type);
+
+                                await processor.Process(outboxMessage, stoppingToken);
+                            }
+
+                            outboxMessage.SetAsProcessed(DateTime.UtcNow);
+
+                            logger.LogInformation("Outbox message {OutboxMessageId} has been processed", outboxMessage.Id);
+                        }
+                        catch (Exception exception)
+                        {
+                            logger.LogError(
+                                exception,
+                                "Exception while processing outbox message {OutboxMessageId}",
+                                outboxMessage.Id);
+
+                            outboxMessage.SetAsProcessedWithError(DateTime.UtcNow, exception.Message);
                         }
 
-                        outboxMessage.SetAsProcessed(DateTime.UtcNow);
+                        await dbContext.BaseSaveChangesAsync(stoppingToken);
                     }
-                    catch (Exception exception)
-                    {
-                        logger.LogError(
-                            exception,
-                            "Exception while processing outbox message {MessageId}",
-                            outboxMessage.Id);
-
-                        outboxMessage.SetAsProcessedWithError(DateTime.UtcNow, exception.Message);
-                    }
-
-                    await dbContext.BaseSaveChangesAsync(stoppingToken);
                 }
             }
 
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_wakeupCancelationTokenSource.Token, stoppingToken);
             try
             {
+                if (interval == -1)
+                {
+                    logger.LogInformation("Listening for a new event");
+                }
+                else
+                {
+                    logger.LogInformation("Listening for a new event of waiting for {Internval}ms", interval);
+                }
+
                 await Task.Delay(interval, linkedCts.Token);
             }
             catch (OperationCanceledException)
             {
                 if (_wakeupCancelationTokenSource.Token.IsCancellationRequested)
                 {
-                    logger.LogInformation("New events published");
+                    logger.LogInformation("Outbox listener is awake");
 
                     var tmp = _wakeupCancelationTokenSource;
                     _wakeupCancelationTokenSource = new CancellationTokenSource();
@@ -175,6 +205,22 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
                 }
             }
         }
+    }
+
+    private async Task<TTenant?> GetTenant(ITenantService<TTenant> tenantService, Guid outboxMessageId, string outboxTenant)
+    {
+        if (string.IsNullOrWhiteSpace(outboxTenant))
+        {
+            return null;
+        }
+
+        var tenant = await tenantService.GetByIdAsync(outboxTenant);
+        if (tenant is null)
+        {
+            logger.LogWarning("Tenat {Tenant} for outbox message {OutboxMessageId} was not found", outboxTenant, outboxMessageId);
+        }
+
+        return tenant;
     }
 
     private List<OutboxMessage> GetOutboxMessages(IBaseDbContext dbContext, OutboxSettings outboxSettings)

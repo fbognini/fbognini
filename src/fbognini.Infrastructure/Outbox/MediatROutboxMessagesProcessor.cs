@@ -21,22 +21,14 @@ public class MediatROutboxMessagesProcessor : IOutboxMessageProcessor
 
     public async Task Process(OutboxMessage outboxMessage, CancellationToken cancellation)
     {
-        var propertys = new Dictionary<string, object?>()
+        var notification = JsonConvert.DeserializeObject<IDomainEvent>(outboxMessage.Content, DomainEventExtensions.JsonSerializerSettings);
+        if (notification is not null)
         {
-            ["OutboxId"] = outboxMessage.Id,
-        };
-
-        using (logger.BeginScope(propertys))
-        {
-            var notification = JsonConvert.DeserializeObject<IDomainEvent>(outboxMessage.Content, DomainEventExtensions.JsonSerializerSettings);
-            if (notification is not null)
-            {
-                await ProcessNotification(notification, cancellation);
-                return;
-            }
-
-            logger.LogWarning("Outbox {OutboxId} can't be deserialized in a IDomainEvent", outboxMessage.Id);
+            await ProcessNotification(notification, cancellation);
+            return;
         }
+
+        logger.LogWarning("Outbox message {OutboxMessageId} can't be deserialized in a IDomainEvent", outboxMessage.Id);
     }
 
     public Task Process(IDomainMemoryEvent domainMemoryEvent, CancellationToken cancellation) => ProcessNotification(domainMemoryEvent, cancellation);
