@@ -15,7 +15,7 @@ namespace fbognini.Core.Utilities
         {
             if (source == null)
             {
-                throw new ArgumentNullException("source", "Unable to convert object to a dictionary. The source object is null.");
+                throw new ArgumentNullException(nameof(source), "Unable to convert object to a dictionary. The source object is null.");
             }
 
             var dictionary = new Dictionary<string, T>();

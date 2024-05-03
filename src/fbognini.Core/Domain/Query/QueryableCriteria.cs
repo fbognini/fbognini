@@ -4,10 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace fbognini.Core.Domain.Query
 {
-    public class QueryableCriteria<T> : IHasFilter<T>, IHasSearch<T>, IHasSorting<T>
+    public class QueryableCriteria<T> : IHasFilter<T>, IHasSearch<T>, IHasSorting<T>, IArgs
     {
         private readonly List<KeyValuePair<string, SortingDirection>> _sorting = new();
 
@@ -67,6 +68,42 @@ namespace fbognini.Core.Domain.Query
         public void SetOperator(LogicalOperator logicalOperator)
         {
             Operator = logicalOperator;
+        }
+
+        public string GetArgsKey()
+        {
+            var builder = GetQueryableArgsBuilder();
+
+            return builder.ToString();
+        }
+
+        public Dictionary<string, object?> GetArgsKeyAsDictionary()
+        {
+            var dictionary = GetQueryableArgsAsDisctionaryBuilder();
+
+            return dictionary.ToDictionary(x => x.Key, x => x.Value);
+        }
+
+        protected StringBuilder GetQueryableArgsBuilder()
+        {
+            var builder = new StringBuilder();
+            builder.Append(typeof(T).Name);
+
+            builder.Append((this as IHasFilter<T>).GetArgsKey());
+            builder.Append((this as IHasSearch<T>).GetArgsKey());
+            builder.Append((this as IHasSorting<T>).GetArgsKey());
+
+            return builder;
+        }
+
+        protected List<KeyValuePair<string, object?>> GetQueryableArgsAsDisctionaryBuilder()
+        {
+            var dictionary = new List<KeyValuePair<string, object?>>();
+            dictionary.AddRange((this as IHasFilter<T>).GetArgsKeyAsDictionary());
+            dictionary.AddRange((this as IHasSearch<T>).GetArgsKeyAsDictionary());
+            dictionary.AddRange((this as IHasSorting<T>).GetArgsKeyAsDictionary());
+
+            return dictionary;
         }
     }
 

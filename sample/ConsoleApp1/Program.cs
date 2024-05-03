@@ -1,9 +1,22 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using ConsoleApp1;
+using fbognini.Core.Exceptions;
 using fbognini.Core.Utilities;
 
 Console.WriteLine("Hello, World!");
 
+var criteria = new FooCriteria()
+{
+    Title = "ciccio"
+};
+criteria.Search.Keyword = "foo";
+criteria.Search.Fields.Add(x => x.FirstName);
+criteria.Search.FieldStrings.Add("Ciccio");
+criteria.LoadSortingQuery(new fbognini.Core.Domain.Query.SortingQuery("Criteria", fbognini.Core.Domain.Query.SortingDirection.ASCENDING));
+criteria.LoadSortingQuery(new fbognini.Core.Domain.Query.SortingQuery("Criteria DESSC", fbognini.Core.Domain.Query.SortingDirection.DESCENDING));
+
+
+throw new NotFoundException<Foo>(criteria);
 
 var classWithAmount = new ClassWithAmount()
 {

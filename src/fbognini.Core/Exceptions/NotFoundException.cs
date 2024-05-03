@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text.Json;
 
 namespace fbognini.Core.Exceptions
 {
@@ -20,6 +21,16 @@ namespace fbognini.Core.Exceptions
             Entity = entity;
             Key = key;
         }
+    }
+
+    public class NotFoundException<T> : NotFoundException
+    {
+        public NotFoundException(QueryableCriteria<T> key)
+            : base(typeof(T), key)
+        {
+
+        }
+
     }
 
     public class NotFoundException : AppException
@@ -37,14 +48,20 @@ namespace fbognini.Core.Exceptions
 
         }
 
+        protected NotFoundException(string typeName, string serializedKey, object key)
+            : base(
+                  HttpStatusCode.NotFound,
+                  $"Entity \"{typeName}\" ({serializedKey}) was not found.",
+                  $"{typeName} was not found.",
+                  new NotFoundAdditionalData(typeName, key))
+        {
+
+        }
+
         public NotFoundException(
             Type type,
             object key)
-            : base(
-                  HttpStatusCode.NotFound,
-                  $"Entity \"{type.Name}\" ({SerializedKey(key)}) was not found.",
-                  $"{type.Name} was not found.",
-                  new NotFoundAdditionalData(type.Name, FormatKey(key)))
+            : this(type.Name, SerializedKey(key), FormatKey(key))
         {
         }
 
@@ -54,10 +71,10 @@ namespace fbognini.Core.Exceptions
 
             if (key is string || key.GetType().IsValueType)
             {
-                return key.ToString();
+                return key.ToString() ?? string.Empty;
             }
 
-            if (key is Dictionary<string, object> dict)
+            if (key is IDictionary<string, object?> dict)
             {
                 return ToDebugString(dict);
             }
@@ -67,28 +84,22 @@ namespace fbognini.Core.Exceptions
 
         private static object FormatKey(object key)
         {
-
-            if (key is IArgs)
+            if (key is IArgs args)
             {
-                var names = key.GetType()
-                    .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance)
-                    .Select(pi => pi.Name).ToList();
-
-                var newKey = new Dictionary<string, object>();
-                foreach (var name in names)
-                {
-                    newKey.Add(name, key.GetPropertyValue(name));
-                }
-
-                return newKey;
+                return args.GetArgsKeyAsDictionary().ToDictionary(x => x.Key, x => x.Value);
             }
-
             return key;
         }
 
         private static string ToDebugString<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
         {
-            return "{ " + string.Join(", ", dictionary.Select(kv => kv.Key + " = " + kv.Value).ToArray()) + " }";
+            var jsonSerializerOptions = new JsonSerializerOptions()
+            {
+                WriteIndented = false,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            };
+
+            return JsonSerializer.Serialize(dictionary, jsonSerializerOptions);
         }
     }
 }
