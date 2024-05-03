@@ -1,6 +1,9 @@
-﻿using System;
+﻿using fbognini.Core.Utilities;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace fbognini.Core.Domain.Query
 {
@@ -20,6 +23,22 @@ namespace fbognini.Core.Domain.Query
         {
             get => Args.Track;
             set => Args.Track = value;
+        }
+
+        public new string GetArgsKey()
+        {
+            var builder = GetQueryableArgsBuilder();
+            builder.Append((Args as IHasViews<TEntity>).GetArgsKey());
+
+            return builder.ToString();
+        }
+
+        public new Dictionary<string, object?> GetArgsKeyAsDictionary()
+        {
+            var list = GetQueryableArgsAsDisctionaryBuilder();
+            list.AddRange((Args as IHasViews<TEntity>).GetArgsKeyAsDictionary());
+
+            return list.ToDictionary(x => x.Key, x => x.Value);
         }
     }
 

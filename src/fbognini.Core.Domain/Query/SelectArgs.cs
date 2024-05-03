@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace fbognini.Core.Domain.Query
 {
@@ -19,6 +21,28 @@ namespace fbognini.Core.Domain.Query
 
         public List<Expression<Func<TEntity, object?>>> Includes { get; internal init; } = new List<Expression<Func<TEntity, object?>>>();
         public List<string> IncludeStrings { get; internal init; } = new List<string>();
+
+        public virtual string GetArgsKey()
+        {
+            var builder = new StringBuilder();
+            builder.Append(typeof(TEntity).Name);
+
+            builder.Append((this as IHasViews<TEntity>).GetArgsKey());
+
+            return builder.ToString();
+        }
+
+        public virtual Dictionary<string, object?> GetArgsKeyAsDictionary()
+        {
+            var dictionary = new List<KeyValuePair<string, object?>>
+            {
+                new("_Entity", typeof(TEntity).Name)
+            };
+
+            dictionary.AddRange((this as IHasViews<TEntity>).GetArgsKeyAsDictionary());
+
+            return dictionary.ToDictionary(x => x.Key, x => x.Value);
+        }
     }
 
     public class SelectArgs<TEntity, TKey> : SelectArgs<TEntity>

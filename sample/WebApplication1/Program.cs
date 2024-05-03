@@ -50,8 +50,9 @@ app.MapGet("/books", async (string? title, IWebApplication1Repository repository
         Title = title
     };
     criteria.Args.Includes.Add(x => x.Author);
+    criteria.Args.ThrowExceptionIfNull = true;
 
-    var books = await repository.GetAllAsync<Book>(criteria);
+    var books = await repository.GetFirstAsync<Book>(criteria);
     return books;
 })
 .WithName("GetBooks")
