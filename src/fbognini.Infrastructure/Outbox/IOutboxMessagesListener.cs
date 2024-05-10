@@ -118,60 +118,70 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
                     interval = outboxSettings.IntervalInSeconds * 1000;
                 }
 
-                var outboxMessages = GetOutboxMessages(dbContext, outboxSettings);
-
-                logger.LogInformation("{NoOfOutboxMessages} outbox message(s) found", outboxMessages.Count);
-
-                foreach (var outboxMessage in outboxMessages)
+                while (true)
                 {
-                    var outboxMessageId = outboxMessage.Id;
-                    var outboxTenant = outboxMessage.Tenant;
+                    var outboxMessages = GetOutboxMessages(dbContext, outboxSettings);
+                    var noOfOutboxMessages = outboxMessages.Count;
 
-                    var propertys = new Dictionary<string, object?>()
+                    logger.LogInformation("{NoOfOutboxMessages} outbox message(s) found", noOfOutboxMessages);
+
+                    if (noOfOutboxMessages == 0)
                     {
-                        ["OutboxMessageId"] = outboxMessageId,
-                        ["Tenant"] = outboxTenant,
-                    };
+                        break;
+                    }
 
-                    using (logger.BeginScope(propertys))
+                    foreach (var outboxMessage in outboxMessages)
                     {
+                        var outboxMessageId = outboxMessage.Id;
+                        var outboxTenant = outboxMessage.Tenant;
 
-                        try
+                        var propertys = new Dictionary<string, object?>()
                         {
-                            var tenant = await GetTenant(tenantService, outboxMessageId, outboxTenant);
+                            ["OutboxMessageId"] = outboxMessageId,
+                            ["Tenant"] = outboxTenant,
+                        };
 
-                            scope.ServiceProvider.GetRequiredService<IMultiTenantContextAccessor>().MultiTenantContext = new MultiTenantContext<TTenant>()
+                        using (logger.BeginScope(propertys))
+                        {
+
+                            try
                             {
-                                TenantInfo = tenant,
-                                StrategyInfo = null,
-                                StoreInfo = null
-                            };
+                                var tenant = await GetTenant(tenantService, outboxMessageId, outboxTenant);
 
-                            using (var outboxScope = _scopeFactory.CreateScope())
+                                scope.ServiceProvider.GetRequiredService<IMultiTenantContextAccessor>().MultiTenantContext = new MultiTenantContext<TTenant>()
+                                {
+                                    TenantInfo = tenant,
+                                    StrategyInfo = null,
+                                    StoreInfo = null
+                                };
+
+                                using (var outboxScope = _scopeFactory.CreateScope())
+                                {
+                                    var processor = outboxScope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
+
+                                    logger.LogDebug("Start processing outbox message {OutboxMessageId} as {OutboxMessageType}", outboxMessage.Id, outboxMessage.Type);
+
+                                    await processor.Process(outboxMessage, stoppingToken);
+                                }
+
+                                outboxMessage.SetAsProcessed(DateTime.UtcNow);
+
+                                logger.LogInformation("Outbox message {OutboxMessageId} has been processed", outboxMessage.Id);
+                            }
+                            catch (Exception exception)
                             {
-                                var processor = outboxScope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
+                                logger.LogError(
+                                    exception,
+                                    "Exception while processing outbox message {OutboxMessageId}",
+                                    outboxMessage.Id);
 
-                                logger.LogDebug("Start processing outbox message {OutboxMessageId} as {OutboxMessageType}", outboxMessage.Id, outboxMessage.Type);
-
-                                await processor.Process(outboxMessage, stoppingToken);
+                                outboxMessage.SetAsProcessedWithError(DateTime.UtcNow, exception.Message);
                             }
 
-                            outboxMessage.SetAsProcessed(DateTime.UtcNow);
-
-                            logger.LogInformation("Outbox message {OutboxMessageId} has been processed", outboxMessage.Id);
+                            await dbContext.BaseSaveChangesAsync(stoppingToken);
                         }
-                        catch (Exception exception)
-                        {
-                            logger.LogError(
-                                exception,
-                                "Exception while processing outbox message {OutboxMessageId}",
-                                outboxMessage.Id);
-
-                            outboxMessage.SetAsProcessedWithError(DateTime.UtcNow, exception.Message);
-                        }
-
-                        await dbContext.BaseSaveChangesAsync(stoppingToken);
                     }
+
                 }
             }
 
