@@ -22,7 +22,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services.AddMediatROutboxMessagesProcessor(builder.Configuration);
+builder.Services.AddMediatROutboxMessagesPublisher(builder.Configuration);
 
 builder.Services.Configure<JsonOptions>(options =>
 {

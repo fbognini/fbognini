@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Outbox;
 
-public interface IOutboxMessageProcessor
+public interface IOutboxMessagePublisher
 {
-    Task Process(OutboxMessage outboxMessage, CancellationToken cancellation);
-    Task Process(IDomainMemoryEvent domainMemoryEvent, CancellationToken cancellation);
+    Task Publish(OutboxMessage outboxMessage, CancellationToken cancellation);
+    Task Publish(IDomainMemoryEvent domainMemoryEvent, CancellationToken cancellation);
 }

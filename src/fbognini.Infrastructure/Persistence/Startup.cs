@@ -4,6 +4,7 @@ using fbognini.Infrastructure.Multitenancy;
 using fbognini.Infrastructure.Outbox;
 using fbognini.Infrastructure.Persistence.ConnectionString;
 using fbognini.Infrastructure.Persistence.Initialization;
+using LinqToDB.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,8 @@ namespace fbognini.Infrastructure.Persistence
         private static IServiceCollection AddBasePersistence<T>(this IServiceCollection services, IConfiguration configuration)
             where T : DbContext, IBaseDbContext
         {
+            LinqToDBForEFTools.Initialize();
+
             // TODO: We should probably add specific dbprovider/connectionstring setting for the tenantDb with a fallback to the main databasesettings
             var databaseSection = configuration.GetSection(nameof(DatabaseSettings));
             var databaseSettings = databaseSection.Get<DatabaseSettings>();

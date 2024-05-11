@@ -8,18 +8,18 @@ using System.Threading.Tasks;
 
 namespace fbognini.Infrastructure.Outbox;
 
-public class MediatROutboxMessagesProcessor : IOutboxMessageProcessor
+public class MediatROutboxMessagesPublisher : IOutboxMessagePublisher
 {
     private readonly IPublisher publisher;
-    private readonly ILogger<MediatROutboxMessagesProcessor> logger;
+    private readonly ILogger<MediatROutboxMessagesPublisher> logger;
 
-    public MediatROutboxMessagesProcessor(IPublisher mediator, ILogger<MediatROutboxMessagesProcessor> logger)
+    public MediatROutboxMessagesPublisher(IPublisher mediator, ILogger<MediatROutboxMessagesPublisher> logger)
     {
         this.publisher = mediator;
         this.logger = logger;
     }
 
-    public async Task Process(OutboxMessage outboxMessage, CancellationToken cancellation)
+    public async Task Publish(OutboxMessage outboxMessage, CancellationToken cancellation)
     {
         var notification = JsonConvert.DeserializeObject<IDomainEvent>(outboxMessage.Content, DomainEventExtensions.JsonSerializerSettings);
         if (notification is not null)
@@ -31,7 +31,7 @@ public class MediatROutboxMessagesProcessor : IOutboxMessageProcessor
         logger.LogWarning("Outbox message {OutboxMessageId} can't be deserialized in a IDomainEvent", outboxMessage.Id);
     }
 
-    public Task Process(IDomainMemoryEvent domainMemoryEvent, CancellationToken cancellation) => ProcessNotification(domainMemoryEvent, cancellation);
+    public Task Publish(IDomainMemoryEvent domainMemoryEvent, CancellationToken cancellation) => ProcessNotification(domainMemoryEvent, cancellation);
 
     private Task ProcessNotification(INotification notification, CancellationToken cancellation) => publisher.Publish(notification, cancellation);
 }

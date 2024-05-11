@@ -18,20 +18,22 @@ public static class Startup
         services.AddSingleton<IOutboxMessagesListener, OutboxMessagesListenerService<TTenant>>();
         services.AddHostedService(sp => (OutboxMessagesListenerService<TTenant>)sp.GetRequiredService<IOutboxMessagesListener>());
 
+        services.AddScoped<IOutboxMessageProcessor, OutboxMessageProcessor<TTenant>>();
+
         return services;
     }
 
 
-    public static IServiceCollection AddMediatROutboxMessagesProcessor(this IServiceCollection services, IConfiguration configuration)
-        => services.AddOutboxMessagesProcessor<MediatROutboxMessagesProcessor>(configuration);
+    public static IServiceCollection AddMediatROutboxMessagesPublisher(this IServiceCollection services, IConfiguration configuration)
+        => services.AddOutboxMessagesPublisher<MediatROutboxMessagesPublisher>(configuration);
 
-    public static IServiceCollection AddOutboxMessagesProcessor<TOutboxProcessor>(this IServiceCollection services, IConfiguration configuration)
-        where TOutboxProcessor : class, IOutboxMessageProcessor
+    public static IServiceCollection AddOutboxMessagesPublisher<TOutboxPublisher>(this IServiceCollection services, IConfiguration configuration)
+        where TOutboxPublisher : class, IOutboxMessagePublisher
     {
         var outboxSection = configuration.GetSection("Outbox");
         services.Configure<OutboxSettings>(outboxSection);
 
-        services.AddScoped<IOutboxMessageProcessor, TOutboxProcessor>();
+        services.AddScoped<IOutboxMessagePublisher, TOutboxPublisher>();
 
         return services;
     }

@@ -4,6 +4,7 @@ using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Persistence;
 using Finbuckle.MultiTenant;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -32,7 +33,6 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
     private readonly ILogger<OutboxMessagesListenerService<TTenant>> logger;
 
     private CancellationTokenSource _wakeupCancelationTokenSource = new();
-    private readonly string _applicationName = Assembly.GetEntryAssembly()!.GetName().Name!;
 
     public OutboxMessagesListenerService(IServiceScopeFactory scopeFactory, ILogger<OutboxMessagesListenerService<TTenant>> logger)
     {
@@ -48,16 +48,16 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
         }
 
         using var scope = _scopeFactory.CreateScope();
-        var processor = scope.ServiceProvider.GetService<IOutboxMessageProcessor>();
-        if (processor is null)
+        var publisher = scope.ServiceProvider.GetService<IOutboxMessagePublisher>();
+        if (publisher is null)
         {
-            logger.LogWarning("No IOutboxMessageProcessor has been registered, memory events can't be processed");
+            logger.LogWarning("No IOutboxMessagePublisher has been registered, memory events can't be processed");
             return;
         }
 
         foreach (var domainMemoryEvent in domainMemoryEvents)
         {
-            await processor.Process(domainMemoryEvent, cancellationToken);
+            await publisher.Publish(domainMemoryEvent, cancellationToken);
         }
     }
 
@@ -70,20 +70,29 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        int interval = -1;
+
         using (var scope = _scopeFactory.CreateScope())
         {
+            var applicationName = Assembly.GetEntryAssembly()!.GetName().Name!;
+
             var outboxSettings = scope.ServiceProvider.GetRequiredService<IOptions<OutboxSettings>>().Value;
             if (outboxSettings.ApplicationFilter == OutboxProcessorApplicationFilter.None)
             {
-                logger.LogInformation("Outbox messages won't be processed by {ApplicationName}", _applicationName);
+                logger.LogInformation("Outbox messages won't be processed by {ApplicationName}", applicationName);
                 return;
             }
 
-            var processor = scope.ServiceProvider.GetService<IOutboxMessageProcessor>();
-            if (processor is null)
+            var publisher = scope.ServiceProvider.GetService<IOutboxMessagePublisher>();
+            if (publisher is null)
             {
-                logger.LogWarning("No IOutboxMessageProcessor has been registered, outbox messages won't be processed by {ApplicationName}", _applicationName);
+                logger.LogWarning("No IOutboxMessagePublisher has been registered, outbox messages won't be processed by {ApplicationName}", applicationName);
                 return;
+            }
+
+            if (outboxSettings.IntervalInSeconds > 0)
+            {
+                interval = outboxSettings.IntervalInSeconds * 1000;
             }
         }
 
@@ -91,7 +100,7 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
         {
             try
             {
-                await PublishDomainEvents(stoppingToken);
+                await PublishDomainEvents(interval, stoppingToken);
             }
             catch (Exception ex)
             {
@@ -102,157 +111,56 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
         }
     }
 
-    private async Task PublishDomainEvents(CancellationToken stoppingToken)
+    private async Task PublishDomainEvents(int interval, CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        using (var scope = _scopeFactory.CreateScope())
         {
-            int interval = -1;
+            var baseDbContext = scope.ServiceProvider.GetRequiredService<IBaseDbContext>();
+            var processor = scope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
 
-            using (var scope = _scopeFactory.CreateScope())
+            int noOfOutboxMessages;
+            do
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<IBaseDbContext>();
-                var tenantService = scope.ServiceProvider.GetRequiredService<ITenantService<TTenant>>();
-                var outboxSettings = scope.ServiceProvider.GetRequiredService<IOptions<OutboxSettings>>().Value;
-                if (outboxSettings.IntervalInSeconds > 0)
-                {
-                    interval = outboxSettings.IntervalInSeconds * 1000;
-                }
+                var dbContext = (DbContext)baseDbContext;
 
-                while (true)
-                {
-                    var outboxMessages = GetOutboxMessages(dbContext, outboxSettings);
-                    var noOfOutboxMessages = outboxMessages.Count;
+                using var transaction = dbContext.Database.BeginTransaction();
 
-                    logger.LogInformation("{NoOfOutboxMessages} outbox message(s) found", noOfOutboxMessages);
+                noOfOutboxMessages = await processor.Process(stoppingToken);
 
-                    if (noOfOutboxMessages == 0)
-                    {
-                        break;
-                    }
+                await transaction.CommitAsync(stoppingToken);
+            }
+            while (noOfOutboxMessages > 0);
+        }
 
-                    foreach (var outboxMessage in outboxMessages)
-                    {
-                        var outboxMessageId = outboxMessage.Id;
-                        var outboxTenant = outboxMessage.Tenant;
-
-                        var propertys = new Dictionary<string, object?>()
-                        {
-                            ["OutboxMessageId"] = outboxMessageId,
-                            ["Tenant"] = outboxTenant,
-                        };
-
-                        using (logger.BeginScope(propertys))
-                        {
-
-                            try
-                            {
-                                var tenant = await GetTenant(tenantService, outboxMessageId, outboxTenant);
-
-                                scope.ServiceProvider.GetRequiredService<IMultiTenantContextAccessor>().MultiTenantContext = new MultiTenantContext<TTenant>()
-                                {
-                                    TenantInfo = tenant,
-                                    StrategyInfo = null,
-                                    StoreInfo = null
-                                };
-
-                                using (var outboxScope = _scopeFactory.CreateScope())
-                                {
-                                    var processor = outboxScope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
-
-                                    logger.LogDebug("Start processing outbox message {OutboxMessageId} as {OutboxMessageType}", outboxMessage.Id, outboxMessage.Type);
-
-                                    await processor.Process(outboxMessage, stoppingToken);
-                                }
-
-                                outboxMessage.SetAsProcessed(DateTime.UtcNow);
-
-                                logger.LogInformation("Outbox message {OutboxMessageId} has been processed", outboxMessage.Id);
-                            }
-                            catch (Exception exception)
-                            {
-                                logger.LogError(
-                                    exception,
-                                    "Exception while processing outbox message {OutboxMessageId}",
-                                    outboxMessage.Id);
-
-                                outboxMessage.SetAsProcessedWithError(DateTime.UtcNow, exception.Message);
-                            }
-
-                            await dbContext.BaseSaveChangesAsync(stoppingToken);
-                        }
-                    }
-
-                }
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_wakeupCancelationTokenSource.Token, stoppingToken);
+        try
+        {
+            if (interval == -1)
+            {
+                logger.LogInformation("Listening for a new event");
+            }
+            else
+            {
+                logger.LogInformation("Listening for a new event of waiting for {Internval}ms", interval);
             }
 
-            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_wakeupCancelationTokenSource.Token, stoppingToken);
-            try
+            await Task.Delay(interval, linkedCts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            if (_wakeupCancelationTokenSource.Token.IsCancellationRequested)
             {
-                if (interval == -1)
-                {
-                    logger.LogInformation("Listening for a new event");
-                }
-                else
-                {
-                    logger.LogInformation("Listening for a new event of waiting for {Internval}ms", interval);
-                }
+                logger.LogInformation("Outbox listener is awake");
 
-                await Task.Delay(interval, linkedCts.Token);
+                var tmp = _wakeupCancelationTokenSource;
+                _wakeupCancelationTokenSource = new CancellationTokenSource();
+                tmp.Dispose();
             }
-            catch (OperationCanceledException)
+            else if (stoppingToken.IsCancellationRequested)
             {
-                if (_wakeupCancelationTokenSource.Token.IsCancellationRequested)
-                {
-                    logger.LogInformation("Outbox listener is awake");
-
-                    var tmp = _wakeupCancelationTokenSource;
-                    _wakeupCancelationTokenSource = new CancellationTokenSource();
-                    tmp.Dispose();
-                }
-                else if (stoppingToken.IsCancellationRequested)
-                {
-                    logger.LogInformation("Outbox listener is shutting down");
-                }
+                logger.LogInformation("Outbox listener is shutting down");
             }
         }
     }
 
-    private async Task<TTenant?> GetTenant(ITenantService<TTenant> tenantService, Guid outboxMessageId, string outboxTenant)
-    {
-        if (string.IsNullOrWhiteSpace(outboxTenant))
-        {
-            return null;
-        }
-
-        var tenant = await tenantService.GetByIdAsync(outboxTenant);
-        if (tenant is null)
-        {
-            logger.LogWarning("Tenat {Tenant} for outbox message {OutboxMessageId} was not found", outboxTenant, outboxMessageId);
-        }
-
-        return tenant;
-    }
-
-    private List<OutboxMessage> GetOutboxMessages(IBaseDbContext dbContext, OutboxSettings outboxSettings)
-    {
-        var query = dbContext.OutboxMessages.Where(x => !x.ProcessedOnUtc.HasValue);
-
-        if (outboxSettings.ApplicationFilter == OutboxProcessorApplicationFilter.Me)
-        {
-            query = query.Where(x => x.Application == _applicationName);
-        }
-        else if (outboxSettings.ApplicationFilter == OutboxProcessorApplicationFilter.Custom &&
-            outboxSettings.Applications is not null)
-        {
-            var applications = outboxSettings.Applications.Split(new[] { ',', ';' }).ToList();
-            query = query.Where(x => applications.Contains(x.Application));
-        }
-
-        var events = query
-            .OrderBy(o => o.OccurredOnUtc)
-            .Take(outboxSettings.BatchSize)
-            .ToList();
-
-        return events;
-    }
 }
