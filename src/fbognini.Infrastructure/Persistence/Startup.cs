@@ -43,7 +43,8 @@ namespace fbognini.Infrastructure.Persistence
                 .AddImplementations(typeof(ICustomSeeder<T>), ServiceLifetime.Transient)
                 .AddTransient<ApplicationSeederRunner<T>>()
                 .AddTransient<IConnectionStringSecurer, ConnectionStringSecurer>()
-                .AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
+                .AddTransient<IConnectionStringValidator, ConnectionStringValidator>()
+                .AddOutboxListener();
 
             void GetContextOptionBuilder(DbContextOptionsBuilder contextOptions)
             {

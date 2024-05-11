@@ -20,7 +20,8 @@ namespace fbognini.Infrastructure.Outbox
 {
     public interface IOutboxMessageProcessor
     {
-        Task<int> Process(CancellationToken cancellationToken);
+        Task<int> ProcessDomainEvents(CancellationToken cancellationToken);
+        Task<int> ProcessDomainEvents(bool ignoreApplicationFiter, CancellationToken cancellationToken);
     }
 
     internal class OutboxMessageProcessor<TTenant>: IOutboxMessageProcessor
@@ -34,7 +35,15 @@ namespace fbognini.Infrastructure.Outbox
         private readonly OutboxSettings outboxSettings;
         private readonly DatabaseSettings databaseSettings;
 
-        public OutboxMessageProcessor(ILogger<OutboxMessageProcessor<TTenant>> logger, IServiceProvider serviceProvider, IBaseDbContext baseDbContext, ITenantService<TTenant> tenantService, IOptions<OutboxSettings> outboxSettings, IOptions<DatabaseSettings> databaseSettings)
+        public OutboxMessageProcessor(
+            // I'll use it in a different scope. Throw exception if not in DI.
+            IOutboxMessagePublisher _, 
+            ILogger<OutboxMessageProcessor<TTenant>> logger,
+            IServiceProvider serviceProvider,
+            IBaseDbContext baseDbContext,
+            ITenantService<TTenant> tenantService,
+            IOptions<OutboxSettings> outboxSettings,
+            IOptions<DatabaseSettings> databaseSettings)
         {
             this.logger = logger;
             this.serviceProvider = serviceProvider;
@@ -44,14 +53,16 @@ namespace fbognini.Infrastructure.Outbox
             this.databaseSettings = databaseSettings.Value;
         }
 
-        public async Task<int> Process(CancellationToken cancellationToken)
+        public Task<int> ProcessDomainEvents(CancellationToken cancellationToken) => ProcessDomainEvents(false, cancellationToken);
+
+        public async Task<int> ProcessDomainEvents(bool ignoreApplicationFiter, CancellationToken cancellationToken)
         {
             int noOfOutboxMessages;
             do
             {
                 using var transaction = ((DbContext)baseDbContext).Database.BeginTransaction();
 
-                var outboxMessages = GetOutboxMessages();
+                var outboxMessages = GetOutboxMessages(ignoreApplicationFiter);
                 noOfOutboxMessages = outboxMessages.Count;
 
                 logger.LogInformation("{NoOfOutboxMessages} outbox message(s) found", noOfOutboxMessages);
@@ -134,7 +145,7 @@ namespace fbognini.Infrastructure.Outbox
             return await tenantService.GetByIdAsync(outboxTenant);
         }
 
-        private List<OutboxMessage> GetOutboxMessages()
+        private List<OutboxMessage> GetOutboxMessages(bool ignoreApplicationFiter)
         {
             var applicationName = Assembly.GetEntryAssembly()!.GetName().Name!;
 
@@ -149,18 +160,22 @@ namespace fbognini.Infrastructure.Outbox
             }
 
             var query = linq2dbTable
+                // GlobalQueryFilter for tenant
                 .IgnoreFilters()
                 .Where(x => !x.ProcessedOnUtc.HasValue);
 
-            if (outboxSettings.ApplicationFilter == OutboxProcessorApplicationFilter.Me)
+            if (ignoreApplicationFiter)
             {
-                query = query.Where(x => x.Application == applicationName);
-            }
-            else if (outboxSettings.ApplicationFilter == OutboxProcessorApplicationFilter.Custom &&
-                outboxSettings.Applications is not null)
-            {
-                var applications = outboxSettings.Applications.Split(new[] { ',', ';' }).ToList();
-                query = query.Where(x => applications.Contains(x.Application));
+                if (outboxSettings.ApplicationFilter == OutboxProcessorApplicationFilter.Me)
+                {
+                    query = query.Where(x => x.Application == applicationName);
+                }
+                else if (outboxSettings.ApplicationFilter == OutboxProcessorApplicationFilter.Custom &&
+                    outboxSettings.Applications is not null)
+                {
+                    var applications = outboxSettings.Applications.Split(new[] { ',', ';' }).ToList();
+                    query = query.Where(x => applications.Contains(x.Application));
+                }
             }
 
             var events = query

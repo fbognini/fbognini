@@ -12,12 +12,17 @@ namespace fbognini.Infrastructure.Outbox;
 
 public static class Startup
 {
-    internal static IServiceCollection AddOutboxListener<TTenant>(this IServiceCollection services)
+    internal static IServiceCollection AddOutboxListener(this IServiceCollection services)
+    {
+        services.AddSingleton<IOutboxMessagesListener, OutboxMessagesListenerService>();
+        services.AddHostedService(sp => (OutboxMessagesListenerService)sp.GetRequiredService<IOutboxMessagesListener>());
+
+        return services;
+    }
+
+    internal static IServiceCollection AddOutboxProcessor<TTenant>(this IServiceCollection services)
         where TTenant : Tenant, new()
     {
-        services.AddSingleton<IOutboxMessagesListener, OutboxMessagesListenerService<TTenant>>();
-        services.AddHostedService(sp => (OutboxMessagesListenerService<TTenant>)sp.GetRequiredService<IOutboxMessagesListener>());
-
         services.AddScoped<IOutboxMessageProcessor, OutboxMessageProcessor<TTenant>>();
 
         return services;

@@ -24,19 +24,16 @@ public interface IOutboxMessagesListener
     Task PublishDomainMemoryEventAsync(IReadOnlyList<IDomainMemoryEvent> domainMemoryEvents, CancellationToken cancellationToken);
 
     void NotifyDomainEvents();
-
-    Task ProcessDomainEvents(CancellationToken cancellationToken);
 }
 
-internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutboxMessagesListener
-    where TTenant : Tenant, new()
+internal class OutboxMessagesListenerService : BackgroundService, IOutboxMessagesListener
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<OutboxMessagesListenerService<TTenant>> logger;
+    private readonly ILogger<OutboxMessagesListenerService> logger;
 
     private CancellationTokenSource _wakeupDomainEventsCancellationTokenSource = new();
 
-    public OutboxMessagesListenerService(IServiceScopeFactory scopeFactory, ILogger<OutboxMessagesListenerService<TTenant>> logger)
+    public OutboxMessagesListenerService(IServiceScopeFactory scopeFactory, ILogger<OutboxMessagesListenerService> logger)
     {
         _scopeFactory = scopeFactory;
         this.logger = logger;
@@ -94,11 +91,6 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
 
         using var scope = _scopeFactory.CreateScope();
         var publisher = scope.ServiceProvider.GetService<IOutboxMessagePublisher>();
-        if (publisher is null)
-        {
-            logger.LogWarning("No IOutboxMessagePublisher has been registered, memory events can't be processed");
-            return;
-        }
 
         foreach (var domainMemoryEvent in domainMemoryEvents)
         {
@@ -113,13 +105,12 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
         _wakeupDomainEventsCancellationTokenSource.Cancel();
     }
 
-
-    public async Task ProcessDomainEvents(CancellationToken cancellationToken)
+    private async Task ProcessDomainEvents(CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
         var processor = scope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
 
-        _ = await processor.Process(cancellationToken);
+        _ = await processor.ProcessDomainEvents(cancellationToken);
     }
 
     private async Task ProcessDomainEventsAndWait(int interval, CancellationToken cancellationToken)

@@ -22,7 +22,7 @@ namespace fbognini.Infrastructure.Multitenancy
             return services
                 .Configure<MultitenancySettings>(configuration.GetSection(nameof(MultitenancySettings)))
                 .AddScoped<ITenantService<TTenant>, TenantService<TTenant>>()
-                .AddOutboxListener<TTenant>()
+                .AddOutboxProcessor<TTenant>()
                 .AddMultiTenant<TTenant>();
         }
 
