@@ -5,6 +5,7 @@ using Finbuckle.MultiTenant;
 using LinqToDB;
 using LinqToDB.DataProvider.SqlServer;
 using LinqToDB.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,10 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace fbognini.Infrastructure.Outbox
 {
@@ -47,24 +46,33 @@ namespace fbognini.Infrastructure.Outbox
 
         public async Task<int> Process(CancellationToken cancellationToken)
         {
-            var outboxMessages = GetOutboxMessages();
-            var noOfOutboxMessages = outboxMessages.Count;
-
-            logger.LogInformation("{NoOfOutboxMessages} outbox message(s) found", noOfOutboxMessages);
-
-            foreach (var outboxMessage in outboxMessages)
+            int noOfOutboxMessages;
+            do
             {
-                var propertys = new Dictionary<string, object?>()
-                {
-                    ["OutboxMessageId"] = outboxMessage.Id,
-                    ["Tenant"] = outboxMessage.Tenant,
-                };
+                using var transaction = ((DbContext)baseDbContext).Database.BeginTransaction();
 
-                using (logger.BeginScope(propertys))
+                var outboxMessages = GetOutboxMessages();
+                noOfOutboxMessages = outboxMessages.Count;
+
+                logger.LogInformation("{NoOfOutboxMessages} outbox message(s) found", noOfOutboxMessages);
+
+                foreach (var outboxMessage in outboxMessages)
                 {
-                    await Process(outboxMessage, cancellationToken);
+                    var propertys = new Dictionary<string, object?>()
+                    {
+                        ["OutboxMessageId"] = outboxMessage.Id,
+                        ["Tenant"] = outboxMessage.Tenant,
+                    };
+
+                    using (logger.BeginScope(propertys))
+                    {
+                        await Process(outboxMessage, cancellationToken);
+                    }
                 }
+
+                await transaction.CommitAsync(cancellationToken);
             }
+            while (noOfOutboxMessages > 0);
 
             return noOfOutboxMessages;
         }
@@ -133,9 +141,12 @@ namespace fbognini.Infrastructure.Outbox
             var linq2dbTable = baseDbContext.OutboxMessages
                 .ToLinqToDBTable();
 
-            linq2dbTable = linq2dbTable
-                    .TableHint(SqlServerHints.Table.ReadPast)
-                    .TableHint(SqlServerHints.Table.UpdLock);
+            if (databaseSettings.DBProvider == "mssql")
+            {
+                linq2dbTable = linq2dbTable
+                        .TableHint(SqlServerHints.Table.ReadPast)
+                        .TableHint(SqlServerHints.Table.UpdLock);
+            }
 
             var query = linq2dbTable
                 .IgnoreFilters()

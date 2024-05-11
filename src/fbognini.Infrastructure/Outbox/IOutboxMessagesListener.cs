@@ -23,7 +23,9 @@ public interface IOutboxMessagesListener
 {
     Task PublishDomainMemoryEventAsync(IReadOnlyList<IDomainMemoryEvent> domainMemoryEvents, CancellationToken cancellationToken);
 
-    void Notify();
+    void NotifyDomainEvents();
+
+    Task ProcessDomainEvents(CancellationToken cancellationToken);
 }
 
 internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutboxMessagesListener
@@ -32,40 +34,12 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<OutboxMessagesListenerService<TTenant>> logger;
 
-    private CancellationTokenSource _wakeupCancelationTokenSource = new();
+    private CancellationTokenSource _wakeupDomainEventsCancellationTokenSource = new();
 
     public OutboxMessagesListenerService(IServiceScopeFactory scopeFactory, ILogger<OutboxMessagesListenerService<TTenant>> logger)
     {
         _scopeFactory = scopeFactory;
         this.logger = logger;
-    }
-
-    public async Task PublishDomainMemoryEventAsync(IReadOnlyList<IDomainMemoryEvent> domainMemoryEvents, CancellationToken cancellationToken)
-    {
-        if (domainMemoryEvents is null || domainMemoryEvents.Count == 0)
-        {
-            return;
-        }
-
-        using var scope = _scopeFactory.CreateScope();
-        var publisher = scope.ServiceProvider.GetService<IOutboxMessagePublisher>();
-        if (publisher is null)
-        {
-            logger.LogWarning("No IOutboxMessagePublisher has been registered, memory events can't be processed");
-            return;
-        }
-
-        foreach (var domainMemoryEvent in domainMemoryEvents)
-        {
-            await publisher.Publish(domainMemoryEvent, cancellationToken);
-        }
-    }
-
-    public void Notify()
-    {
-        logger.LogDebug("Listener has been notified");
-
-        _wakeupCancelationTokenSource.Cancel();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -100,39 +74,59 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
         {
             try
             {
-                await PublishDomainEvents(interval, stoppingToken);
+                await ProcessDomainEventsAndWait(interval, stoppingToken);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred during domain events publishing");
+                logger.LogError(ex, "An error occurred during domain events processing");
 
                 await Task.Delay(5000, stoppingToken);
             }
         }
     }
 
-    private async Task PublishDomainEvents(int interval, CancellationToken stoppingToken)
+    public async Task PublishDomainMemoryEventAsync(IReadOnlyList<IDomainMemoryEvent> domainMemoryEvents, CancellationToken cancellationToken)
     {
-        using (var scope = _scopeFactory.CreateScope())
+        if (domainMemoryEvents is null || domainMemoryEvents.Count == 0)
         {
-            var baseDbContext = scope.ServiceProvider.GetRequiredService<IBaseDbContext>();
-            var processor = scope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
-
-            int noOfOutboxMessages;
-            do
-            {
-                var dbContext = (DbContext)baseDbContext;
-
-                using var transaction = dbContext.Database.BeginTransaction();
-
-                noOfOutboxMessages = await processor.Process(stoppingToken);
-
-                await transaction.CommitAsync(stoppingToken);
-            }
-            while (noOfOutboxMessages > 0);
+            return;
         }
 
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_wakeupCancelationTokenSource.Token, stoppingToken);
+        using var scope = _scopeFactory.CreateScope();
+        var publisher = scope.ServiceProvider.GetService<IOutboxMessagePublisher>();
+        if (publisher is null)
+        {
+            logger.LogWarning("No IOutboxMessagePublisher has been registered, memory events can't be processed");
+            return;
+        }
+
+        foreach (var domainMemoryEvent in domainMemoryEvents)
+        {
+            await publisher.Publish(domainMemoryEvent, cancellationToken);
+        }
+    }
+
+    public void NotifyDomainEvents()
+    {
+        logger.LogDebug("Listener has been notified for domain events");
+
+        _wakeupDomainEventsCancellationTokenSource.Cancel();
+    }
+
+
+    public async Task ProcessDomainEvents(CancellationToken cancellationToken)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var processor = scope.ServiceProvider.GetRequiredService<IOutboxMessageProcessor>();
+
+        _ = await processor.Process(cancellationToken);
+    }
+
+    private async Task ProcessDomainEventsAndWait(int interval, CancellationToken cancellationToken)
+    {
+        await ProcessDomainEvents(cancellationToken);
+
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_wakeupDomainEventsCancellationTokenSource.Token, cancellationToken);
         try
         {
             if (interval == -1)
@@ -148,15 +142,15 @@ internal class OutboxMessagesListenerService<TTenant> : BackgroundService, IOutb
         }
         catch (OperationCanceledException)
         {
-            if (_wakeupCancelationTokenSource.Token.IsCancellationRequested)
+            if (_wakeupDomainEventsCancellationTokenSource.Token.IsCancellationRequested)
             {
                 logger.LogInformation("Outbox listener is awake");
 
-                var tmp = _wakeupCancelationTokenSource;
-                _wakeupCancelationTokenSource = new CancellationTokenSource();
+                var tmp = _wakeupDomainEventsCancellationTokenSource;
+                _wakeupDomainEventsCancellationTokenSource = new CancellationTokenSource();
                 tmp.Dispose();
             }
-            else if (stoppingToken.IsCancellationRequested)
+            else if (cancellationToken.IsCancellationRequested)
             {
                 logger.LogInformation("Outbox listener is shutting down");
             }

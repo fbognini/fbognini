@@ -173,7 +173,7 @@ namespace fbognini.Infrastructure.Persistence
 
             if (hasDomainPreEvents || beforeResponse.HasDomainEvents)
             {
-                outboxMessagesListener.Notify();
+                outboxMessagesListener.NotifyDomainEvents();
             }
 
             await outboxMessagesListener.PublishDomainMemoryEventAsync(beforeResponse.DomainMemoryEvents, cancellationToken);
