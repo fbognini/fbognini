@@ -23,13 +23,19 @@ namespace fbognini.Infrastructure.Repository
         where TContext : DbContext, IBaseDbContext
     {
         private readonly TContext context;
+        private readonly ILogger<RepositoryAsync<TContext>> logger;
 
         protected readonly Hashtable repositorys = new();
-        protected ILogger<RepositoryAsync<TContext>> logger;
 
-        public RepositoryAsync(IDbContextFactory<TContext> context, ILogger<RepositoryAsync<TContext>> logger)
+        public RepositoryAsync(IDbContextFactory<TContext> dbContextFactory, ILogger<RepositoryAsync<TContext>> logger)
         {
-            this.context = context.CreateDbContext();
+            this.context = dbContextFactory.CreateDbContext();
+            this.logger = logger;
+        }
+
+        public RepositoryAsync(TContext context, ILogger<RepositoryAsync<TContext>> logger)
+        {
+            this.context = context;
             this.logger = logger;
         }
 

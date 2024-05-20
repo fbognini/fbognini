@@ -13,7 +13,6 @@ namespace fbognini.Infrastructure.Repository
 {
     public interface IRepositoryAsync
     {
-
         IQueryable<T> GetQueryable<T, TPK>(SelectArgs<T, TPK>? criteria = null)
             where T : class, IHasIdentity<TPK>
             where TPK : notnull;
