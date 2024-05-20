@@ -70,14 +70,14 @@ namespace fbognini.Core.Domain.Query
             Operator = logicalOperator;
         }
 
-        public string GetArgsKey()
+        public virtual string GetArgsKey()
         {
             var builder = GetQueryableArgsBuilder();
 
             return builder.ToString();
         }
 
-        public Dictionary<string, object?> GetArgsKeyAsDictionary()
+        public virtual Dictionary<string, object?> GetArgsKeyAsDictionary()
         {
             var dictionary = GetQueryableArgsAsDisctionaryBuilder();
 
@@ -98,7 +98,11 @@ namespace fbognini.Core.Domain.Query
 
         protected List<KeyValuePair<string, object?>> GetQueryableArgsAsDisctionaryBuilder()
         {
-            var dictionary = new List<KeyValuePair<string, object?>>();
+            var dictionary = new List<KeyValuePair<string, object?>>
+            {
+                new("_Entity", typeof(T).Name)
+            };
+
             dictionary.AddRange((this as IHasFilter<T>).GetArgsKeyAsDictionary());
             dictionary.AddRange((this as IHasSearch<T>).GetArgsKeyAsDictionary());
             dictionary.AddRange((this as IHasSorting<T>).GetArgsKeyAsDictionary());

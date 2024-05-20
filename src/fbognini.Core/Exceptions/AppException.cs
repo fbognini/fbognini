@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 
 namespace fbognini.Core.Exceptions
@@ -10,84 +11,60 @@ namespace fbognini.Core.Exceptions
         public HttpStatusCode HttpStatusCode { get; set; }
         public object? AdditionalData { get; set; }
 
+        public virtual Dictionary<string, object?> Extensions { get; set; } = new();
+
         public AppException()
             : this(HttpStatusCode.InternalServerError)
         {
         }
 
-        public AppException(
-            HttpStatusCode httpStatusCode)
-            : this(httpStatusCode, null)
-        {
-        }
-
-        public AppException(
-            string? message,
-            string? title = null)
+        public AppException(string? message, string? title = null)
             : this(HttpStatusCode.InternalServerError, message, title)
         {
         }
 
-        public AppException(
-            HttpStatusCode httpStatusCode,
-            string? message,
-            string? title = null)
-            : this(httpStatusCode, message, title, null)
-        {
-        }
-
-        public AppException(
-            HttpStatusCode httpStatusCode, 
-            object additionalData)
-            : this(httpStatusCode, null, null, additionalData)
-        {
-        }
-
-        public AppException(
-            string message
-            , Exception exception)
-            : this(HttpStatusCode.InternalServerError, message, null, exception, null)
-        {
-        }
-
-        public AppException(
-           string message
-           , object additionalData)
+        public AppException(string message, object additionalData)
            : this(HttpStatusCode.InternalServerError, message, additionalData)
         {
         }
 
-        public AppException(
-            HttpStatusCode httpStatusCode
-            , string message
-            , object additionalData)
-            : this(httpStatusCode, message, null, null, additionalData)
+        public AppException(string message, Exception exception)
+            : this(HttpStatusCode.InternalServerError, message, null, exception, null)
         {
         }
 
-        public AppException(
-            string message
-            , Exception exception
-            , object additionalData)
+        public AppException(string message, Exception exception, object additionalData)
             : this(HttpStatusCode.InternalServerError, message, null, exception, additionalData)
         {
         }
 
-        public AppException(
-            HttpStatusCode httpStatusCode,
-            string message,
-            Exception exception)
+        public AppException(HttpStatusCode httpStatusCode)
+            : this(httpStatusCode, null)
+        {
+        }
+
+        public AppException(HttpStatusCode httpStatusCode, string? message, string? title = null)
+            : this(httpStatusCode, message, title, null)
+        {
+        }
+
+        public AppException(HttpStatusCode httpStatusCode, object additionalData)
+            : this(httpStatusCode, null, null, additionalData)
+        {
+        }
+
+        public AppException(HttpStatusCode httpStatusCode, string message, object additionalData)
+            : this(httpStatusCode, message, null, null, additionalData)
+        {
+        }
+
+        public AppException(HttpStatusCode httpStatusCode, string message, Exception exception)
             : this(httpStatusCode, message, null, exception, null)
         {
         }
 
 
-
-        public AppException(
-            HttpStatusCode httpStatusCode,
-            string? message,
-            string? title, 
-            object? additionalData)
+        public AppException(HttpStatusCode httpStatusCode, string? message, string? title, object? additionalData)
             : this(httpStatusCode, message, title, null, additionalData)
         {
         }

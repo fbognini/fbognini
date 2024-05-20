@@ -42,13 +42,17 @@ namespace fbognini.Core.Exceptions
         }
 
         public NotFoundException(
-            string message, string? title = null)
+            string message,
+            string? title = null)
             : base(HttpStatusCode.NotFound, message, title)
         {
 
         }
 
-        protected NotFoundException(string typeName, string serializedKey, object key)
+        protected NotFoundException(
+            string typeName,
+            string serializedKey,
+            object key)
             : base(
                   HttpStatusCode.NotFound,
                   $"Entity \"{typeName}\" ({serializedKey}) was not found.",
