@@ -2,10 +2,12 @@
 using fbognini.Core.Domain;
 using fbognini.Core.Domain.Query;
 using fbognini.Core.Domain.Query.Pagination;
+using Microsoft.EntityFrameworkCore.Query;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +15,16 @@ namespace fbognini.Infrastructure.Repository
 {
     public interface IRepositoryAsync
     {
+        #region Database
+
+        string? GetConnectionString();
+
+#if NET7_0_OR_GREATER
+        Task<int> ExecuteSqlAsync(FormattableString sql, CancellationToken cancellationToken = default);
+#endif
+
+        #endregion
+
         IQueryable<T> GetQueryable<T, TPK>(SelectArgs<T, TPK>? criteria = null)
             where T : class, IHasIdentity<TPK>
             where TPK : notnull;
@@ -28,7 +40,8 @@ namespace fbognini.Infrastructure.Repository
         IQueryable<T> GetQueryableByName<T>(string name, SelectArgs<T>? args = null) where T : class, IEntity, IHaveName;
         IQueryable<T> GetQueryableBySlug<T>(string slug, SelectArgs<T>? args = null) where T : class, IEntity, IHaveSlug;
 
-        IQueryable<T> GetQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity;
+        IQueryable<T> GetQueryable<T>() where T : class, IEntity;
+        IQueryable<T> GetQueryable<T>(SelectCriteria<T> criteria) where T : class, IEntity;
 
         #region Create
         T Create<T>(T entity) where T : class, IEntity;
@@ -123,6 +136,14 @@ namespace fbognini.Infrastructure.Repository
         #region Update
 
         void Update<T>(T entity) where T : class, IEntity;
+
+
+#if NET7_0_OR_GREATER
+
+        Task<int> ExecuteUpdateAsync<T>(Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> setPropertyCalls, CancellationToken cancellationToken = default) where T : class, IEntity;
+        Task<int> ExecuteUpdateAsync<T>(SelectCriteria<T> criteria, Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> setPropertyCalls, CancellationToken cancellationToken = default) where T : class, IEntity;
+
+#endif
 
         Task MassiveUpdateAsync<T>(IList<T> entities, BulkConfig? bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity;
 

@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using fbognini.Core.Domain.Query;
 using fbognini.Core.Domain.Query.Pagination;
 using fbognini.Core.Domain;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace fbognini.Infrastructure.Repository
 {
@@ -38,6 +39,16 @@ namespace fbognini.Infrastructure.Repository
             this.context = context;
             this.logger = logger;
         }
+
+
+        public string? GetConnectionString() => context.ConnectionString ?? context.Database.GetConnectionString();
+
+#if NET7_0_OR_GREATER
+        public async Task<int> ExecuteSqlAsync(FormattableString sql, CancellationToken cancellationToken = default)
+        {
+            return await context.Database.ExecuteSqlAsync(sql, cancellationToken);
+        }
+#endif
 
         public IQueryable<T> GetQueryable<T, TPK>(SelectArgs<T, TPK>? args = null)
             where T : class, IHasIdentity<TPK>
@@ -89,7 +100,13 @@ namespace fbognini.Infrastructure.Repository
             return GetPrivateQueryableBySlug(slug, args);
         }
 
-        public IQueryable<T> GetQueryable<T>(SelectCriteria<T>? criteria = null) where T : class, IEntity
+
+        public IQueryable<T> GetQueryable<T>() where T : class, IEntity
+        {
+            return GetPrivateQueryable(default(SelectCriteria<T>));
+        }
+
+        public IQueryable<T> GetQueryable<T>(SelectCriteria<T> criteria) where T : class, IEntity
         {
             return GetPrivateQueryable(criteria);
         }
@@ -122,7 +139,7 @@ namespace fbognini.Infrastructure.Repository
 
         public async Task MassiveInsertAsync<T>(IList<T> entities, BulkConfig? bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            if (entities.First() is IAuditableEntity)
+            if (entities.FirstOrDefault() is IAuditableEntity)
             {
                 foreach (var entry in entities.Cast<IAuditableEntity>())
                 {
@@ -135,7 +152,7 @@ namespace fbognini.Infrastructure.Repository
 
         public async Task MassiveUpsertAsync<T>(IList<T> entities, BulkConfig? bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            if (entities.First() is IAuditableEntity)
+            if (entities.FirstOrDefault() is IAuditableEntity)
             {
                 foreach (var entry in entities.Cast<IAuditableEntity>())
                 {
@@ -155,7 +172,7 @@ namespace fbognini.Infrastructure.Repository
 
         public async Task MassiveMergeAsync<T>(IList<T> entities, BulkConfig? bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            if (entities.First() is IAuditableEntity)
+            if (entities.FirstOrDefault() is IAuditableEntity)
             {
                 foreach (var entry in entities.Cast<IAuditableEntity>())
                 {
@@ -398,9 +415,25 @@ namespace fbognini.Infrastructure.Repository
             context.Entry(entity).State = EntityState.Modified;
         }
 
+
+#if NET7_0_OR_GREATER
+
+        public async Task<int> ExecuteUpdateAsync<T>(Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> setPropertyCalls, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            return await ExecuteUpdateAsync(new SelectCriteria<T>(), setPropertyCalls, cancellationToken);
+        }
+
+        public async Task<int> ExecuteUpdateAsync<T>(SelectCriteria<T> criteria, Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> setPropertyCalls, CancellationToken cancellationToken = default) where T : class, IEntity
+        {
+            var entities = GetTrackedQueryable(criteria);
+            return await entities.ExecuteUpdateAsync(setPropertyCalls, cancellationToken);
+        }
+
+#endif
+
         public async Task MassiveUpdateAsync<T>(IList<T> entities, BulkConfig? bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            if (entities.First() is IAuditableEntity)
+            if (entities.FirstOrDefault() is IAuditableEntity)
             {
                 foreach (var entry in entities.Cast<IAuditableEntity>())
                 {
@@ -440,7 +473,7 @@ namespace fbognini.Infrastructure.Repository
 
         public async Task MassiveDeleteAsync<T>(IList<T> entities, BulkConfig? bulkConfig = null, CancellationToken cancellationToken = default) where T : class, IEntity
         {
-            if (entities.First() is ISoftDelete)
+            if (entities.FirstOrDefault() is ISoftDelete)
             {
                 foreach (var entry in entities.Cast<ISoftDelete>())
                 {
