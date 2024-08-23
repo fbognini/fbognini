@@ -162,9 +162,30 @@ namespace fbognini.Infrastructure.Repository
 
                 bulkConfig ??= new BulkConfig();
 
-                bulkConfig.PropertiesToExcludeOnUpdate ??= new List<string>();
-                bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.CreatedBy));
-                bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.Created));
+                if (bulkConfig.PropertiesToInclude is not null)
+                {
+                    bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.CreatedBy));
+                    bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.Created));
+                    bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.LastModifiedBy));
+                    bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.LastModified));
+                    bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.LastUpdatedBy));
+                    bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.LastUpdated));
+                }
+
+                if (bulkConfig.PropertiesToIncludeOnUpdate is not null)
+                {
+                    bulkConfig.PropertiesToIncludeOnUpdate.Add(nameof(IAuditableEntity.LastModifiedBy));
+                    bulkConfig.PropertiesToIncludeOnUpdate.Add(nameof(IAuditableEntity.LastModified));
+                    bulkConfig.PropertiesToIncludeOnUpdate.Add(nameof(IAuditableEntity.LastUpdatedBy));
+                    bulkConfig.PropertiesToIncludeOnUpdate.Add(nameof(IAuditableEntity.LastUpdated));
+                }
+                else
+                {
+                    bulkConfig.PropertiesToExcludeOnUpdate ??= new List<string>();
+                    bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.CreatedBy));
+                    bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.Created));
+                }
+
             }
 
             await context.BulkInsertOrUpdateAsync(entities, bulkConfig, cancellationToken: cancellationToken);
