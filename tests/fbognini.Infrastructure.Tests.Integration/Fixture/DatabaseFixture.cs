@@ -1,11 +1,13 @@
 ﻿using fbognini.Core.Interfaces;
 using fbognini.Infrastructure.Outbox;
+using fbognini.Infrastructure.Persistence;
 using fbognini.Infrastructure.Repository;
 using fbognini.Infrastructure.Tests.Integration.Fixture.Entities.Seeds;
 using Finbuckle.MultiTenant;
 using MartinCostello.SqlLocalDb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace fbognini.Infrastructure.Tests.Integration.Fixture;

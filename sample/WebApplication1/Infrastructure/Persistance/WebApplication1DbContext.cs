@@ -5,6 +5,7 @@ using WebApplication1.Domain.Entities;
 using Finbuckle.MultiTenant;
 using fbognini.Infrastructure.Persistence;
 using fbognini.Infrastructure.Outbox;
+using Microsoft.Extensions.Options;
 
 namespace WebApplication1.Infrastructure.Persistance
 {

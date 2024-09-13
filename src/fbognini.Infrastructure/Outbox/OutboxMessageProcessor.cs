@@ -1,4 +1,5 @@
 ﻿using fbognini.Application.Multitenancy;
+using fbognini.Infrastructure.Common;
 using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Persistence;
 using Finbuckle.MultiTenant;
@@ -152,7 +153,7 @@ namespace fbognini.Infrastructure.Outbox
             var linq2dbTable = baseDbContext.OutboxMessages
                 .ToLinqToDBTable();
 
-            if (databaseSettings.DBProvider == "mssql")
+            if (databaseSettings.DBProvider == DbProviderKeys.SqlServer)
             {
                 linq2dbTable = linq2dbTable
                         .TableHint(SqlServerHints.Table.ReadPast)

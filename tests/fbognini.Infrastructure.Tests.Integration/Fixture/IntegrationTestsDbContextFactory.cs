@@ -1,7 +1,9 @@
 ﻿using fbognini.Core.Interfaces;
 using fbognini.Infrastructure.Outbox;
+using fbognini.Infrastructure.Persistence;
 using Finbuckle.MultiTenant;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace fbognini.Infrastructure.Tests.Integration.Fixture
 {

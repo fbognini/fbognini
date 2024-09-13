@@ -1,6 +1,7 @@
 ﻿using fbognini.Infrastructure.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Npgsql;
 using System;
 using System.Data.SqlClient;
 
@@ -29,16 +30,16 @@ namespace fbognini.Infrastructure.Persistence.ConnectionString
             {
                 switch (dbProvider?.ToLowerInvariant())
                 {
-                    //case DbProviderKeys.Npgsql:
-                    //    var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);
-                    //    break;
-
                     //case DbProviderKeys.MySql:
                     //    var mysqlcs = new MySqlConnectionStringBuilder(connectionString);
                     //    break;
 
                     case DbProviderKeys.SqlServer:
                         var mssqlcs = new SqlConnectionStringBuilder(connectionString);
+                        break;
+
+                    case DbProviderKeys.Npgsql:
+                        var postgresqlcs = new NpgsqlConnectionStringBuilder(connectionString);
                         break;
                 }
 

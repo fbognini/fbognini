@@ -6,6 +6,8 @@ using Finbuckle.MultiTenant;
 using fbognini.Infrastructure.Entities;
 using System;
 using fbognini.Infrastructure.Outbox;
+using Microsoft.Extensions.Options;
+using fbognini.Infrastructure.Common;
 
 namespace fbognini.Infrastructure.Persistence
 {
@@ -15,17 +17,20 @@ namespace fbognini.Infrastructure.Persistence
         private readonly ICurrentUserService currentUserService;
         private readonly IOutboxMessagesListener outboxListenerService;
         private readonly ITenantInfo? currentTenant;
+        private readonly string dbProvider;
 
         public AuditableDbContext(
             DbContextOptions<T> options,
             ICurrentUserService currentUserService,
             IOutboxMessagesListener outboxListenerService,
-            ITenantInfo? currentTenant = null)
+            ITenantInfo? currentTenant = null,
+            string dbProvider = DbProviderKeys.SqlServer)
             : base(options)
         {
             this.currentUserService = currentUserService;
             this.outboxListenerService = outboxListenerService;
             this.currentTenant = currentTenant;
+            this.dbProvider = dbProvider;
         }
 
         public DbSet<Audit> AuditTrails { get; set; } = default!;
@@ -35,10 +40,11 @@ namespace fbognini.Infrastructure.Persistence
         public DateTime Timestamp => DateTime.Now;
         public string? Tenant => currentTenant?.Id;
         public string? ConnectionString => currentTenant?.ConnectionString;
+        public string DbProvider => dbProvider;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.ConfigureSqlServer(this);
+            optionsBuilder.ConfigureDbProvider(this);
         }
 
         protected override void OnModelCreating(ModelBuilder builder)

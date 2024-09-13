@@ -16,6 +16,7 @@ namespace fbognini.Infrastructure.Persistence
         public DateTime Timestamp { get; }
         public string? Tenant { get; }
         public string? ConnectionString { get; }
+        public string DbProvider { get; }
 
         Task<int> BaseSaveChangesAsync(CancellationToken cancellationToken = default);
     }

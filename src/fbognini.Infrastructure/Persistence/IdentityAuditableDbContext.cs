@@ -9,6 +9,8 @@ using Finbuckle.MultiTenant;
 using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Outbox;
 using fbognini.Infrastructure.Persistence;
+using Microsoft.Extensions.Options;
+using fbognini.Infrastructure.Common;
 
 namespace fbognini.Infrastructure.Persistence
 {
@@ -22,6 +24,7 @@ namespace fbognini.Infrastructure.Persistence
         private readonly IOutboxMessagesListener outboxListenerService;
         private readonly ITenantInfo? currentTenant;
 
+        protected readonly string dbProvider;
         protected readonly string authschema;
 
         public IdentityAuditableDbContext(
@@ -29,12 +32,14 @@ namespace fbognini.Infrastructure.Persistence
             ICurrentUserService currentUserService,
             IOutboxMessagesListener outboxListenerService,
             ITenantInfo? currentTenant = null,
-            string authschema = "auth")
+            string authschema = "auth",
+            string dbProvider = DbProviderKeys.SqlServer)
             : base(options)
         {
             this.currentUserService = currentUserService;
             this.outboxListenerService = outboxListenerService;
             this.currentTenant = currentTenant;
+            this.dbProvider = dbProvider;
             this.authschema = authschema;
         }
 
@@ -45,10 +50,11 @@ namespace fbognini.Infrastructure.Persistence
         public DateTime Timestamp => DateTime.Now;
         public string? Tenant => currentTenant?.Id;
         public string? ConnectionString => currentTenant?.ConnectionString;
+        public string DbProvider => DbProvider;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.ConfigureSqlServer(this);
+            optionsBuilder.ConfigureDbProvider(this);
         }
 
         protected override void OnModelCreating(ModelBuilder builder)

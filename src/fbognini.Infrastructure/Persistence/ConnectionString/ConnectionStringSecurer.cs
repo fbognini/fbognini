@@ -1,6 +1,7 @@
 using System.Data.SqlClient;
 using fbognini.Infrastructure.Common;
 using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace fbognini.Infrastructure.Persistence.ConnectionString
 {
@@ -27,7 +28,7 @@ namespace fbognini.Infrastructure.Persistence.ConnectionString
 
             return dbProvider?.ToLower() switch
             {
-                //DbProviderKeys.Npgsql => MakeSecureNpgsqlConnectionString(connectionString),
+                DbProviderKeys.Npgsql => MakeSecureNpgsqlConnectionString(connectionString),
                 DbProviderKeys.SqlServer => MakeSecureSqlConnectionString(connectionString),
                 //DbProviderKeys.MySql => MakeSecureMySqlConnectionString(connectionString),
                 //DbProviderKeys.Oracle => MakeSecureOracleConnectionString(connectionString),
@@ -86,22 +87,22 @@ namespace fbognini.Infrastructure.Persistence.ConnectionString
             return builder.ToString();
         }
 
-        //private string MakeSecureNpgsqlConnectionString(string connectionString)
-        //{
-        //    var builder = new NpgsqlConnectionStringBuilder(connectionString);
+        private string MakeSecureNpgsqlConnectionString(string connectionString)
+        {
+            var builder = new NpgsqlConnectionStringBuilder(connectionString);
 
-        //    if (!string.IsNullOrEmpty(builder.Password) || !builder.IntegratedSecurity)
-        //    {
-        //        builder.Password = HiddenValueDefault;
-        //    }
+            if (!string.IsNullOrEmpty(builder.Password))
+            {
+                builder.Password = HiddenValueDefault;
+            }
 
-        //    if (!string.IsNullOrEmpty(builder.Username) || !builder.IntegratedSecurity)
-        //    {
-        //        builder.Username = HiddenValueDefault;
-        //    }
+            if (!string.IsNullOrEmpty(builder.Username))
+            {
+                builder.Username = HiddenValueDefault;
+            }
 
-        //    return builder.ToString();
-        //}
+            return builder.ToString();
+        }
     }
 
 }

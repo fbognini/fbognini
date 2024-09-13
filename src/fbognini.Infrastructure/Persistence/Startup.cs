@@ -6,6 +6,7 @@ using fbognini.Infrastructure.Persistence.ConnectionString;
 using fbognini.Infrastructure.Persistence.Initialization;
 using LinqToDB.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -48,10 +49,8 @@ namespace fbognini.Infrastructure.Persistence
 
             void GetContextOptionBuilder(DbContextOptionsBuilder contextOptions)
             {
-                contextOptions.UseSqlServer(connectionString, providerOptions =>
-                {
+                contextOptions.ConfigureDbProvider(databaseSettings.DBProvider!, connectionString);
 
-                });
                 contextOptions.UseQueryTrackingBehavior(databaseSettings.TrackingBehavior);
             }
         }
@@ -63,7 +62,9 @@ namespace fbognini.Infrastructure.Persistence
         {
             services.AddDbContext<TTenantContext>(m => 
             {
-                m.UseSqlServer(configuration["DatabaseSettings:ConnectionString"]);
+                var connectionString = configuration[$"DatabaseSettings:{nameof(DatabaseSettings.ConnectionString)}"]!;
+                var dbProvider = configuration[$"DatabaseSettings:{nameof(DatabaseSettings.DBProvider)}"]!;
+                m.ConfigureDbProvider(dbProvider, connectionString);
             });
 
 

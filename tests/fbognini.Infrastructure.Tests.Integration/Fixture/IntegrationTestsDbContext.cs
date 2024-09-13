@@ -4,6 +4,7 @@ using fbognini.Infrastructure.Persistence;
 using fbognini.Infrastructure.Tests.Integration.Fixture.Entities;
 using Finbuckle.MultiTenant;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace fbognini.Infrastructure.Tests.Integration.Fixture;
 
