@@ -4,6 +4,7 @@ using fbognini.Infrastructure.Entities;
 using fbognini.Infrastructure.Persistence;
 using Finbuckle.MultiTenant;
 using LinqToDB;
+using LinqToDB.DataProvider.PostgreSQL;
 using LinqToDB.DataProvider.SqlServer;
 using LinqToDB.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -159,16 +160,16 @@ namespace fbognini.Infrastructure.Outbox
                         .TableHint(SqlServerHints.Table.ReadPast)
                         .TableHint(SqlServerHints.Table.UpdLock);
             }
-            else if (databaseSettings.DBProvider == DbProviderKeys.Npgsql)
-            {
-                linq2dbTable = linq2dbTable
-                        .TableHint("FOR UPDATE");
-            }
 
             var query = linq2dbTable
                 // GlobalQueryFilter for tenant
                 .IgnoreFilters()
                 .Where(x => !x.ProcessedOnUtc.HasValue);
+
+            if (databaseSettings.DBProvider == DbProviderKeys.Npgsql)
+            {
+                query = query.QueryHint(PostgreSQLHints.ForUpdate);
+            }
 
             if (ignoreApplicationFiter)
             {
