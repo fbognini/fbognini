@@ -27,22 +27,17 @@ namespace fbognini.Infrastructure.Persistence
 
         public static void ConfigureDbProvider(this DbContextOptionsBuilder optionsBuilder, string dbProvider, string connectionString)
         {
-            var builders = new Dictionary<string, Action<string, DbContextOptionsBuilder>>()
+            switch (dbProvider)
             {
-                [DbProviderKeys.SqlServer] = BuildSqlServer,
-                [DbProviderKeys.Npgsql] = BuildPostgreSql,
-            };
-
-            if (!builders.TryGetValue(dbProvider, out var action))
-            {
-                throw new InvalidOperationException($"DbProvider {dbProvider} not supported");
+                case DbProviderKeys.SqlServer:
+                    optionsBuilder.UseSqlServer(connectionString);
+                    break;
+                case DbProviderKeys.Npgsql:
+                    optionsBuilder.UseNpgsql(connectionString);
+                    break;
+                default:
+                    throw new InvalidOperationException($"DbProvider {dbProvider} not supported");
             }
-
-            action(connectionString, optionsBuilder);
-
-            
-            static void BuildSqlServer(string connectionString, DbContextOptionsBuilder contextOptions) => contextOptions.UseSqlServer(connectionString);
-            static void BuildPostgreSql(string connectionString, DbContextOptionsBuilder contextOptions) => contextOptions.UseNpgsql(connectionString);
         }
 
 
