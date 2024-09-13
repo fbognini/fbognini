@@ -4,6 +4,7 @@ using fbognini.Infrastructure.Persistence;
 using SberemPay.Checkout.Services;
 using WebApplication1.Infrastructure.Persistance;
 using WebApplication1.Infrastructure.Repositorys;
+using WebApplication1.Services;
 
 namespace WebApplication1.Infrastructure.Extensions
 {
@@ -24,6 +25,7 @@ namespace WebApplication1.Infrastructure.Extensions
 
             services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IDateTimeProvider, DateTimeProvider>();
 
             return services;
         }

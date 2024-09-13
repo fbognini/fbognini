@@ -165,25 +165,25 @@ namespace fbognini.Infrastructure.Repository
                 if (bulkConfig.PropertiesToInclude is not null)
                 {
                     bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.CreatedBy));
-                    bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.Created));
+                    bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.CreatedOnUtc));
                     bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.LastModifiedBy));
-                    bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.LastModified));
+                    bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.LastModifiedOnUtc));
                     bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.LastUpdatedBy));
-                    bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.LastUpdated));
+                    bulkConfig.PropertiesToInclude.Add(nameof(IAuditableEntity.LastUpdatedOnUtc));
                 }
 
                 if (bulkConfig.PropertiesToIncludeOnUpdate is not null)
                 {
                     bulkConfig.PropertiesToIncludeOnUpdate.Add(nameof(IAuditableEntity.LastModifiedBy));
-                    bulkConfig.PropertiesToIncludeOnUpdate.Add(nameof(IAuditableEntity.LastModified));
+                    bulkConfig.PropertiesToIncludeOnUpdate.Add(nameof(IAuditableEntity.LastModifiedOnUtc));
                     bulkConfig.PropertiesToIncludeOnUpdate.Add(nameof(IAuditableEntity.LastUpdatedBy));
-                    bulkConfig.PropertiesToIncludeOnUpdate.Add(nameof(IAuditableEntity.LastUpdated));
+                    bulkConfig.PropertiesToIncludeOnUpdate.Add(nameof(IAuditableEntity.LastUpdatedOnUtc));
                 }
                 else
                 {
                     bulkConfig.PropertiesToExcludeOnUpdate ??= new List<string>();
                     bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.CreatedBy));
-                    bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.Created));
+                    bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.CreatedOnUtc));
                 }
 
             }
@@ -205,7 +205,7 @@ namespace fbognini.Infrastructure.Repository
 
                 bulkConfig.PropertiesToExcludeOnUpdate ??= new List<string>();
                 bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.CreatedBy));
-                bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.Created));
+                bulkConfig.PropertiesToExcludeOnUpdate.Add(nameof(IAuditableEntity.CreatedOnUtc));
             }
 
             await context.BulkInsertOrUpdateOrDeleteAsync(entities, bulkConfig, cancellationToken: cancellationToken);
@@ -499,7 +499,7 @@ namespace fbognini.Infrastructure.Repository
                 foreach (var entry in entities.Cast<ISoftDelete>())
                 {
                     entry.DeletedBy = null;
-                    entry.Deleted = DateTime.Now;
+                    entry.DeletedOnUtc = DateTime.Now;
                 }
 
                 await context.BulkUpdateAsync(entities, bulkConfig, cancellationToken: cancellationToken);

@@ -8,15 +8,15 @@ public interface IHasIdentity<T> : IHaveId<T>, IEntity
 {
 }
 
-public interface IAuditableEntity : IHaveLastUpdated, IEntity
+public interface IAuditableEntity : IHaveCreated, IHaveLastUpdated, IEntity
 {
     string? CreatedBy { get; set; }
 
-    DateTime Created { get; set; }
 
     string? LastModifiedBy { get; set; }
 
-    DateTime? LastModified { get; set; }
+    DateTime? LastModifiedOnUtc { get; set; }
+
 
     string? LastUpdatedBy { get; set; }
 }
@@ -25,15 +25,15 @@ public abstract class AuditableEntity : Entity, IAuditableEntity
 {
     public string? CreatedBy { get; set; }
 
-    public DateTime Created { get; set; }
+    public DateTime CreatedOnUtc { get; set; }
 
     public string? LastModifiedBy { get; set; }
 
-    public DateTime? LastModified { get; set; }
+    public DateTime? LastModifiedOnUtc { get; set; }
 
     public string? LastUpdatedBy { get; set; }
 
-    public DateTime LastUpdated { get; set; }
+    public DateTime LastUpdatedOnUtc { get; set; }
 }
 
 public abstract class AuditableEntityWithIdentity<T> : AuditableEntity, IHasIdentity<T>

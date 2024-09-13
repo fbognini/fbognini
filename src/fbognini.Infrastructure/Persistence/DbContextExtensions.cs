@@ -21,7 +21,7 @@ namespace fbognini.Infrastructure.Persistence
         {
             if (!string.IsNullOrWhiteSpace(context.ConnectionString))
             {
-                optionsBuilder.ConfigureDbProvider(context.DbProvider, context.ConnectionString);
+                optionsBuilder.ConfigureDbProvider(context.DBProvider, context.ConnectionString);
             }
         }
 
@@ -36,7 +36,7 @@ namespace fbognini.Infrastructure.Persistence
                     optionsBuilder.UseNpgsql(connectionString);
                     break;
                 default:
-                    throw new InvalidOperationException($"DbProvider {dbProvider} not supported");
+                    throw new InvalidOperationException($"DBProvider {dbProvider} not supported");
             }
         }
 
@@ -46,7 +46,7 @@ namespace fbognini.Infrastructure.Persistence
             builder.ApplyConfigurationsFromAssembly(context.GetType().GetTypeInfo().Assembly);
 
             builder.ApplyGlobalFilters<IHaveTenant>(b => string.IsNullOrWhiteSpace(context.Tenant) || EF.Property<string>(b, nameof(IHaveTenant.Tenant)) == context.Tenant);
-            builder.ApplyGlobalFilters<ISoftDelete>(s => s.Deleted == null);
+            builder.ApplyGlobalFilters<ISoftDelete>(s => s.DeletedOnUtc == null);
         }
 
         public static void SetNewProperty(this IAuditableEntity entity, string name, string? value)
@@ -85,7 +85,7 @@ namespace fbognini.Infrastructure.Persistence
                         {
                             entry.Entity.SetNewProperty(nameof(ISoftDelete.DeletedBy), context.UserId);
                             softDelete.DeletedBy = context.UserId;
-                            softDelete.Deleted = context.Timestamp;
+                            softDelete.DeletedOnUtc = context.Timestamp;
                             entry.State = EntityState.Modified;
                         }
 
@@ -118,9 +118,9 @@ namespace fbognini.Infrastructure.Persistence
             entity.SetNewProperty(nameof(IAuditableEntity.CreatedBy), context.UserId);
             entity.SetNewProperty(nameof(IAuditableEntity.LastUpdatedBy), context.UserId);
             entity.CreatedBy = context.UserId;
-            entity.Created = context.Timestamp;
+            entity.CreatedOnUtc = context.Timestamp;
             entity.LastUpdatedBy = context.UserId;
-            entity.LastUpdated = context.Timestamp;
+            entity.LastUpdatedOnUtc = context.Timestamp;
         }
 
         public static void FillAuditablePropertysModified(this IAuditableEntity entity, IBaseDbContext context)
@@ -128,9 +128,9 @@ namespace fbognini.Infrastructure.Persistence
             entity.SetNewProperty(nameof(IAuditableEntity.LastModifiedBy), context.UserId);
             entity.SetNewProperty(nameof(IAuditableEntity.LastUpdatedBy), context.UserId);
             entity.LastModifiedBy = context.UserId;
-            entity.LastModified = context.Timestamp;
+            entity.LastModifiedOnUtc = context.Timestamp;
             entity.LastUpdatedBy = context.UserId;
-            entity.LastUpdated = context.Timestamp;
+            entity.LastUpdatedOnUtc = context.Timestamp;
         }
 
         public static async Task<int> AuditableSaveChangesAsync<TContext>(this TContext context, IOutboxMessagesListener outboxMessagesListener, CancellationToken cancellationToken = new CancellationToken())

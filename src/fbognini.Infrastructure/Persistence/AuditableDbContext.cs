@@ -14,33 +14,38 @@ namespace fbognini.Infrastructure.Persistence
     public class AuditableDbContext<T> : DbContext, IBaseDbContext
         where T : DbContext
     {
-        private readonly ICurrentUserService currentUserService;
-        private readonly IOutboxMessagesListener outboxListenerService;
-        private readonly ITenantInfo? currentTenant;
-        private readonly string dbProvider;
+        private readonly ICurrentUserService _currentUserService;
+        private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly IOutboxMessagesListener _outboxListenerService;
+        private readonly ITenantInfo? _currentTenant;
+
+        private readonly DatabaseSettings _databaseSettings;
 
         public AuditableDbContext(
             DbContextOptions<T> options,
+            IOptions<DatabaseSettings> databaseOptions,
             ICurrentUserService currentUserService,
+            IDateTimeProvider dateTimeProvider,
             IOutboxMessagesListener outboxListenerService,
-            ITenantInfo? currentTenant = null,
-            string dbProvider = DbProviderKeys.SqlServer)
+            ITenantInfo? currentTenant = null)
             : base(options)
         {
-            this.currentUserService = currentUserService;
-            this.outboxListenerService = outboxListenerService;
-            this.currentTenant = currentTenant;
-            this.dbProvider = dbProvider;
+            _databaseSettings = databaseOptions.Value;
+            _currentUserService = currentUserService;
+            _dateTimeProvider = dateTimeProvider;
+            _outboxListenerService = outboxListenerService;
+            _currentTenant = currentTenant;
         }
 
         public DbSet<Audit> AuditTrails { get; set; } = default!;
         public DbSet<OutboxMessage> OutboxMessages { get; set; } = default!;
 
-        public string? UserId => currentUserService.UserId;
-        public DateTime Timestamp => DateTime.Now;
-        public string? Tenant => currentTenant?.Id;
-        public string? ConnectionString => currentTenant?.ConnectionString;
-        public string DbProvider => dbProvider;
+        public string? UserId => _currentUserService.UserId;
+        public DateTime Timestamp => _dateTimeProvider.UtcNow;
+        public string DBProvider => _databaseSettings.DBProvider;
+        public string? Tenant => _currentTenant?.Id;
+        public string? ConnectionString => _currentTenant?.ConnectionString;
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -56,7 +61,7 @@ namespace fbognini.Infrastructure.Persistence
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
-            return this.AuditableSaveChangesAsync(outboxListenerService, cancellationToken);
+            return this.AuditableSaveChangesAsync(_outboxListenerService, cancellationToken);
         }
 
         public Task<int> BaseSaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())

@@ -54,8 +54,8 @@ public class RepositoryMassiveTests : IClassFixture<FullDatabaseFixture>
         authors.ForEach(author =>
         {
             author.Id.Should().BeGreaterThan(0);
-            author.Created.Should().NotBe(DateTime.MinValue);
-            author.LastUpdated.Should().NotBe(DateTime.MinValue);
+            author.CreatedOnUtc.Should().NotBe(DateTime.MinValue);
+            author.LastUpdatedOnUtc.Should().NotBe(DateTime.MinValue);
         });
     }
 }

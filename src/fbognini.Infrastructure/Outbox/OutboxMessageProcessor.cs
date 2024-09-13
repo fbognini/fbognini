@@ -159,6 +159,11 @@ namespace fbognini.Infrastructure.Outbox
                         .TableHint(SqlServerHints.Table.ReadPast)
                         .TableHint(SqlServerHints.Table.UpdLock);
             }
+            else if (databaseSettings.DBProvider == DbProviderKeys.Npgsql)
+            {
+                linq2dbTable = linq2dbTable
+                        .TableHint("FOR UPDATE");
+            }
 
             var query = linq2dbTable
                 // GlobalQueryFilter for tenant

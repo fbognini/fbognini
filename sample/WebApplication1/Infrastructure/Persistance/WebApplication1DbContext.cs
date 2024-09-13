@@ -13,10 +13,12 @@ namespace WebApplication1.Infrastructure.Persistance
     {
         public WebApplication1DbContext(
             DbContextOptions<WebApplication1DbContext> options,
+            IOptions<DatabaseSettings> databaseOptions,
             ICurrentUserService currentUserService,
+            IDateTimeProvider dateTimeProvider,
             IOutboxMessagesListener outboxMessagesListener,
             ITenantInfo? currentTenant = null)
-            : base(options, currentUserService, outboxMessagesListener, currentTenant)
+            : base(options, databaseOptions, currentUserService, dateTimeProvider, outboxMessagesListener, currentTenant)
         {
         }
 

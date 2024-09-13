@@ -79,7 +79,7 @@ namespace fbognini.Core.Domain.Query.Pagination
             else if (searchCriteria.Page.Since.HasValue)
             {
                 var since = new DateTime(1970, 1, 1).AddTicks(searchCriteria.Page.Since.Value * 10000);
-                list = list.Where(x => x.LastUpdated >= since);
+                list = list.Where(x => x.LastUpdatedOnUtc >= since);
 
                 if (searchCriteria.Page.AfterId is not null)
                 {
@@ -89,13 +89,13 @@ namespace fbognini.Core.Domain.Query.Pagination
                 pagination.PartialTotal = list.Count();
 
                 list = list
-                    .OrderBy(x => x.LastUpdated)
+                    .OrderBy(x => x.LastUpdatedOnUtc)
                     .Take(searchCriteria.Page.Size.Value);
 
                 var last = list.LastOrDefault();
                 if (last != null)
                 {
-                    long continuationSince = Convert.ToInt64(last.LastUpdated.Subtract(DateTime.MinValue.AddYears(1969)).TotalMilliseconds);
+                    long continuationSince = Convert.ToInt64(last.LastUpdatedOnUtc.Subtract(DateTime.MinValue.AddYears(1969)).TotalMilliseconds);
                     string continuation = $"{continuationSince}_{last.Id}";
 
                     pagination.ContinuationSince = continuation;

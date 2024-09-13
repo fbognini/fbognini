@@ -101,7 +101,7 @@ namespace fbognini.Infrastructure.Multitenancy
 
 
 
-        public static async Task InitializeMultiTenancy(this IApplicationBuilder app, CancellationToken cancellationToken = default)
+        public static async Task InitializeMultiTenancyAsync(this IApplicationBuilder app, CancellationToken cancellationToken = default)
         {
             using var serviceScope = app.ApplicationServices.CreateScope();
 

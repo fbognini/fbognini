@@ -14,7 +14,9 @@ namespace fbognini.Infrastructure.Tests.Integration.Fixture;
 
 public class DatabaseFixture : IDisposable
 {
+    private readonly IOptions<DatabaseSettings> databaseOptions = Substitute.For<IOptions<DatabaseSettings>>();
     private readonly ICurrentUserService currentUserService = new IntegrationTestsCurrentUserService();
+    private readonly IDateTimeProvider dateTimeProvider = new IntegrationTestsDateTimeProvider();
     private readonly IOutboxMessagesListener outboxMessagesListener = Substitute.For<IOutboxMessagesListener>();
     private readonly ITenantInfo tenantInfo = new TenantInfo();
 
@@ -22,9 +24,9 @@ public class DatabaseFixture : IDisposable
     public string ConnectionString { get; }
 
     public IDbContextFactory<IntegrationTestsDbContext> DbContextFactory => 
-        new IntegrationTestsDbContextFactory(DbContextOptions, currentUserService, outboxMessagesListener, tenantInfo);
+        new IntegrationTestsDbContextFactory(DbContextOptions, databaseOptions, currentUserService, dateTimeProvider, outboxMessagesListener, tenantInfo);
 
-    public IntegrationTestsDbContext DbContext => new (DbContextOptions, currentUserService, outboxMessagesListener, tenantInfo);
+    public IntegrationTestsDbContext DbContext => new (DbContextOptions, databaseOptions, currentUserService, dateTimeProvider, outboxMessagesListener, tenantInfo);
 
     public RepositoryAsync<IntegrationTestsDbContext> Repository => new(DbContextFactory, Substitute.For<ILogger<RepositoryAsync<IntegrationTestsDbContext>>>());
 
@@ -84,4 +86,11 @@ public class IntegrationTestsCurrentUserService : ICurrentUserService
     {
         throw new NotImplementedException();
     }
+}
+
+public class IntegrationTestsDateTimeProvider : IDateTimeProvider
+{
+    public DateTime Now => DateTime.Now;
+
+    public DateTime UtcNow => DateTime.UtcNow;
 }

@@ -1,4 +1,5 @@
 using fbognini.Core.Exceptions;
+using fbognini.Core.Interfaces;
 using fbognini.Infrastructure.Entities;
 using Finbuckle.MultiTenant;
 using Microsoft.AspNetCore.Http;
@@ -11,35 +12,37 @@ namespace fbognini.Infrastructure.Multitenancy
 {
     public class TenantGuardMiddleware : IMiddleware
     {
-        private readonly Tenant? tenant;
-        private readonly MultitenancySettings multitenancySettings;
+        private readonly Tenant? _tenant;
+        private readonly MultitenancySettings _multitenancySettings;
+        private readonly IDateTimeProvider _dateTimeProvider;
 
-        public TenantGuardMiddleware(ITenantInfo tenant, IOptions<MultitenancySettings> options)
+        public TenantGuardMiddleware(ITenantInfo tenant, IOptions<MultitenancySettings> options, IDateTimeProvider dateTimeProvider)
         {
-            this.tenant = tenant as Tenant;
-            this.multitenancySettings = options.Value;
+            _tenant = tenant as Tenant;
+            _multitenancySettings = options.Value;
+            _dateTimeProvider = dateTimeProvider;
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            if ((multitenancySettings.IncludeAll && (StartWithPaths(context, multitenancySettings.IncludePaths) || !TenantGuardMiddleware.StartWithPaths(context, multitenancySettings.ExcludePaths)))
-                || StartWithPaths(context, multitenancySettings.IncludePaths))
+            if ((_multitenancySettings.IncludeAll && (StartWithPaths(context, _multitenancySettings.IncludePaths) || !StartWithPaths(context, _multitenancySettings.ExcludePaths)))
+                || StartWithPaths(context, _multitenancySettings.IncludePaths))
             {
-                if (tenant == null)
+                if (_tenant == null)
                 {
                     throw new IdentityException("Tenant is not provided or it doesn't exist.", "Tenant authentication failed.");
                 }
 
-                if (tenant.Identifier != MultitenancyConstants.Root.Key)
+                if (_tenant.Identifier != MultitenancyConstants.Root.Key)
                 {
-                    if (!tenant.IsActive)
+                    if (!_tenant.IsActive)
                     {
                         throw new IdentityException("Tenant is not active. Please contact the Administrator.", "Tenant is not active.");
                     }
 
-                    if (DateTime.UtcNow > tenant.ValidUpto)
+                    if (_dateTimeProvider.UtcNow > _tenant.ValidUpto)
                     {
-                        throw new IdentityException($"Tenant validity has expired on {tenant.ValidUpto:O}. Please contact the Administrator.", "Tenant validity has expired.");
+                        throw new IdentityException($"Tenant validity has expired on {_tenant.ValidUpto:O}. Please contact the Administrator.", "Tenant validity has expired.");
                     }
                 }
             }

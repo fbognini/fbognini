@@ -10,7 +10,13 @@ namespace fbognini.Infrastructure.Tests.Integration.Fixture;
 
 public class IntegrationTestsDbContext : AuditableDbContext<IntegrationTestsDbContext>
 {
-    public IntegrationTestsDbContext(DbContextOptions<IntegrationTestsDbContext> options, ICurrentUserService currentUserService, IOutboxMessagesListener outboxMessagesListener, ITenantInfo currentTenant) : base(options, currentUserService, outboxMessagesListener, currentTenant)
+    public IntegrationTestsDbContext(
+        DbContextOptions<IntegrationTestsDbContext> options,
+        IOptions<DatabaseSettings> databaseOptions,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider,
+        IOutboxMessagesListener outboxMessagesListener,
+        ITenantInfo currentTenant) : base(options, databaseOptions, currentUserService, dateTimeProvider, outboxMessagesListener, currentTenant)
     {
     }
 

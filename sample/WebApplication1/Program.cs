@@ -39,9 +39,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+await app.InitializeMultiTenancyAsync();
 
-app.UseMultiTenancy();
+app.UseHttpsRedirection();
 
 app.MapGet("/books", async (string? title, IWebApplication1Repository repository) =>
 {
