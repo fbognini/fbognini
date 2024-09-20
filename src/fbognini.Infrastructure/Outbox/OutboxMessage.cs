@@ -9,6 +9,7 @@ namespace fbognini.Infrastructure.Outbox;
 
 public sealed class OutboxMessage: IHaveTenant
 {
+    private OutboxMessage() { }
     public OutboxMessage(Guid id, DateTime occurredOnUtc, string application, string type, string content)
     {
         Id = id;
@@ -22,11 +23,11 @@ public sealed class OutboxMessage: IHaveTenant
 
     public DateTime OccurredOnUtc { get; init; }
 
-    public string Application { get; init; }
+    public string Application { get; init; } = string.Empty;
 
-    public string Type { get; init; }
+    public string Type { get; init; } = string.Empty;
 
-    public string Content { get; init; }
+    public string Content { get; init; } = string.Empty;
 
     public DateTime? ProcessedOnUtc { get; private set; }
 
