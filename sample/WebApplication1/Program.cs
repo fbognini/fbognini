@@ -83,6 +83,7 @@ app.MapPost("/authors", async (Author postAuthor, IWebApplication1Repository rep
 
     await repository.CreateAsync(author, cancellationToken);
     await repository.SaveAsync(cancellationToken);
+
     return author;
 })
 .WithName("CreateAuthor")
