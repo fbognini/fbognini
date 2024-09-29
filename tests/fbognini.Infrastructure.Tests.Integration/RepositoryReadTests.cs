@@ -112,7 +112,7 @@ public class RepositoryReadTests : IClassFixture<FullDatabaseFixture>
     public async Task GetAllAsync_ReturnSortedList_WhenSortByLastName()
     {
         var criteria = new AuthorSearchCriteria();
-        criteria.LoadSortingQuery(new SortingQuery(nameof(Author.LastName), SortingDirection.ASCENDING));
+        criteria.AddSorting(x => x.LastName, SortingDirection.ASCENDING);
         var authors = await repository.GetAllAsync<Author>(criteria);
 
         authors.First().LastName.Should().Be(AuthorSeed.FirstLastName);

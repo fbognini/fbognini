@@ -13,9 +13,8 @@ var criteria = new FooCriteria()
 criteria.Search.Keyword = "foo";
 criteria.Search.Fields.Add(x => x.FirstName);
 criteria.Search.FieldStrings.Add("Ciccio");
-criteria.LoadSortingQuery(new fbognini.Core.Domain.Query.SortingQuery("Criteria", fbognini.Core.Domain.Query.SortingDirection.ASCENDING));
-criteria.LoadSortingQuery(new fbognini.Core.Domain.Query.SortingQuery("Criteria DESSC", fbognini.Core.Domain.Query.SortingDirection.DESCENDING));
-
+criteria.AddSorting("Criteria", fbognini.Core.Domain.Query.SortingDirection.ASCENDING);
+criteria.AddSorting("Criteria DESSC", fbognini.Core.Domain.Query.SortingDirection.DESCENDING);
 
 
 using (var httpClient = new HttpClient())

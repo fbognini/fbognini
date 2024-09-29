@@ -33,22 +33,15 @@ namespace fbognini.Core.Domain.Query
         }
 
 
-        public void AddSorting(string criteria, SortingDirection direction)
+        public QueryableCriteria<T> AddSorting(string criteria, SortingDirection direction)
         {
             _sorting.Add(new KeyValuePair<string, SortingDirection>(criteria, direction));
+            return this;
         }
 
-        public void AddSorting(Expression<Func<T, object?>> criteria, SortingDirection direction)
+        public QueryableCriteria<T> AddSorting(Expression<Func<T, object?>> criteria, SortingDirection direction)
         {
-            AddSorting(criteria.GetPropertyPath(true), direction);
-        }
-
-        public void LoadSortingQuery(SortingQuery query)
-        {
-            if (query == null)
-                throw new ArgumentNullException(nameof(query));
-
-            AddSorting(query.SortingCriteria, query.SortingDirection);
+            return AddSorting(criteria.GetPropertyPath(true), direction);
         }
 
         public void ClearSorting()
@@ -56,13 +49,26 @@ namespace fbognini.Core.Domain.Query
             _sorting.Clear();
         }
 
-        public void LoadPaginationOffsetQuery(PaginationOffsetQuery query)
+        public QueryableCriteria<T> LoadPaginationOffsetQuery(PaginationOffsetQuery query)
         {
-            if (query == null)
-                throw new ArgumentNullException(nameof(query));
+            ArgumentNullException.ThrowIfNull(query);
 
             Page.Number = query.PageNumber;
             Page.Size = query.PageSize;
+
+            return this;
+        }
+
+        public QueryableCriteria<T> LimitPaginationCount(int limit)
+        {
+            if (limit < 0)
+            {
+                throw new ArgumentException("Non-negative number is required", nameof(limit));
+            }
+
+            Page.MaxTake = limit;
+
+            return this;
         }
 
         public void SetOperator(LogicalOperator logicalOperator)
