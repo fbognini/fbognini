@@ -193,9 +193,13 @@ namespace fbognini.Infrastructure.Persistence
                     continue;
                 }
 
+                var auditableProperties = typeof(IAuditableEntity)
+                    .GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
+                    .Select(p => p.Name);
+
                 var propertys = entry.State == EntityState.Deleted
                     ? entry.Properties
-                    : entry.Properties.Where(x => !typeof(IAuditableEntity).GetProperties().Select(x => x.Name).Any(a => a == x.Metadata.Name));
+                    : entry.Properties.Where(x => !auditableProperties.Contains(x.Metadata.Name));
 
                 var originalValues = await entry.GetDatabaseValuesAsync(cancellationToken);
 

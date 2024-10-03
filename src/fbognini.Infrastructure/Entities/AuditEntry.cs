@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using FastIDs.TypeId.Serialization.SystemTextJson;
+using System.Text.Json.Serialization;
 
 namespace fbognini.Infrastructure.Entities
 {
@@ -16,6 +18,12 @@ namespace fbognini.Infrastructure.Entities
 
     public class AuditEntry
     {
+        private static JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            ReferenceHandler = ReferenceHandler.IgnoreCycles
+        }.ConfigureForTypeId();
+
         public AuditEntry(EntityEntry entry)
         {
             Entry = entry;
@@ -43,10 +51,10 @@ namespace fbognini.Infrastructure.Entities
                 Type = AuditType.ToString(),
                 TableName = TableName,
                 DateTime = DateTime,
-                PrimaryKey = JsonSerializer.Serialize(KeyValues),
-                OldValues = OldValues.Count == 0 ? null : JsonSerializer.Serialize(OldValues),
-                NewValues = NewValues.Count == 0 ? null : JsonSerializer.Serialize(NewValues),
-                AffectedColumns = ChangedColumns.Count == 0 ? null : JsonSerializer.Serialize(ChangedColumns)
+                PrimaryKey = JsonSerializer.Serialize(KeyValues, _jsonSerializerOptions),
+                OldValues = OldValues.Count == 0 ? null : JsonSerializer.Serialize(OldValues, _jsonSerializerOptions),
+                NewValues = NewValues.Count == 0 ? null : JsonSerializer.Serialize(NewValues, _jsonSerializerOptions),
+                AffectedColumns = ChangedColumns.Count == 0 ? null : JsonSerializer.Serialize(ChangedColumns, _jsonSerializerOptions)
             };
             return audit;
         }

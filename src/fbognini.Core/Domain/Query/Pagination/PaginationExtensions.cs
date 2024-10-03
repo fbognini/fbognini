@@ -37,7 +37,7 @@ namespace fbognini.Core.Domain.Query.Pagination
             }
 
             page.Total = total - 1;
-            page.AtLeast = false;
+            page.AtLeast = true;
         }
 
         public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, QueryableCriteria<T> selectCriteria, out PaginationResult? pagination)
