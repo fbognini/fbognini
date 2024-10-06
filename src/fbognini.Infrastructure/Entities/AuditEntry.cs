@@ -18,7 +18,7 @@ namespace fbognini.Infrastructure.Entities
 
     public class AuditEntry
     {
-        private static JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             ReferenceHandler = ReferenceHandler.IgnoreCycles

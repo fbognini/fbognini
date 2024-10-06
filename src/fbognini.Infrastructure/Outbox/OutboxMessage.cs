@@ -33,6 +33,11 @@ public sealed class OutboxMessage: IHaveTenant
 
     public string? Error { get; private set; }
 
+    public bool IsProcessing { get; set; }
+    public Guid? LockId { get; set; }
+    public DateTime? ReservedOnUtc { get; set; }
+    public DateTime? ExpiredOnUtc { get; set; }
+
     public string Tenant { get; set; } = string.Empty;
 
     public void SetAsProcessed(DateTime processedOnUtc)
