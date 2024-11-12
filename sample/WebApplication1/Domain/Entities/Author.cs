@@ -8,6 +8,8 @@ namespace WebApplication1.Domain.Entities
         public required string FirstName { get; set; }
         public required string LastName { get; set; }
 
+        public int NoOfBooks { get; set; }
+
         public ICollection<Book> Books { get; set; }
 
         public static Author Create(string firstName, string lastName)

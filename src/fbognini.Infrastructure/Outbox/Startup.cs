@@ -1,4 +1,6 @@
 ﻿using fbognini.Infrastructure.Entities;
+using fbognini.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -12,7 +14,16 @@ namespace fbognini.Infrastructure.Outbox;
 
 public static class Startup
 {
-    internal static IServiceCollection AddOutboxListener(this IServiceCollection services)
+    public static IServiceCollection AddOutboxProcessing<TDbContext, TTenant>(this IServiceCollection services)
+        where TDbContext : DbContext, IBaseDbContext
+        where TTenant : Tenant, new()
+    {
+        return services
+            .AddOutboxListener()
+            .AddOutboxProcessor<TDbContext, TTenant>();
+    }
+
+    private static IServiceCollection AddOutboxListener(this IServiceCollection services)
     {
         services.AddSingleton<IOutboxMessagesListener, OutboxMessagesListenerService>();
         services.AddHostedService(sp => (OutboxMessagesListenerService)sp.GetRequiredService<IOutboxMessagesListener>());
@@ -20,10 +31,11 @@ public static class Startup
         return services;
     }
 
-    internal static IServiceCollection AddOutboxProcessor<TTenant>(this IServiceCollection services)
+    private static IServiceCollection AddOutboxProcessor<TDbContext, TTenant>(this IServiceCollection services)
+        where TDbContext : DbContext, IBaseDbContext
         where TTenant : Tenant, new()
     {
-        services.AddScoped<IOutboxMessageProcessor, OutboxMessageProcessor<TTenant>>();
+        services.AddScoped<IOutboxMessageProcessor, OutboxMessageProcessor<TDbContext, TTenant>>();
 
         return services;
     }

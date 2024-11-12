@@ -9,21 +9,17 @@ using WebApplication1.Infrastructure.Repositorys;
 
 namespace WebApplication1.Services;
 
-internal sealed class BookingReservedDomainEventHandler : INotificationHandler<AuthorCreatedEvent>
+internal sealed class BookCreatedDomainEventHandler : INotificationHandler<BookCreatedEvent>
 {
     private readonly IWebApplication1Repository _repository;
 
-    public BookingReservedDomainEventHandler(IWebApplication1Repository repository)
+    public BookCreatedDomainEventHandler(IWebApplication1Repository repository)
     {
         _repository = repository;
     }
 
-    public async Task Handle(AuthorCreatedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(BookCreatedEvent notification, CancellationToken cancellationToken)
     {
-        using (var transaction = _repository.CreateTransaction())
-        {
-            await Task.Delay(1000, cancellationToken);
-        }
-
+        await Task.Delay(1000, cancellationToken);
     }
 }

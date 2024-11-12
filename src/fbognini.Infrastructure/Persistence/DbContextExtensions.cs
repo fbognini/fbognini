@@ -47,6 +47,18 @@ namespace fbognini.Infrastructure.Persistence
 
             builder.ApplyGlobalFilters<IHaveTenant>(b => string.IsNullOrWhiteSpace(context.Tenant) || EF.Property<string>(b, nameof(IHaveTenant.Tenant)) == context.Tenant);
             builder.ApplyGlobalFilters<ISoftDelete>(s => s.DeletedOnUtc == null);
+
+            builder.Entity<OutboxMessage>(b =>
+            {
+                b.HasIndex(x => x.IsProcessing).HasFilter("IsProcessing = 0");
+                b.HasIndex(x => x.LockId).HasFilter("IsProcessing = 1");
+
+                b.Property(x => x.Application)
+                    .HasMaxLength(200);
+
+                b.Property(x => x.Type)
+                    .HasMaxLength(500);
+            });
         }
 
         public static void SetNewProperty(this IAuditableEntity entity, string name, string? value)
@@ -210,9 +222,13 @@ namespace fbognini.Infrastructure.Persistence
                     continue;
                 }
 
+                var auditableProperties = typeof(IAuditableEntity)
+                    .GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
+                    .Select(p => p.Name);
+
                 var propertys = entry.State == EntityState.Deleted
                     ? entry.Properties
-                    : entry.Properties.Where(x => !typeof(IAuditableEntity).GetProperties().Select(x => x.Name).Any(a => a == x.Metadata.Name));
+                    : entry.Properties.Where(x => !auditableProperties.Contains(x.Metadata.Name));
 
                 var originalValues = await entry.GetDatabaseValuesAsync(cancellationToken);
 

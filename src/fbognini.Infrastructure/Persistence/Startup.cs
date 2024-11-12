@@ -38,19 +38,16 @@ namespace fbognini.Infrastructure.Persistence
 
             return services
                 .Configure<DatabaseSettings>(databaseSection)
-                .AddScoped<IBaseDbContext, T>()
                 .AddDbContextFactory<T>(GetContextOptionBuilder, lifetime: ServiceLifetime.Scoped) // Needed lifetime scoped to avoid issue "Cannot resolve scoped service ICurrentUserService from root provider."
                 .AddTransient<ApplicationDatabaseInitializer<T>>()
                 .AddImplementations(typeof(ICustomSeeder<T>), ServiceLifetime.Transient)
                 .AddTransient<ApplicationSeederRunner<T>>()
                 .AddTransient<IConnectionStringSecurer, ConnectionStringSecurer>()
-                .AddTransient<IConnectionStringValidator, ConnectionStringValidator>()
-                .AddOutboxListener();
+                .AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
 
             void GetContextOptionBuilder(DbContextOptionsBuilder contextOptions)
             {
                 contextOptions.ConfigureDbProvider(databaseSettings.DBProvider!, connectionString);
-
                 contextOptions.UseQueryTrackingBehavior(databaseSettings.TrackingBehavior);
             }
         }
@@ -70,6 +67,7 @@ namespace fbognini.Infrastructure.Persistence
 
             return services
                 .AddBasePersistence<T>(configuration)
+                .AddOutboxProcessing<T, TTenant>()
                 .AddMultiTenantInitializer<T, TTenantContext, TTenant>()
                 .AddMultitenancy<TTenantContext, TTenant>(configuration);
         }
@@ -80,6 +78,7 @@ namespace fbognini.Infrastructure.Persistence
             where TTenant : Tenant, new()
         {
             return services.AddBasePersistence<T>(configuration)
+                .AddOutboxProcessing<T, TTenant>()
                 .AddMultiTenantInitializer<T, TTenant>()
                 .AddMultitenancy<TTenant>(configuration);
         }

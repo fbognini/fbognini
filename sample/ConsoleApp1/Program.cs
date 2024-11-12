@@ -2,6 +2,7 @@
 using ConsoleApp1;
 using fbognini.Core.Exceptions;
 using fbognini.Core.Utilities;
+using System.Net.Http.Json;
 
 Console.WriteLine("Hello, World!");
 
@@ -12,8 +13,19 @@ var criteria = new FooCriteria()
 criteria.Search.Keyword = "foo";
 criteria.Search.Fields.Add(x => x.FirstName);
 criteria.Search.FieldStrings.Add("Ciccio");
-criteria.LoadSortingQuery(new fbognini.Core.Domain.Query.SortingQuery("Criteria", fbognini.Core.Domain.Query.SortingDirection.ASCENDING));
-criteria.LoadSortingQuery(new fbognini.Core.Domain.Query.SortingQuery("Criteria DESSC", fbognini.Core.Domain.Query.SortingDirection.DESCENDING));
+criteria.AddSorting("Criteria", fbognini.Core.Domain.Query.SortingDirection.ASCENDING);
+criteria.AddSorting("Criteria DESSC", fbognini.Core.Domain.Query.SortingDirection.DESCENDING);
+
+
+using (var httpClient = new HttpClient())
+{
+    for (int i = 0; i < 100; i++)
+    {
+        var request = new { firstName = "ciccio", lastName = "pasticcio" };
+
+        await httpClient.PostAsJsonAsync("https://localhost:7286/authors", request);
+    }
+}
 
 
 throw new NotFoundException<Foo>(criteria);

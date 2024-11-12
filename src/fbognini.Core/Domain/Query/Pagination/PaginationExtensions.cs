@@ -1,5 +1,6 @@
 ﻿using fbognini.Core.Domain.Query;
 using System;
+using System.Data.Entity;
 using System.Linq;
 
 namespace fbognini.Core.Domain.Query.Pagination
@@ -17,9 +18,33 @@ namespace fbognini.Core.Domain.Query.Pagination
             return list.QueryPagination(searchCriteria, out var _);
         }
 
+        private static void UpdatePageCriteriaTotals<T>(PageCriteria page, IQueryable<T> list)
+        {
+            if (!page.MaxTake.HasValue)
+            {
+                page.Total = list.Count();
+                page.AtLeast = false;
+                return;
+            }
+
+            var take = page.MaxTake.Value + 1;
+            var total = list.Take(take).Count();
+            if (total != take)
+            {
+                page.Total = total;
+                page.AtLeast = false;
+                return;
+            }
+
+            page.Total = total - 1;
+            page.AtLeast = true;
+        }
+
         public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, QueryableCriteria<T> selectCriteria, out PaginationResult? pagination)
         {
-            if (!selectCriteria.Page.Size.HasValue)
+            var page = selectCriteria.Page;
+
+            if (!page.Size.HasValue)
             {
                 pagination = null;
                 return list;
@@ -27,22 +52,23 @@ namespace fbognini.Core.Domain.Query.Pagination
 
             pagination = new PaginationResult();
 
-            int total = list.Count();
-            pagination.Total = total;
-            selectCriteria.Page.Total = total;
+            UpdatePageCriteriaTotals(page, list);
 
-            if (selectCriteria.Page.Size == -1)
+            pagination.Total = page.Total;
+            pagination.AtLeast = page.AtLeast;
+
+            if (page.Size == -1)
             {
                 return list;
             }
 
-            pagination.PageSize = selectCriteria.Page.Size.Value;
-            if (selectCriteria.Page.Number.HasValue)
+            pagination.PageSize = page.Size.Value;
+            if (page.Number.HasValue)
             {
                 list = list
-                    .Skip((selectCriteria.Page.Number.Value - 1) * selectCriteria.Page.Size.Value)
-                    .Take(selectCriteria.Page.Size.Value);
-                pagination.PageNumber = selectCriteria.Page.Number.Value;
+                    .Skip((page.Number.Value - 1) * page.Size.Value)
+                    .Take(page.Size.Value);
+                pagination.PageNumber = page.Number.Value;
             }
 
             return list;
@@ -51,7 +77,9 @@ namespace fbognini.Core.Domain.Query.Pagination
         public static IQueryable<T> QueryPagination<T>(this IQueryable<T> list, QueryableAuditableCriteria<T> searchCriteria, out PaginationResult? pagination)
             where T : IHaveId<long>, IHaveLastUpdated
         {
-            if (!searchCriteria.Page.Size.HasValue)
+            var page = searchCriteria.Page;
+
+            if (!page.Size.HasValue)
             {
                 pagination = null;
                 return list;
@@ -59,38 +87,39 @@ namespace fbognini.Core.Domain.Query.Pagination
 
             pagination = new PaginationResult();
 
-            int total = list.Count();
-            pagination.Total = total;
-            searchCriteria.Page.Total = total;
+            UpdatePageCriteriaTotals(page, list);
 
-            if (searchCriteria.Page.Size == -1)
+            pagination.Total = page.Total;
+            pagination.AtLeast = page.AtLeast;
+
+            if (page.Size == -1)
             {
                 return list;
             }
 
-            pagination.PageSize = searchCriteria.Page.Size.Value;
-            if (searchCriteria.Page.Number.HasValue)
+            pagination.PageSize = page.Size.Value;
+            if (page.Number.HasValue)
             {
                 list = list
-                    .Skip((searchCriteria.Page.Number.Value - 1) * searchCriteria.Page.Size.Value)
-                    .Take(searchCriteria.Page.Size.Value);
-                pagination.PageNumber = searchCriteria.Page.Number.Value;
+                    .Skip((page.Number.Value - 1) * page.Size.Value)
+                    .Take(page.Size.Value);
+                pagination.PageNumber = page.Number.Value;
             }
-            else if (searchCriteria.Page.Since.HasValue)
+            else if (page.Since.HasValue)
             {
-                var since = new DateTime(1970, 1, 1).AddTicks(searchCriteria.Page.Since.Value * 10000);
+                var since = new DateTime(1970, 1, 1).AddTicks(page.Since.Value * 10000);
                 list = list.Where(x => x.LastUpdatedOnUtc >= since);
 
-                if (searchCriteria.Page.AfterId is not null)
+                if (page.AfterId is not null)
                 {
-                    list = list.Where(x => x.Id > searchCriteria.Page.AfterId.Value);
+                    list = list.Where(x => x.Id > page.AfterId.Value);
                 }
 
                 pagination.PartialTotal = list.Count();
 
                 list = list
                     .OrderBy(x => x.LastUpdatedOnUtc)
-                    .Take(searchCriteria.Page.Size.Value);
+                    .Take(page.Size.Value);
 
                 var last = list.LastOrDefault();
                 if (last != null)
@@ -99,14 +128,14 @@ namespace fbognini.Core.Domain.Query.Pagination
                     string continuation = $"{continuationSince}_{last.Id}";
 
                     pagination.ContinuationSince = continuation;
-                    searchCriteria.Page.ContinuationSince = continuation;
+                    page.ContinuationSince = continuation;
                 }
                 else
                 {
-                    pagination.ContinuationSince = searchCriteria.Page.Since.ToString();
-                    if (searchCriteria.Page.AfterId != null)
+                    pagination.ContinuationSince = page.Since.ToString();
+                    if (page.AfterId != null)
                     {
-                        pagination.ContinuationSince += "_" + searchCriteria.Page.AfterId;
+                        pagination.ContinuationSince += "_" + page.AfterId;
                     }
                 }
             }

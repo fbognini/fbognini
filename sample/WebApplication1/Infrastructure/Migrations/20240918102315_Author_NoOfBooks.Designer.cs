@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication1.Infrastructure.Persistance;
 
@@ -11,9 +12,11 @@ using WebApplication1.Infrastructure.Persistance;
 namespace WebApplication1.Infrastructure.Migrations
 {
     [DbContext(typeof(WebApplication1DbContext))]
-    partial class WebApplication1DbContextModelSnapshot : ModelSnapshot
+    [Migration("20240918102315_Author_NoOfBooks")]
+    partial class Author_NoOfBooks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -151,8 +154,7 @@ namespace WebApplication1.Infrastructure.Migrations
 
                     b.Property<string>("Application")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -161,22 +163,10 @@ namespace WebApplication1.Infrastructure.Migrations
                     b.Property<string>("Error")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("ExpiredOnUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsProcessing")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid?>("LockId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("OccurredOnUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ProcessedOnUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ReservedOnUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Tenant")
@@ -185,16 +175,9 @@ namespace WebApplication1.Infrastructure.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("IsProcessing")
-                        .HasFilter("IsProcessing = 0");
-
-                    b.HasIndex("LockId")
-                        .HasFilter("IsProcessing = 1");
 
                     b.ToTable("OutboxMessages");
                 });
