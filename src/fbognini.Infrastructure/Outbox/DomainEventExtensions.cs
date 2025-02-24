@@ -1,4 +1,5 @@
-﻿using fbognini.Core.Domain;
+﻿using FastIDs.TypeId.Serialization.JsonNet;
+using fbognini.Core.Domain;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -9,10 +10,12 @@ namespace fbognini.Infrastructure.Outbox
 {
     public static class DomainEventExtensions
     {
-        public static readonly JsonSerializerSettings JsonSerializerSettings = new()
-        {
-            TypeNameHandling = TypeNameHandling.All
-        };
+        public static readonly JsonSerializerSettings JsonSerializerSettings = 
+            new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.All
+            }
+            .ConfigureForTypeId();
 
         public static OutboxMessage ToOutboxMessage(this IDomainEvent domainEvent)
         {
