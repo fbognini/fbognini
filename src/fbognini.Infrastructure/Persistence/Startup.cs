@@ -21,35 +21,21 @@ namespace fbognini.Infrastructure.Persistence
             LinqToDBForEFTools.Initialize();
 
             // TODO: We should probably add specific dbprovider/connectionstring setting for the tenantDb with a fallback to the main databasesettings
-            var databaseSection = configuration.GetSection(nameof(DatabaseSettings));
-            var databaseSettings = databaseSection.Get<DatabaseSettings>();
-
-            var connectionString = databaseSettings.ConnectionString;
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                throw new InvalidOperationException("DB ConnectionString is not configured.");
-            }
-            
-            var dbProvider = databaseSettings.DBProvider;
-            if (string.IsNullOrEmpty(dbProvider))
-            {
-                throw new InvalidOperationException("DB Provider is not configured.");
-            }
+            var databaseSettings = GetDatabaseSettingsAndGuard(configuration);
 
             return services
-                .Configure<DatabaseSettings>(databaseSection)
-                .AddDbContextFactory<T>(GetContextOptionBuilder, lifetime: ServiceLifetime.Scoped) // Needed lifetime scoped to avoid issue "Cannot resolve scoped service ICurrentUserService from root provider."
+                .Configure<DatabaseSettings>(configuration.GetSection(nameof(DatabaseSettings)))
+                .AddDbContextFactory<T>(contextOptions =>
+                {
+                    contextOptions.ConfigureDbProvider(databaseSettings.DBProvider!, databaseSettings.ConnectionString!);
+                    contextOptions.UseQueryTrackingBehavior(databaseSettings.TrackingBehavior);
+
+                }, lifetime: ServiceLifetime.Scoped) // Needed lifetime scoped to avoid issue "Cannot resolve scoped service ICurrentUserService from root provider."
                 .AddTransient<ApplicationDatabaseInitializer<T>>()
                 .AddImplementations(typeof(ICustomSeeder<T>), ServiceLifetime.Transient)
                 .AddTransient<ApplicationSeederRunner<T>>()
                 .AddTransient<IConnectionStringSecurer, ConnectionStringSecurer>()
                 .AddTransient<IConnectionStringValidator, ConnectionStringValidator>();
-
-            void GetContextOptionBuilder(DbContextOptionsBuilder contextOptions)
-            {
-                contextOptions.ConfigureDbProvider(databaseSettings.DBProvider!, connectionString);
-                contextOptions.UseQueryTrackingBehavior(databaseSettings.TrackingBehavior);
-            }
         }
 
         public static FinbuckleMultiTenantBuilder<TTenant> AddPersistenceAndMultitenancy<T, TTenantContext, TTenant>(this IServiceCollection services, IConfiguration configuration)
@@ -57,13 +43,11 @@ namespace fbognini.Infrastructure.Persistence
             where TTenantContext : TenantDbContext<TTenant>
             where TTenant : Tenant, new()
         {
-            services.AddDbContext<TTenantContext>(m => 
+            services.AddDbContext<TTenantContext>(m =>
             {
-                var connectionString = configuration[$"DatabaseSettings:{nameof(DatabaseSettings.ConnectionString)}"]!;
-                var dbProvider = configuration[$"DatabaseSettings:{nameof(DatabaseSettings.DBProvider)}"]!;
-                m.ConfigureDbProvider(dbProvider, connectionString);
+                var databaseSettings = GetDatabaseSettingsAndGuard(configuration);
+                m.ConfigureDbProvider(databaseSettings.DBProvider, databaseSettings.ConnectionString!);
             });
-
 
             return services
                 .AddBasePersistence<T>(configuration)
@@ -118,6 +102,27 @@ namespace fbognini.Infrastructure.Persistence
             where T : DbContext, IBaseDbContext
         {
             return services.AddMultiTenantInitializer<T, Tenant>();
+        }
+
+        private static DatabaseSettings GetDatabaseSettingsAndGuard(IConfiguration configuration)
+        {
+            var databaseSettings = configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
+            if (databaseSettings is null)
+            {
+                throw new InvalidOperationException("DatabaseSettings are not configured.");
+            }
+
+            if (string.IsNullOrWhiteSpace(databaseSettings.ConnectionString))
+            {
+                throw new InvalidOperationException("DatabaseSettings.ConnectionString is not configured.");
+            }
+
+            if (string.IsNullOrWhiteSpace(databaseSettings.DBProvider))
+            {
+                throw new InvalidOperationException("DatabaseSettings.DBProvider is not configured.");
+            }
+
+            return databaseSettings;
         }
     }
 }
