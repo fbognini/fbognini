@@ -14,12 +14,12 @@ namespace fbognini.Infrastructure.Persistence
     public class AuditableDbContext<T> : DbContext, IBaseDbContext
         where T : DbContext
     {
-        private readonly ICurrentUserService _currentUserService;
-        private readonly IDateTimeProvider _dateTimeProvider;
-        private readonly IOutboxMessagesListener _outboxListenerService;
-        private readonly ITenantInfo? _currentTenant;
+        protected readonly ICurrentUserService _currentUserService;
+        protected readonly IDateTimeProvider _dateTimeProvider;
+        protected readonly IOutboxMessagesListener _outboxListenerService;
+        protected readonly ITenantInfo? _currentTenant;
 
-        private readonly DatabaseSettings _databaseSettings;
+        protected readonly DatabaseSettings _databaseSettings;
 
         public AuditableDbContext(
             DbContextOptions<T> options,
