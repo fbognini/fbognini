@@ -8,8 +8,6 @@ namespace fbognini.Core.Domain.Query
     {
         public override PageAuditableCriteria Page { get; } = new();
 
-
-
         public void LoadPaginationAdvancedSinceQuery(PaginationAdvancedSinceQuery query)
         {
             if (query == null)

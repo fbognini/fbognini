@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<PackageId>fbognini.Infrastructure</PackageId>
 		<TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
-		<Version>11.1.1</Version>
+		<Version>11.2.0</Version>
 		<Authors>Francesco Bognini</Authors>
 		<Company>Francesco Bognini</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -27,37 +27,40 @@
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
 		<PackageReference Include="FastIDs.TypeId.Serialization.SystemTextJson" Version="1.0.0" />
+		<PackageReference Include="FastIDs.TypeId.Serialization.JsonNet" Version="1.0.0" />
 		<PackageReference Include="MediatR" Version="12.2.0" />
-		<PackageReference Include="EFCore.BulkExtensions" Version="8.0.2" />		
+		<PackageReference Include="EFCore.BulkExtensions" Version="8.1.3" />		
 		<PackageReference Include="linq2db.EntityFrameworkCore" Version="8.1.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
-		<PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="8.0.8" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.8" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.13" />
+		<PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="8.0.13" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.13" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.13" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
 		<PackageReference Include="FastIDs.TypeId.Serialization.SystemTextJson" Version="0.2.3" />
+		<PackageReference Include="FastIDs.TypeId.Serialization.JsonNet" Version="0.2.2" />
 		<PackageReference Include="MediatR" Version="12.2.0" />
 		<PackageReference Include="EFCore.BulkExtensions" Version="7.8.1" />
 		<PackageReference Include="linq2db.EntityFrameworkCore" Version="7.7.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.16" />
-		<PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="7.0.16" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.16" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.16" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.20" />
+		<PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="7.0.20" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.20" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.20" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
 		<PackageReference Include="FastIDs.TypeId.Serialization.SystemTextJson" Version="0.2.3" />
+		<PackageReference Include="FastIDs.TypeId.Serialization.JsonNet" Version="0.2.2" />
 		<PackageReference Include="MediatR" Version="12.1.1" />
-		<PackageReference Include="EFCore.BulkExtensions" Version="6.7.15" />
+		<PackageReference Include="EFCore.BulkExtensions" Version="6.8.1" />
 		<PackageReference Include="linq2db.EntityFrameworkCore" Version="6.17.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.19" />
-		<PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.19" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.19" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.19" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.36" />
+		<PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.36" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.36" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.36" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.8" />
 	</ItemGroup>
 
