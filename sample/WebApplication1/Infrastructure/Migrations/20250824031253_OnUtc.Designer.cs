@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication1.Infrastructure.Persistance;
 
@@ -11,9 +12,11 @@ using WebApplication1.Infrastructure.Persistance;
 namespace WebApplication1.Infrastructure.Migrations
 {
     [DbContext(typeof(WebApplication1DbContext))]
-    partial class WebApplication1DbContextModelSnapshot : ModelSnapshot
+    [Migration("20250824031253_OnUtc")]
+    partial class OnUtc
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

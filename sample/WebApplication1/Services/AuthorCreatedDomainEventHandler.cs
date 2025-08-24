@@ -23,10 +23,10 @@ internal sealed class AuthorCreatedDomainEventHandler : INotificationHandler<Aut
     {
         var author = await _repository.GetByIdAsync<Author>(notification.Id);
 
-        author.NoOfBooks += 1;
+        author!.NoOfBooks += 1;
 
-        var bookId = $"{notification.Id}".PadLeft(13);
-        var book = Book.Create(bookId, notification.Id, "titolone");
+        var bookId = Guid.NewGuid().ToString()[..13];
+        var book = Book.Create(bookId, notification.Id, "Creato da notification");
 
         _repository.Create(book);
 

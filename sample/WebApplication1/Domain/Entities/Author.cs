@@ -10,13 +10,13 @@ namespace WebApplication1.Domain.Entities
 
         public int NoOfBooks { get; set; }
 
-        public ICollection<Book> Books { get; set; }
+        public ICollection<Book> Books { get; set; } = [];
 
         public static Author Create(string firstName, string lastName)
         {
             var author = new Author() { FirstName = firstName, LastName = lastName };
 
-            author.RaisDomainPreEvent(new AuthorCreatedPreEvent(author));
+            author.RaiseDomainPreEvent(new AuthorCreatedPreEvent(author));
 
             return author;
         }

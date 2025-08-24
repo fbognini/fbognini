@@ -1,4 +1,5 @@
-﻿using fbognini.Core.Domain;
+﻿using FastIDs.TypeId;
+using fbognini.Core.Domain;
 using WebApplication1.Domain.Entities.Events;
 
 namespace WebApplication1.Domain.Entities

@@ -1,24 +1,25 @@
 using Bogus;
 using EFCore.BulkExtensions;
+using fbognini.Core.Domain.Query;
 using fbognini.Infrastructure.Multitenancy;
-using fbognini.Infrastructure.Persistence;
-using fbognini.Infrastructure.Repository;
+using fbognini.Infrastructure.Outbox;
 using Microsoft.AspNetCore.Http.Json;
 using System.Text.Json.Serialization;
+using WebApplication1;
 using WebApplication1.Domain.Entities;
 using WebApplication1.Infrastructure.Extensions;
 using WebApplication1.Infrastructure.Repositorys;
 using WebApplication1.SearchCriterias;
-using fbognini.Infrastructure.Outbox;
-using fbognini.Core.Domain;
-using fbognini.Core.Domain.Query;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SchemaFilter<ExampleSchemaFilter>();
+});
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -52,7 +53,7 @@ app.MapGet("/books", async (string? title, IWebApplication1Repository repository
     criteria.Args.Includes.Add(x => x.Author);
     criteria.Args.ThrowExceptionIfNull = true;
 
-    var books = await repository.GetFirstAsync<Book>(criteria);
+    var books = await repository.GetAllAsync<Book>(criteria);
     return books;
 })
 .WithName("GetBooks")
