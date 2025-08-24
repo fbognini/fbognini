@@ -1,6 +1,5 @@
 ﻿using fbognini.Core.Domain.Query;
 using System;
-using System.Data.Entity;
 using System.Linq;
 
 namespace fbognini.Core.Domain.Query.Pagination
