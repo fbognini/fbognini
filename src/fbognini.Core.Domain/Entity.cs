@@ -30,12 +30,24 @@ public class Entity: IEntity
         _domainEvents.Add(domainEvent);
     }
 
+    [Obsolete("Use RaiseDomainPreEvent")]
     public void RaisDomainPreEvent(IDomainPreEvent domainPreEvent)
     {
         _domainPreEvents.Add(domainPreEvent);
     }
 
+    public void RaiseDomainPreEvent(IDomainPreEvent domainPreEvent)
+    {
+        _domainPreEvents.Add(domainPreEvent);
+    }
+
+    [Obsolete("Use RaiseDomainMemoryEvent")]
     public void RaisDomainMemoryEvent(IDomainMemoryEvent domainMemoryEvent)
+    {
+        _domainMemoryEvents.Add(domainMemoryEvent);
+    }
+
+    public void RaiseDomainMemoryEvent(IDomainMemoryEvent domainMemoryEvent)
     {
         _domainMemoryEvents.Add(domainMemoryEvent);
     }

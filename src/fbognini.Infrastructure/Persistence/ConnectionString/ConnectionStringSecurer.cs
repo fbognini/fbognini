@@ -1,4 +1,4 @@
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using fbognini.Infrastructure.Common;
 using Microsoft.Extensions.Options;
 using Npgsql;
