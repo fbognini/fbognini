@@ -10,20 +10,30 @@ namespace fbognini.Core.Utilities
     {
         public static void ApplyConversion<T>(T value, AmountConversionRate rate)
         {
+            if (rate.Ratio == 1 && rate.ExtraMarginValue == 0 && rate.ExtraMarginPercentage == 0)
+            {
+                return;
+            }
+
             var props = PropertyExtensions.GetPropertiesWithAttribute<AmountAttribute>(value, true);
             foreach (var (property, instance) in props)
             {
                 var propertyValue = property.GetValue(instance);
+                if (propertyValue is null)
+                {
+                    continue;
+                }
 
                 if (PropertyExtensions.IsSimpleType(property.PropertyType))
                 {
                     var amount = ConvertAmount(propertyValue, rate);
-                    property.SetValue(instance, Convert.ChangeType(amount, property.PropertyType));
+                    property.SetValue(instance, amount);
+                    continue;
                 }
-                else if (PropertyExtensions.IsEnumerableOfSimpleTypes(property.PropertyType))
-                {
-                    IList list = (IList)Activator.CreateInstance(property.PropertyType);
 
+                if (PropertyExtensions.IsEnumerableOfSimpleTypes(property.PropertyType))
+                {
+                    var list = (IList)Activator.CreateInstance(property.PropertyType)!;
                     foreach (var item in (propertyValue as IEnumerable)!)
                     {
                         var amount = ConvertAmount(item, rate);
@@ -31,16 +41,20 @@ namespace fbognini.Core.Utilities
                     }
 
                     property.SetValue(instance, list, null);
+                    continue;
                 }
-                else
-                {
-                    throw new ArgumentException($"Invalid type {property.PropertyType} for conversion");
-                }
+
+                throw new ArgumentException($"Invalid type {property.PropertyType} for conversion");
             }
         }
 
-        public static double ConvertAmount(object obj, AmountConversionRate rate)
+        public static double? ConvertAmount(object? obj, AmountConversionRate rate)
         {
+            if (obj is null)
+            {
+                return null;
+            }
+
             var amount = GetAmount(obj);
 
             amount *= rate.Ratio;
