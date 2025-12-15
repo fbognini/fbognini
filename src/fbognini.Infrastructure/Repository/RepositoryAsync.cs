@@ -636,9 +636,35 @@ namespace fbognini.Infrastructure.Repository
         {
             context.Set<T>().AttachRange(entity);
         }
+
         public void Detach(IEntity entity)
         {
             context.Entry(entity).State = EntityState.Detached;
+        }
+
+        void DetachGraph(IEntity entity)
+        {
+            var entry = context.Entry(entity);
+            if (entry.State != EntityState.Detached)
+            {
+                entry.State = EntityState.Detached;
+            }
+
+            foreach (var navigation in entry.Navigations)
+            {
+                if (navigation.CurrentValue is IEnumerable<IEntity> collection)
+                {
+                    foreach (var child in collection)
+                    {
+                        DetachGraph(child);
+
+                    }
+                }
+                else if (navigation.CurrentValue is IEntity navigationEntity)
+                {
+                    DetachGraph(navigationEntity);
+                }
+            }
         }
 
         public void DetachAll()

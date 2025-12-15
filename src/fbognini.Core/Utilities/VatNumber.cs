@@ -46,9 +46,5 @@ namespace fbognini.Core.Utilities
                 return false;
             }
         }
-
-
-
     }
-
 }

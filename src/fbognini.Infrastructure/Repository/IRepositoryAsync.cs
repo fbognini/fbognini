@@ -205,6 +205,7 @@ namespace fbognini.Infrastructure.Repository
         void AttachRange<T>(params T[] entity)
             where T : class, IEntity;
         void Detach(IEntity entity);
+        void DetachGraph(IEntity entity);
         void DetachAll();
 
         #endregion
