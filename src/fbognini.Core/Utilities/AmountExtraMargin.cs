@@ -60,7 +60,7 @@ namespace fbognini.Core.Utilities
             amount *= rate.Ratio;
             amount += amount * rate.ExtraMarginPercentage / 100.0;
             amount += rate.ExtraMarginValue;
-            amount = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
+            amount = Math.Round(amount, rate.NoOfDecimalDigits, MidpointRounding.AwayFromZero);
 
             return amount;
         }
@@ -80,6 +80,7 @@ namespace fbognini.Core.Utilities
 
     public class AmountConversionRate
     {
+        public int NoOfDecimalDigits { get; set; } = 2;
         public double Ratio { get; set; } = 1;
         public double ExtraMarginPercentage { get; set; }
         public double ExtraMarginValue { get; set; }
